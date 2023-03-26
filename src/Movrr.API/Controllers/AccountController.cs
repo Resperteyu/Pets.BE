@@ -19,21 +19,21 @@ namespace movrr.Controllers
     [HttpPost("authenticate")]
     public async Task<ActionResult<AuthenticateResponse>> Authenticate(AuthenticateRequest model)
     {
-      var response = _accountService.Authenticate(model, IpAddress());
+      var response = await _accountService.AuthenticateAsync(model, IpAddress());
       return Ok(response);
     }
 
     [HttpPost("refresh-token")]
     public async Task<ActionResult<AuthenticateResponse>> RefreshToken(string refreshToken)
     {
-      var response = _accountService.RefreshToken(refreshToken, IpAddress());
+      var response = await _accountService.RefreshTokenAsync(refreshToken, IpAddress());
       
       return Ok(response);
     }
 
     [Authorize]
     [HttpPost("revoke-token")]
-    public IActionResult RevokeToken(RevokeTokenRequest model)
+    public async Task<IActionResult> RevokeToken(RevokeTokenRequest model)
     {
       var token = model.Token ?? model.RefreshToken;
 
@@ -43,7 +43,7 @@ namespace movrr.Controllers
       if (!Account.OwnsToken(token))
         return Unauthorized(new { message = "Unauthorized" });
 
-      _accountService.RevokeToken(token, IpAddress());
+      await _accountService.RevokeTokenAsync(token, IpAddress());
       return Ok(new { message = "Token revoked" });
     }
 
@@ -64,42 +64,42 @@ namespace movrr.Controllers
     }
 
     [HttpPost("validate-reset-token")]
-    public IActionResult ValidateResetToken(ValidateResetTokenRequest model)
+    public async Task<IActionResult> ValidateResetToken(ValidateResetTokenRequest model)
     {
-      _accountService.ValidateResetToken(model);
+      await _accountService.ValidateResetTokenAsync(model);
       return Ok(new { message = "Token is valid" });
     }
 
     [Authorize]
     [HttpGet("{id:int}")]
-    public ActionResult<AccountResponse> GetById(int id)
+    public async Task<ActionResult<AccountResponse>> GetById(int id)
     {
       if (id != Account.Id)
         return Unauthorized(new { message = "Unauthorized" });
 
-      var account = _accountService.GetById(id);
+      var account = await _accountService.GetByIdAsync(id);
       return Ok(account);
     }
 
     [Authorize]
     [HttpPut("{id:int}")]
-    public ActionResult<AccountResponse> Update(int id, UpdateRequest model)
+    public async Task<ActionResult<AccountResponse>> Update(int id, UpdateRequest model)
     {
       if (id != Account.Id)
         return Unauthorized(new { message = "Unauthorized" });
 
-      var account = _accountService.Update(id, model);
+      var account = await _accountService.UpdateAsync(id, model);
       return Ok(account);
     }
 
     [Authorize]
     [HttpDelete("{id:int}")]
-    public IActionResult Delete(int id)
+    public async Task<IActionResult> Delete(int id)
     {
       if (id != Account.Id)
         return Unauthorized(new { message = "Unauthorized" });
 
-      _accountService.Delete(id);
+      await _accountService.DeleteAsync(id);
       return Ok(new { message = "Account deleted successfully" });
     }
 

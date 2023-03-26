@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Movrr.API.Authentication.Service;
 using Movrr.API.Authentication.Service.Models;
+using System.Threading.Tasks;
 
 public class PasswordController : Controller
 {
@@ -25,15 +26,21 @@ public class PasswordController : Controller
     return View(new ResetPasswordRequest { Token = token });
   }
 
+  [HttpGet]
+  public IActionResult Login()
+  {
+    return View();
+  }
+  
   [HttpPost]
   [ValidateAntiForgeryToken]
-  public IActionResult Reset(ResetPasswordRequest request)
+  public async Task<IActionResult> Reset(ResetPasswordRequest request)
   {
     try
     {
       if (ModelState.IsValid)
       {
-        _accountService.ResetPassword(request);
+       await  _accountService.ResetPasswordAsync(request);
         ViewBag.result = true;
         return View(new ResetPasswordRequest());
       }
@@ -47,7 +54,7 @@ public class PasswordController : Controller
     return View(new ResetPasswordRequest());
   }
 
-  public IActionResult Verify(string token)
+  public async Task<IActionResult> Verify(string token)
   {
     if (string.IsNullOrEmpty(token))
     {
@@ -58,7 +65,7 @@ public class PasswordController : Controller
     string cssClass;
     try
     {
-      _accountService.VerifyEmail(token);
+      await _accountService.VerifyEmailAsync(token);
       message = "Email verified, you can log in now!";
       cssClass = "display-success";
     }

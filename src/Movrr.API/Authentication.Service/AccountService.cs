@@ -13,7 +13,9 @@ using Movrr.API.Authentication.Service.Models;
 using Movrr.API.Authentication.Service.Entities;
 using Movrr.API.Email.Service;
 using System.Threading.Tasks;
+
 using Movrr.API.Helpers;
+using Microsoft.EntityFrameworkCore;
 
 namespace Movrr.API.Authentication.Service
 {
@@ -33,9 +35,9 @@ namespace Movrr.API.Authentication.Service
       _context = context;
     }
 
-    public AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress)
+    public async Task<AuthenticateResponse> AuthenticateAsync(AuthenticateRequest model, string ipAddress)
     {
-      var account = _context.Accounts.SingleOrDefault(x => x.Email == model.Email);
+      var account = await _context.Accounts.SingleOrDefaultAsync(x => x.Email == model.Email);
 
       if (account == null || !BC.Verify(model.Password, account.PasswordHash))
         throw new AppException("Email or password is incorrect");
@@ -56,9 +58,9 @@ namespace Movrr.API.Authentication.Service
       return response;
     }
 
-    public AuthenticateResponse RefreshToken(string token, string ipAddress)
+    public async Task<AuthenticateResponse> RefreshTokenAsync(string token, string ipAddress)
     {
-      var (refreshToken, account) = GetRefreshToken(token);
+      var (refreshToken, account) = await GetRefreshTokenAsync(token);
 
       // replace old refresh token with a new one and save
       var newRefreshToken = GenerateRefreshToken(ipAddress);
@@ -70,7 +72,7 @@ namespace Movrr.API.Authentication.Service
       RemoveOldRefreshTokens(account);
 
       _context.Update(account);
-      _context.SaveChanges();
+      await _context.SaveChangesAsync();
 
       // generate new jwt
       var (jwtToken, expires) = GenerateJwtToken(account);
@@ -82,15 +84,15 @@ namespace Movrr.API.Authentication.Service
       return response;
     }
 
-    public void RevokeToken(string token, string ipAddress)
+    public async Task RevokeTokenAsync(string token, string ipAddress)
     {
-      var (refreshToken, account) = GetRefreshToken(token);
+      var (refreshToken, account) = await GetRefreshTokenAsync(token);
 
       // revoke token and save
       refreshToken.Revoked = DateTime.UtcNow;
       refreshToken.RevokedByIp = ipAddress;
       _context.Update(account);
-      _context.SaveChanges();
+      await _context.SaveChangesAsync();
     }
 
     public async Task<AuthenticateResponse> RegisterAsync(RegisterRequest model, string ipAddress)
@@ -110,10 +112,10 @@ namespace Movrr.API.Authentication.Service
       var refreshToken = GenerateRefreshToken(ipAddress);
       account.RefreshTokens = new List<RefreshToken> { refreshToken };
 
-      _context.Accounts.Add(account);
-      _context.SaveChanges();
+      await _context.Accounts.AddAsync(account);
+      await _context.SaveChangesAsync();
 
-      await SendVerificationEmail(account);
+      await SendVerificationEmailAsync(account);
 
       var response = _mapper.Map<AuthenticateResponse>(account);
       var (jwtToken, expires) = GenerateJwtToken(account);
@@ -124,9 +126,9 @@ namespace Movrr.API.Authentication.Service
       return response;
     }
 
-    public void VerifyEmail(string token)
+    public async Task VerifyEmailAsync(string token)
     {
-      var account = _context.Accounts.SingleOrDefault(x => x.VerificationToken == token);
+      var account = await _context.Accounts.SingleOrDefaultAsync(x => x.VerificationToken == token);
 
       if (account == null) throw new AppException("Verification failed");
 
@@ -134,12 +136,12 @@ namespace Movrr.API.Authentication.Service
       account.VerificationToken = null;
 
       _context.Accounts.Update(account);
-      _context.SaveChanges();
+      await _context.SaveChangesAsync();
     }
 
     public async Task ForgotPasswordAsync(ForgotPasswordRequest model)
     {
-      var account = _context.Accounts.SingleOrDefault(x => x.Email == model.Email);
+      var account = await _context.Accounts.SingleOrDefaultAsync(x => x.Email == model.Email);
 
       if (account == null) return;
 
@@ -147,14 +149,14 @@ namespace Movrr.API.Authentication.Service
       account.ResetTokenExpires = DateTime.UtcNow.AddDays(1);
 
       _context.Accounts.Update(account);
-      _context.SaveChanges();
+      await _context.SaveChangesAsync();
 
-      await SendPasswordResetEmail(account);
+      await SendPasswordResetEmailAsync(account);
     }
 
-    public void ValidateResetToken(ValidateResetTokenRequest model)
+    public async Task ValidateResetTokenAsync(ValidateResetTokenRequest model)
     {
-      var account = _context.Accounts.SingleOrDefault(x =>
+      var account = await _context.Accounts.SingleOrDefaultAsync(x =>
           x.ResetToken == model.Token &&
           x.ResetTokenExpires > DateTime.UtcNow);
 
@@ -162,9 +164,9 @@ namespace Movrr.API.Authentication.Service
         throw new AppException("Invalid token");
     }
 
-    public void ResetPassword(ResetPasswordRequest model)
+    public async Task ResetPasswordAsync(ResetPasswordRequest model)
     {
-      var account = _context.Accounts.SingleOrDefault(x =>
+      var account = await _context.Accounts.SingleOrDefaultAsync(x =>
           x.ResetToken == model.Token &&
           x.ResetTokenExpires > DateTime.UtcNow);
 
@@ -177,18 +179,18 @@ namespace Movrr.API.Authentication.Service
       account.ResetTokenExpires = null;
 
       _context.Accounts.Update(account);
-      _context.SaveChanges();
+      await _context.SaveChangesAsync();
     }
 
-    public AccountResponse GetById(int id)
+    public async Task<AccountResponse> GetByIdAsync(int id)
     {
-      var account = GetAccount(id);
+      var account = await GetAccountAsync(id);
       return _mapper.Map<AccountResponse>(account);
     }
 
-    public AccountResponse Update(int id, UpdateRequest model)
+    public async Task<AccountResponse> UpdateAsync(int id, UpdateRequest model)
     {
-      var account = GetAccount(id);
+      var account = await GetAccountAsync(id);
 
       // validate
       if (account.Email != model.Email && _context.Accounts.Any(x => x.Email == model.Email))
@@ -202,28 +204,28 @@ namespace Movrr.API.Authentication.Service
       _mapper.Map(model, account);
       account.Updated = DateTime.UtcNow;
       _context.Accounts.Update(account);
-      _context.SaveChanges();
+      await _context.SaveChangesAsync();
 
       return _mapper.Map<AccountResponse>(account);
     }
 
-    public void Delete(int id)
+    public async Task DeleteAsync(int id)
     {
-      var account = GetAccount(id);
+      var account = await GetAccountAsync(id);
       _context.Accounts.Remove(account);
-      _context.SaveChanges();
+      await _context.SaveChangesAsync();
     }
 
-    private Account GetAccount(int id)
+    private async Task<Account> GetAccountAsync(int id)
     {
-      var account = _context.Accounts.Find(id);
+      var account = await _context.Accounts.FindAsync(id);
       if (account == null) throw new KeyNotFoundException("Account not found");
       return account;
     }
 
-    private (RefreshToken, Account) GetRefreshToken(string token)
+    private async Task<(RefreshToken, Account)> GetRefreshTokenAsync(string token)
     {
-      var account = _context.Accounts.SingleOrDefault(u => u.RefreshTokens.Any(t => t.Token == token));
+      var account = await _context.Accounts.SingleOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == token));
       if (account == null) throw new AppException("Invalid token");
       var refreshToken = account.RefreshTokens.Single(x => x.Token == token);
       if (!refreshToken.IsActive) throw new AppException("Invalid token");
@@ -267,14 +269,14 @@ namespace Movrr.API.Authentication.Service
 
     private string RandomTokenString()
     {
-      using var rngCryptoServiceProvider = new RNGCryptoServiceProvider();
-      var randomBytes = new byte[40];
-      rngCryptoServiceProvider.GetBytes(randomBytes);
-      // convert random bytes to hex string
-      return BitConverter.ToString(randomBytes).Replace("-", "");
+        using var rng = RandomNumberGenerator.Create();
+        var randomBytes = new byte[40];
+        rng.GetBytes(randomBytes);
+        // convert random bytes to hex string
+        return BitConverter.ToString(randomBytes).Replace("-", "");
     }
 
-    private async Task SendVerificationEmail(Account account)
+    private async Task SendVerificationEmailAsync(Account account)
     {
       var verifyUrl = $"https://movrr.azurewebsites.net//password/verify?token={account.VerificationToken}";
       var content = $@"<p>Please click the below link to verify your email address:</p>
@@ -284,11 +286,11 @@ namespace Movrr.API.Authentication.Service
                       <p>Thanks for registering!</p>
                       {content}";
 
-      var message = new Message(new string[] { account.Email }, "Movrr - Verify Email", html, null);
+      var message = new Message(new string[] { account.Email }, "TBD - Verify Email", html, null);
       await _emailService.SendEmailAsync(message, null, null);
     }
 
-    private async Task SendPasswordResetEmail(Account account)
+    private async Task SendPasswordResetEmailAsync(Account account)
     {
     
         var resetUrl = $"https://movrr.azurewebsites.net//password/reset?token={account.ResetToken}";
@@ -297,7 +299,7 @@ namespace Movrr.API.Authentication.Service
       var html = $@"<h4>Reset Password Email</h4>
                       {content}";
 
-      var message = new Message(new string[] { account.Email }, "Movrr - Reset Password", html, null);
+      var message = new Message(new string[] { account.Email }, "TBD - Reset Password", html, null);
       await _emailService.SendEmailAsync(message, null, null);
     }
   }

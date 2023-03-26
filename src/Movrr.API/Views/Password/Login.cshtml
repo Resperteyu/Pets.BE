@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login Page</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css">
+  <style>
+.social-login-icons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.social-login-icons .btn {
+  border-radius: 50px;
+  margin: 10px;
+  width: 60px;
+  height: 60px;
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+  line-height: 20px;
+}
+		.social-login-icons .btn i {
+			margin: 0;
+		}
+		.social-login-title {
+			margin-top: 20px;
+			margin-bottom: 10px;
+			text-align: center;
+			font-size: 14px;
+		}
+		@* .login-btn {
+			margin-top: 20px;
+			border-radius: 50px;
+			display: block;
+			margin-left: auto;
+			margin-right: auto;
+			width: 200px;
+			height: 50px;
+			font-size: 20px;
+			font-weight: bold;
+			line-height: 20px;
+		} *@
+		.form-group .input-group-append {
+			cursor: pointer;
+		}
+		.form-group .input-group-text {
+			background: none;
+			border: none;
+		}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <h2 class="text-center">Login</h2>
+        <form>
+          <div class="form-group">
+            <p class="social-login-title">Login using your social accounts</p>
+            <div class="social-login-icons">
+              <div class="text-center">
+                <a href="#" class="btn btn-primary"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="btn btn-danger"><i class="fab fa-google"></i></a>
+              </div>
+            </div>  
+          </div>
+          <div class="form-group">
+            <label for="email" class="sr-only">Email address</label>
+            <input type="email" class="form-control" id="email" placeholder="Enter email">
+          </div>
+						<div class="input-group">
+							<input type="password" class="form-control" id="password" placeholder="Enter password">
+							<div class="input-group-append">
+								<span class="input-group-text"><i class="fas fa-eye"></i></span>
+							</div>
+						</div>
+          <div class="form-group">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="" id="remember-me">
+              <label class="form-check-label" for="remember-me">
+                Remember me
+              </label>
+            </div>
+          </div>
+                <div class="form-group">
+                  <input name="submit" class="btn btn-lg btn-primary btn-block" value="Login" type="submit">
+                </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

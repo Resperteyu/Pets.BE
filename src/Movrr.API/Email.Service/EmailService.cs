@@ -1,5 +1,6 @@
 using MailKit.Net.Smtp;
 using MimeKit;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -49,11 +50,11 @@ namespace Movrr.API.Email.Service
           await client.ConnectAsync(_emailConfig.SmtpServer, _emailConfig.Port, true);
 
           client.AuthenticationMechanisms.Remove("XOAUTH2");
-          await client.AuthenticateAsync(_emailConfig.UserName, _emailConfig.Password);
+          await client.AuthenticateAsync(_emailConfig.UserName, "hijtacfjkxzjmgun");
 
           await client.SendAsync(mailMessage);
         }
-        catch
+        catch(Exception ex)
         {
           //log an error message or throw an exception or both.
           throw;

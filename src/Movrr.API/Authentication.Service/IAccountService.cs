@@ -5,16 +5,16 @@ namespace Movrr.API.Authentication.Service
 {
   public interface IAccountService
   {
-    AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress);
-    AuthenticateResponse RefreshToken(string token, string ipAddress);
-    void RevokeToken(string token, string ipAddress);
+    Task<AuthenticateResponse> AuthenticateAsync(AuthenticateRequest model, string ipAddress);
+    Task<AuthenticateResponse> RefreshTokenAsync(string token, string ipAddress);
+    Task RevokeTokenAsync(string token, string ipAddress);
     Task<AuthenticateResponse> RegisterAsync(RegisterRequest model, string ipAddress);
-    void VerifyEmail(string token);
+    Task VerifyEmailAsync(string token);
     Task ForgotPasswordAsync(ForgotPasswordRequest model);
-    void ValidateResetToken(ValidateResetTokenRequest model);
-    void ResetPassword(ResetPasswordRequest model);
-    AccountResponse GetById(int id);
-    AccountResponse Update(int id, UpdateRequest model);
-    void Delete(int id);
+    Task ValidateResetTokenAsync(ValidateResetTokenRequest model);
+    Task ResetPasswordAsync(ResetPasswordRequest model);
+    Task<AccountResponse> GetByIdAsync(int id);
+    Task<AccountResponse> UpdateAsync(int id, UpdateRequest model);
+    Task DeleteAsync(int id);
   }
 }
