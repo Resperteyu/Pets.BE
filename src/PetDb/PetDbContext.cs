@@ -14,21 +14,22 @@ public partial class PetDbContext : DbContext
     {
     }
 
-    public DbSet<Country> Countries { get; set; }
+    public DbSet<Account> Account { get; set; }
+    public DbSet<Profile> Profile { get; set; }
 
-    public DbSet<Location> Locations { get; set; }
+    public DbSet<Country> Country { get; set; }
 
-    public DbSet<PetBreed> PetBreeds { get; set; }
+    public DbSet<Location> Location { get; set; }
 
-    public DbSet<PetProfile> PetProfiles { get; set; }
+    public DbSet<PetBreed> PetBreed { get; set; }
 
-    public DbSet<PetType> PetTypes { get; set; }
+    public DbSet<PetProfile> PetProfile { get; set; }
 
-    public DbSet<Profile> Profiles { get; set; }
+    public DbSet<PetType> PetType { get; set; }
 
-    public DbSet<Sex> Sexes { get; set; }
+    public DbSet<Sex> Sex { get; set; }
 
-    public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<RefreshToken> RefreshToken { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
@@ -36,6 +37,21 @@ public partial class PetDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Account>(entity =>
+        {
+            entity.OwnsOne(e => e.RefreshTokens);
+        });
+
+        modelBuilder.Entity<Profile>(entity =>
+        {
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.CountryCode).IsFixedLength();
+
+            //entity.HasOne<Account>().WithOne().HasForeignKey(p => p.Id);
+            entity.HasOne<Country>().WithMany().HasForeignKey(p => p.CountryCode);
+            entity.HasOne<Location>().WithMany().HasForeignKey(p => p.LocationId);
+        });
+
         modelBuilder.Entity<Country>(entity =>
         {
             entity.HasKey(e => e.CountryCode);
@@ -63,18 +79,6 @@ public partial class PetDbContext : DbContext
         modelBuilder.Entity<PetType>(entity =>
         {
             entity.Property(e => e.Name).IsFixedLength();
-        });
-
-        modelBuilder.Entity<Profile>(entity =>
-        {
-            entity.Property(e => e.Id).ValueGeneratedNever();
-            entity.Property(e => e.CountryCode).IsFixedLength();
-
-            entity.HasOne<Country>().WithMany().HasForeignKey(p => p.CountryCode);
-
-            entity.HasOne<Location>().WithMany().HasForeignKey(p => p.LocationId);
-
-            entity.OwnsOne(e => e.RefreshTokens);
         });
 
         modelBuilder.Entity<Location>(entity =>
