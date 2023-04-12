@@ -1,28 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
-
-namespace Movrr.API;
-
-[Table("PetBreed")]
-public partial class PetBreed
+﻿
+namespace PetDb.Models
 {
-    [Key]
-    public int Id { get; set; }
 
-    public byte TypeId { get; set; }
+    public class PetBreed
+    {
+        public int Id { get; set; }
 
-    [Required]
-    [StringLength(40)]
-    [Unicode(false)]
-    public string Title { get; set; }
+        public byte TypeId { get; set; }
 
-    [InverseProperty("Breed")]
-    public virtual ICollection<PetProfile> PetProfiles { get; } = new List<PetProfile>();
+        public string Title { get; set; }
 
-    [ForeignKey("TypeId")]
-    [InverseProperty("PetBreeds")]
-    public virtual PetType Type { get; set; }
+        //public virtual ICollection<PetProfile> PetProfiles { get; } = new List<PetProfile>();
+
+        //public virtual PetType Type { get; set; }
+    }
 }

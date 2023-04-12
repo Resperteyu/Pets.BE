@@ -1,50 +1,49 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
-
-namespace Movrr.API;
-
-[Table("Profile")]
-public partial class Profile
+﻿
+namespace PetDb.Models
 {
-    [Key]
-    public Guid Id { get; set; }
+    public class Profile
+    {
+        public Guid Id { get; set; }
 
-    [Required]
-    [StringLength(2)]
-    [Unicode(false)]
-    public string CountryCode { get; set; }
+        //start old account
+        public string Email { get; set; }
+        public string PasswordHash { get; set; }
+        public string VerificationToken { get; set; }
+        public DateTime? Verified { get; set; }
+        public bool IsVerified => Verified.HasValue || PasswordReset.HasValue;
+        public string ResetToken { get; set; }
+        public DateTime? ResetTokenExpires { get; set; }
+        public DateTime? PasswordReset { get; set; }
+        public DateTime Created { get; set; }
+        public DateTime? Updated { get; set; }
+        public List<RefreshToken> RefreshTokens { get; set; }
 
-    [Required]
-    [StringLength(20)]
-    [Unicode(false)]
-    public string FirstName { get; set; }
+        /*
+        public bool OwnsToken(string token)
+        {
+            return this.RefreshTokens?.Find(x => x.Token == token) != null;
+        }
+        */
+        //end old account
 
-    [Required]
-    [StringLength(20)]
-    [Unicode(false)]
-    public string LastName { get; set; }
+        public string CountryCode { get; set; }
 
-    [StringLength(10)]
-    [Unicode(false)]
-    public string PhoneNumber { get; set; }
+        public string FirstName { get; set; }
 
-    public bool EmailVerified { get; set; }
+        public string LastName { get; set; }
 
-    public bool PhoneVerified { get; set; }
+        public string PhoneNumber { get; set; }
 
-    public int? LocationId { get; set; }
+        public bool EmailVerified { get; set; }
 
-    [ForeignKey("CountryCode")]
-    [InverseProperty("Profiles")]
-    public virtual Country CountryCodeNavigation { get; set; }
+        public bool PhoneVerified { get; set; }
 
-    [ForeignKey("LocationId")]
-    [InverseProperty("Profiles")]
-    public virtual Location Location { get; set; }
+        public int? LocationId { get; set; }
 
-    [InverseProperty("Owner")]
-    public virtual ICollection<PetProfile> PetProfiles { get; } = new List<PetProfile>();
+        //public virtual Country CountryCodeNavigation { get; set; }
+
+        //public virtual Location Location { get; set; }
+
+        //public virtual ICollection<PetProfile> PetProfiles { get; } = new List<PetProfile>();
+    }
 }

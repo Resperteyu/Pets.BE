@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using PetDb.Models;
 
 namespace Movrr.API;
 
@@ -15,19 +14,22 @@ public partial class PetDbContext : DbContext
     {
     }
 
-    public virtual DbSet<Country> Countries { get; set; }
+    public DbSet<Country> Countries { get; set; }
 
-    public virtual DbSet<Location> Locations { get; set; }
+    public DbSet<Location> Locations { get; set; }
 
-    public virtual DbSet<PetBreed> PetBreeds { get; set; }
+    public DbSet<PetBreed> PetBreeds { get; set; }
 
-    public virtual DbSet<PetProfile> PetProfiles { get; set; }
+    public DbSet<PetProfile> PetProfiles { get; set; }
 
-    public virtual DbSet<PetType> PetTypes { get; set; }
+    public DbSet<PetType> PetTypes { get; set; }
 
-    public virtual DbSet<Profile> Profiles { get; set; }
+    public DbSet<Profile> Profiles { get; set; }
 
-    public virtual DbSet<Sex> Sexes { get; set; }
+    public DbSet<Sex> Sexes { get; set; }
+
+
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
@@ -44,26 +46,18 @@ public partial class PetDbContext : DbContext
         {
             entity.Property(e => e.Id).ValueGeneratedNever();
 
-            entity.HasOne(d => d.Type).WithMany(p => p.PetBreeds)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_PetBreed_TypeId");
+            entity.HasOne<PetType>().WithMany().HasForeignKey(p => p.TypeId);
         });
 
         modelBuilder.Entity<PetProfile>(entity =>
         {
             entity.Property(e => e.Id).ValueGeneratedNever();
 
-            entity.HasOne(d => d.Breed).WithMany(p => p.PetProfiles)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_PetProfile_BreedId");
+            entity.HasOne<PetBreed>().WithMany().HasForeignKey(p => p.BreedId);
 
-            entity.HasOne(d => d.Owner).WithMany(p => p.PetProfiles)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_PetProfile_OwnerId");
+            entity.HasOne<Profile>().WithMany().HasForeignKey(p => p.OwnerId);
 
-            entity.HasOne(d => d.Sex).WithMany(p => p.PetProfiles)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_PetProfile_SexId");
+            entity.HasOne<Sex>().WithMany().HasForeignKey(p =>p.SexId);
         });
 
         modelBuilder.Entity<PetType>(entity =>
@@ -76,15 +70,11 @@ public partial class PetDbContext : DbContext
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.CountryCode).IsFixedLength();
 
-            entity.HasOne(d => d.CountryCodeNavigation).WithMany(p => p.Profiles)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Profile_CountryCode");
+            entity.HasOne<Country>().WithMany().HasForeignKey(p => p.CountryCode);
 
-            entity.HasOne(d => d.Location).WithMany(p => p.Profiles).HasConstraintName("FK_Profile_LocationId");
+            entity.HasOne<Location>().WithMany().HasForeignKey(p => p.LocationId);
+
+            entity.OwnsOne(e => e.RefreshTokens);
         });
-
-        OnModelCreatingPartial(modelBuilder);
     }
-
-    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
