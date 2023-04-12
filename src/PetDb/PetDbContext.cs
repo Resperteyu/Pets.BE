@@ -28,17 +28,17 @@ public partial class PetDbContext : DbContext
 
     public DbSet<Sex> Sexes { get; set; }
 
-
     public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Data Source=.;Initial Catalog=PetDb;Integrated Security=True;TrustServerCertificate=Yes");
+        => optionsBuilder.UseSqlServer("Data Source=.;Initial Catalog=PetDb-test;Integrated Security=True;TrustServerCertificate=Yes");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Country>(entity =>
         {
+            entity.HasKey(e => e.CountryCode);
             entity.Property(e => e.CountryCode).IsFixedLength();
         });
 
@@ -75,6 +75,12 @@ public partial class PetDbContext : DbContext
             entity.HasOne<Location>().WithMany().HasForeignKey(p => p.LocationId);
 
             entity.OwnsOne(e => e.RefreshTokens);
+        });
+
+        modelBuilder.Entity<Location>(entity =>
+        {
+            entity.Property(e => e.Latitude).HasColumnType("decimal(9,6)");
+            entity.Property(e => e.Longitude).HasColumnType("decimal(9,6)");
         });
     }
 }

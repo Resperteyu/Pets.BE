@@ -4,7 +4,7 @@ namespace PetDb.Models
     public class RefreshToken
     {
         public int Id { get; set; }
-        public Account Account { get; set; }
+        public Profile Profile { get; set; }
         public string Token { get; set; }
         public DateTime Expires { get; set; }
         public bool IsExpired => DateTime.UtcNow >= Expires;
