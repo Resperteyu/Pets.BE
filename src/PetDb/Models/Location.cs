@@ -8,7 +8,5 @@ namespace PetDb.Models
         public decimal Latitude { get; set; }
 
         public decimal Longitude { get; set; }
-
-        //public virtual ICollection<Profile> Profiles { get; } = new List<Profile>();
     }
 }

@@ -97,8 +97,8 @@ public partial class PetDbContext : DbContext
         modelBuilder.Entity<Country>(entity =>
         {
             entity.HasKey(e => e.CountryCode);
-            entity.Property(e => e.CountryCode).HasColumnType("char(2)");
 
+            entity.Property(e => e.CountryCode).HasColumnType("char(2)");
             entity.Property(e => e.Name).HasMaxLength(20);
             entity.Property(e => e.DialCode).HasMaxLength(4);
 
@@ -125,6 +125,7 @@ public partial class PetDbContext : DbContext
             entity.HasOne<PetBreed>().WithMany().HasForeignKey(p => p.BreedId);
             entity.HasOne<Profile>().WithMany().HasForeignKey(p => p.OwnerId);
             entity.HasOne<Sex>().WithMany().HasForeignKey(p =>p.SexId);
+
 
             entity.ToTable("PetProfile");
         });

@@ -7,7 +7,5 @@ namespace PetDb.Models
         public byte Id { get; set; }
 
         public string Name { get; set; }
-
-        //public virtual ICollection<PetBreed> PetBreeds { get; } = new List<PetBreed>();
     }
 }

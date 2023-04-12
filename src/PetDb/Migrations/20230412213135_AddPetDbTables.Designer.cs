@@ -12,7 +12,7 @@ using PetDb;
 namespace PetDb.Migrations
 {
     [DbContext(typeof(PetDbContext))]
-    [Migration("20230412204525_AddPetDbTables")]
+    [Migration("20230412213135_AddPetDbTables")]
     partial class AddPetDbTables
     {
         /// <inheritdoc />
@@ -64,7 +64,7 @@ namespace PetDb.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Account");
+                    b.ToTable("Account", (string)null);
                 });
 
             modelBuilder.Entity("PetDb.Models.Country", b =>
@@ -84,7 +84,7 @@ namespace PetDb.Migrations
 
                     b.HasKey("CountryCode");
 
-                    b.ToTable("Country");
+                    b.ToTable("Country", (string)null);
                 });
 
             modelBuilder.Entity("PetDb.Models.Location", b =>
@@ -103,7 +103,7 @@ namespace PetDb.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Location");
+                    b.ToTable("Location", (string)null);
                 });
 
             modelBuilder.Entity("PetDb.Models.PetBreed", b =>
@@ -123,7 +123,7 @@ namespace PetDb.Migrations
 
                     b.HasIndex("TypeId");
 
-                    b.ToTable("PetBreed");
+                    b.ToTable("PetBreed", (string)null);
                 });
 
             modelBuilder.Entity("PetDb.Models.PetProfile", b =>
@@ -164,7 +164,7 @@ namespace PetDb.Migrations
 
                     b.HasIndex("SexId");
 
-                    b.ToTable("PetProfile");
+                    b.ToTable("PetProfile", (string)null);
                 });
 
             modelBuilder.Entity("PetDb.Models.PetType", b =>
@@ -179,7 +179,7 @@ namespace PetDb.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PetType");
+                    b.ToTable("PetType", (string)null);
                 });
 
             modelBuilder.Entity("PetDb.Models.Profile", b =>
@@ -220,7 +220,7 @@ namespace PetDb.Migrations
 
                     b.HasIndex("LocationId");
 
-                    b.ToTable("Profile");
+                    b.ToTable("Profile", (string)null);
                 });
 
             modelBuilder.Entity("PetDb.Models.RefreshToken", b =>
@@ -231,6 +231,9 @@ namespace PetDb.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
 
@@ -240,9 +243,6 @@ namespace PetDb.Migrations
 
                     b.Property<DateTime>("Expires")
                         .HasColumnType("datetime2");
-
-                    b.Property<Guid>("ProfileId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ReplacedByToken")
                         .IsRequired()
@@ -261,9 +261,9 @@ namespace PetDb.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProfileId");
+                    b.HasIndex("AccountId");
 
-                    b.ToTable("RefreshToken");
+                    b.ToTable("RefreshToken", (string)null);
                 });
 
             modelBuilder.Entity("PetDb.Models.Sex", b =>
@@ -278,29 +278,7 @@ namespace PetDb.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Sex");
-                });
-
-            modelBuilder.Entity("PetDb.Models.Account", b =>
-                {
-                    b.OwnsOne("System.Collections.Generic.List<PetDb.Models.RefreshToken>", "RefreshTokens", b1 =>
-                        {
-                            b1.Property<Guid>("AccountId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<int>("Capacity")
-                                .HasColumnType("int");
-
-                            b1.HasKey("AccountId");
-
-                            b1.ToTable("Account");
-
-                            b1.WithOwner()
-                                .HasForeignKey("AccountId");
-                        });
-
-                    b.Navigation("RefreshTokens")
-                        .IsRequired();
+                    b.ToTable("Sex", (string)null);
                 });
 
             modelBuilder.Entity("PetDb.Models.PetBreed", b =>
@@ -349,12 +327,17 @@ namespace PetDb.Migrations
             modelBuilder.Entity("PetDb.Models.RefreshToken", b =>
                 {
                     b.HasOne("PetDb.Models.Account", "Profile")
-                        .WithMany()
-                        .HasForeignKey("ProfileId")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Profile");
+                });
+
+            modelBuilder.Entity("PetDb.Models.Account", b =>
+                {
+                    b.Navigation("RefreshTokens");
                 });
 #pragma warning restore 612, 618
         }

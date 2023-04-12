@@ -10,8 +10,6 @@ namespace PetDb.Models
 
         public string Title { get; set; }
 
-        //public virtual ICollection<PetProfile> PetProfiles { get; } = new List<PetProfile>();
-
         //public virtual PetType Type { get; set; }
     }
 }

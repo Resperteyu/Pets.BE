@@ -24,8 +24,7 @@ namespace PetDb.Migrations
                     ResetTokenExpires = table.Column<DateTime>(type: "datetime2", nullable: true),
                     PasswordReset = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Created = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Updated = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    RefreshTokens_Capacity = table.Column<int>(type: "int", nullable: false)
+                    Updated = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -89,7 +88,7 @@ namespace PetDb.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    ProfileId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AccountId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Token = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Expires = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Created = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -102,8 +101,8 @@ namespace PetDb.Migrations
                 {
                     table.PrimaryKey("PK_RefreshToken", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_RefreshToken_Account_ProfileId",
-                        column: x => x.ProfileId,
+                        name: "FK_RefreshToken_Account_AccountId",
+                        column: x => x.AccountId,
                         principalTable: "Account",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -224,9 +223,9 @@ namespace PetDb.Migrations
                 column: "LocationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RefreshToken_ProfileId",
+                name: "IX_RefreshToken_AccountId",
                 table: "RefreshToken",
-                column: "ProfileId");
+                column: "AccountId");
         }
 
         /// <inheritdoc />
