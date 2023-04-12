@@ -77,7 +77,7 @@ public partial class PetDbContext : DbContext
 
             entity.ToTable("RefreshToken");
 
-            //TDB entity.WithOwner("Account").HasForeignKey("AccountId");
+            //TDB entity.WithOwner("Account").HasForeignKey("AccountId"); do we need reference to account at all?
         });
 
         modelBuilder.Entity<Profile>(entity =>
@@ -87,7 +87,7 @@ public partial class PetDbContext : DbContext
             entity.Property(e => e.FirstName).HasMaxLength(20);
             entity.Property(e => e.LastName).HasMaxLength(20);
 
-            //entity.HasOne<Account>().WithOne().HasForeignKey(p => p.Id);
+            //entity.HasOne<Account>().WithOne().HasForeignKey(p => p.Id); one to one relations, ProfileId and AccountId are the same
             entity.HasOne<Country>().WithMany().HasForeignKey(p => p.CountryCode);
             entity.HasOne<Location>().WithMany().HasForeignKey(p => p.LocationId);
 
