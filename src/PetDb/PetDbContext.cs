@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PetDb.Models;
 
-namespace Movrr.API;
+namespace PetDb;
 
 public partial class PetDbContext : DbContext
 {
@@ -45,7 +45,9 @@ public partial class PetDbContext : DbContext
         modelBuilder.Entity<Profile>(entity =>
         {
             entity.Property(e => e.Id).ValueGeneratedNever();
-            entity.Property(e => e.CountryCode).IsFixedLength();
+            entity.Property(e => e.CountryCode).HasColumnType("char(2)");
+            entity.Property(e => e.FirstName).HasMaxLength(20);
+            entity.Property(e => e.LastName).HasMaxLength(20);
 
             //entity.HasOne<Account>().WithOne().HasForeignKey(p => p.Id);
             entity.HasOne<Country>().WithMany().HasForeignKey(p => p.CountryCode);
@@ -55,12 +57,16 @@ public partial class PetDbContext : DbContext
         modelBuilder.Entity<Country>(entity =>
         {
             entity.HasKey(e => e.CountryCode);
-            entity.Property(e => e.CountryCode).IsFixedLength();
+            entity.Property(e => e.CountryCode).HasColumnType("char(2)");
+
+            entity.Property(e => e.Name).HasMaxLength(20);
+            entity.Property(e => e.DialCode).HasMaxLength(4);
         });
 
         modelBuilder.Entity<PetBreed>(entity =>
         {
             entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.Title).HasMaxLength(40);
 
             entity.HasOne<PetType>().WithMany().HasForeignKey(p => p.TypeId);
         });
@@ -68,6 +74,9 @@ public partial class PetDbContext : DbContext
         modelBuilder.Entity<PetProfile>(entity =>
         {
             entity.Property(e => e.Id).ValueGeneratedNever();
+
+            entity.Property(e => e.Name).HasMaxLength(20);
+            entity.Property(e => e.Description).HasMaxLength(250);
 
             entity.HasOne<PetBreed>().WithMany().HasForeignKey(p => p.BreedId);
 
@@ -78,7 +87,12 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<PetType>(entity =>
         {
-            entity.Property(e => e.Name).IsFixedLength();
+            entity.Property(e => e.Name).HasMaxLength(10);
+        });
+
+        modelBuilder.Entity<Sex>(entity =>
+        {
+            entity.Property(e => e.Title).HasMaxLength(10);
         });
 
         modelBuilder.Entity<Location>(entity =>
