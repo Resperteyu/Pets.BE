@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using PetDb;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
@@ -20,7 +21,7 @@ namespace Movrr.API.Authentication.Service
       _authSettings = authSettings.Value;
     }
 
-    public async Task Invoke(HttpContext context, DataContext dataContext)
+    public async Task Invoke(HttpContext context, PetDbContext dataContext)
     {
       var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
 
@@ -30,7 +31,7 @@ namespace Movrr.API.Authentication.Service
       await _next(context);
     }
 
-    private async Task AttachAccountToContext(HttpContext context, DataContext dataContext, string token)
+    private async Task AttachAccountToContext(HttpContext context, PetDbContext dataContext, string token)
     {
       try
       {

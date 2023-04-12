@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Movrr.API.Authentication.Service;
 using Movrr.API.Authentication.Service.Models;
+using System;
 using System.Threading.Tasks;
 
 namespace movrr.Controllers
@@ -72,7 +73,7 @@ namespace movrr.Controllers
 
     [Authorize]
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<AccountResponse>> GetById(int id)
+    public async Task<ActionResult<AccountResponse>> GetById(Guid id)
     {
       if (id != Account.Id)
         return Unauthorized(new { message = "Unauthorized" });
@@ -83,7 +84,7 @@ namespace movrr.Controllers
 
     [Authorize]
     [HttpPut("{id:int}")]
-    public async Task<ActionResult<AccountResponse>> Update(int id, UpdateRequest model)
+    public async Task<ActionResult<AccountResponse>> Update(Guid id, UpdateRequest model)
     {
       if (id != Account.Id)
         return Unauthorized(new { message = "Unauthorized" });
@@ -94,7 +95,7 @@ namespace movrr.Controllers
 
     [Authorize]
     [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(Guid id)
     {
       if (id != Account.Id)
         return Unauthorized(new { message = "Unauthorized" });

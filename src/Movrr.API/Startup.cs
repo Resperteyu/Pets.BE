@@ -11,6 +11,7 @@ using Movrr.API.Email.Service;
 using Movrr.API.Middleware;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using PetDb;
 
 namespace Movrr.API
 {
@@ -48,7 +49,7 @@ namespace Movrr.API
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DataContext context)
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env, PetDbContext context)
     {
       context.Database.Migrate();
 

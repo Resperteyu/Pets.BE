@@ -10,12 +10,12 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Movrr.API.Authentication.Service.Models;
-using Movrr.API.Authentication.Service.Entities;
 using Movrr.API.Email.Service;
 using System.Threading.Tasks;
-
 using Movrr.API.Helpers;
 using Microsoft.EntityFrameworkCore;
+using PetDb;
+using PetDb.Models;
 
 namespace Movrr.API.Authentication.Service
 {
@@ -24,9 +24,9 @@ namespace Movrr.API.Authentication.Service
     private readonly IMapper _mapper;
     private readonly AuthSettings _authSettings;
     private readonly IEmailService _emailService;
-    private readonly DataContext _context;
+    private readonly PetDbContext _context;
 
-    public AccountService(DataContext context, IMapper mapper, IOptions<AuthSettings> authSettings,
+    public AccountService(PetDbContext context, IMapper mapper, IOptions<AuthSettings> authSettings,
       IEmailService emailService)
     {
       _mapper = mapper;
@@ -182,13 +182,13 @@ namespace Movrr.API.Authentication.Service
       await _context.SaveChangesAsync();
     }
 
-    public async Task<AccountResponse> GetByIdAsync(int id)
+    public async Task<AccountResponse> GetByIdAsync(Guid id)
     {
       var account = await GetAccountAsync(id);
       return _mapper.Map<AccountResponse>(account);
     }
 
-    public async Task<AccountResponse> UpdateAsync(int id, UpdateRequest model)
+    public async Task<AccountResponse> UpdateAsync(Guid id, UpdateRequest model)
     {
       var account = await GetAccountAsync(id);
 
@@ -209,14 +209,14 @@ namespace Movrr.API.Authentication.Service
       return _mapper.Map<AccountResponse>(account);
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(Guid id)
     {
       var account = await GetAccountAsync(id);
       _context.Accounts.Remove(account);
       await _context.SaveChangesAsync();
     }
 
-    private async Task<Account> GetAccountAsync(int id)
+    private async Task<Account> GetAccountAsync(Guid id)
     {
       var account = await _context.Accounts.FindAsync(id);
       if (account == null) throw new KeyNotFoundException("Account not found");

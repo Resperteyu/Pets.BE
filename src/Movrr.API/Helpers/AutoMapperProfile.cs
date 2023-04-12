@@ -1,12 +1,12 @@
 using System;
 using AutoMapper;
-using Movrr.API.Authentication.Service.Entities;
 using Movrr.API.Authentication.Service.Models;
 using Movrr.API.Models;
+using PetDb.Models;
 
 namespace Movrr.API.Helpers
 {
-  public class AutoMapperProfile : Profile
+  public class AutoMapperProfile : AutoMapper.Profile
   {
     public AutoMapperProfile()
     {

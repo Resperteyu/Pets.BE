@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Movrr.API.Authentication.Service.Entities;
+using PetDb.Models;
 
 namespace movrr.Controllers
 {

@@ -1,4 +1,5 @@
 using Movrr.API.Authentication.Service.Models;
+using System;
 using System.Threading.Tasks;
 
 namespace Movrr.API.Authentication.Service
@@ -13,8 +14,8 @@ namespace Movrr.API.Authentication.Service
     Task ForgotPasswordAsync(ForgotPasswordRequest model);
     Task ValidateResetTokenAsync(ValidateResetTokenRequest model);
     Task ResetPasswordAsync(ResetPasswordRequest model);
-    Task<AccountResponse> GetByIdAsync(int id);
-    Task<AccountResponse> UpdateAsync(int id, UpdateRequest model);
-    Task DeleteAsync(int id);
+    Task<AccountResponse> GetByIdAsync(Guid id);
+    Task<AccountResponse> UpdateAsync(Guid id, UpdateRequest model);
+    Task DeleteAsync(Guid id);
   }
 }
