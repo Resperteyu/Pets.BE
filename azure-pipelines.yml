@@ -5,7 +5,7 @@ resources:
   - repo: self
 
 variables:
-  azureSubscription: 'DigitalVertex (rg-movvr-prod-001)'
+  azureSubscription: '4Coipus (rg-pets-prod-001)'
   tag: '$(Build.BuildId)'
 
 stages:
@@ -21,8 +21,8 @@ stages:
             displayName: Run unit tests
             inputs:
               script: |
-                docker build --target unittestrunner -t movrr-api-unitests:$(Build.BuildId) .
-                docker run --name unittests movrr-api-unitests:$(Build.BuildId)
+                docker build --target unittestrunner -t pets-api-unitests:$(Build.BuildId) .
+                docker run --name unittests pets-api-unitests:$(Build.BuildId)
                 docker cp unittests:/testsresults/unittests ../
 
           - task: PublishTestResults@2
@@ -45,15 +45,15 @@ stages:
       #       displayName: Run Api for component tests
       #       inputs:
       #         script: |
-      #           docker build --target runtime -t movrr-api:$(Build.BuildId) .
-      #           docker run -d -p 5000:80 movrr-api:$(Build.BuildId)
+      #           docker build --target runtime -t pets-api:$(Build.BuildId) .
+      #           docker run -d -p 5000:80 pets-api:$(Build.BuildId)
 
       #     - task: CmdLine@2
       #       displayName: Run component tests
       #       inputs:
       #         script: |
-      #           docker build --target componenttestrunner -t movrr-api-componenttest:$(Build.BuildId) .
-      #           docker run --network=host --name componenttests movrr-api-componenttest:$(Build.BuildId)
+      #           docker build --target componenttestrunner -t pets-api-componenttest:$(Build.BuildId) .
+      #           docker run --network=host --name componenttests pets-api-componenttest:$(Build.BuildId)
       #           docker cp componenttests:/testsresults/componenttests ../
 
       #     - task: PublishTestResults@2
@@ -77,7 +77,7 @@ stages:
             displayName: Build and push to Docker Hub
             inputs:
               containerRegistry: 'DockerHub - DigitalVertex'
-              repository: 'digitalvertex/movrr'
+              repository: '4coipus/pets'
               command: 'buildAndPush'
               Dockerfile: '**/Dockerfile'
               tags: $(Build.BuildId)
@@ -95,7 +95,7 @@ stages:
               ConnectionType: 'AzureRM'
               azureSubscription: $(azureSubscription)
               appType: 'webAppContainer'
-              WebAppName: 'movrr'
+              WebAppName: 'pets'
               DockerNamespace: 'index.docker.io'
-              DockerRepository: 'digitalvertex/movrr'
+              DockerRepository: '4coipus/pets'
               DockerImageTag: $(Build.BuildId)
