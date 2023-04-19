@@ -3,29 +3,27 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using NetTopologySuite.Geometries;
 using Pets.Db;
 
 #nullable disable
 
-namespace PetDb.Migrations
+namespace Pets.Db.Migrations
 {
     [DbContext(typeof(PetsDbContext))]
-    [Migration("20230412213135_AddPetDbTables")]
-    partial class AddPetDbTables
+    partial class PetsDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.4")
+                .HasAnnotation("ProductVersion", "7.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("PetDb.Models.Account", b =>
+            modelBuilder.Entity("Pets.Db.Models.Account", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -67,7 +65,7 @@ namespace PetDb.Migrations
                     b.ToTable("Account", (string)null);
                 });
 
-            modelBuilder.Entity("PetDb.Models.Country", b =>
+            modelBuilder.Entity("Pets.Db.Models.Country", b =>
                 {
                     b.Property<string>("CountryCode")
                         .HasColumnType("char(2)");
@@ -87,13 +85,17 @@ namespace PetDb.Migrations
                     b.ToTable("Country", (string)null);
                 });
 
-            modelBuilder.Entity("PetDb.Models.Location", b =>
+            modelBuilder.Entity("Pets.Db.Models.Location", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<Point>("GeoLocation")
+                        .IsRequired()
+                        .HasColumnType("geography");
 
                     b.Property<decimal>("Latitude")
                         .HasColumnType("decimal(9,6)");
@@ -106,10 +108,13 @@ namespace PetDb.Migrations
                     b.ToTable("Location", (string)null);
                 });
 
-            modelBuilder.Entity("PetDb.Models.PetBreed", b =>
+            modelBuilder.Entity("Pets.Db.Models.PetBreed", b =>
                 {
                     b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -126,9 +131,10 @@ namespace PetDb.Migrations
                     b.ToTable("PetBreed", (string)null);
                 });
 
-            modelBuilder.Entity("PetDb.Models.PetProfile", b =>
+            modelBuilder.Entity("Pets.Db.Models.PetProfile", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("AvailableForBreeding")
@@ -138,7 +144,7 @@ namespace PetDb.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime>("DateOfBirth")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("date");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -167,7 +173,7 @@ namespace PetDb.Migrations
                     b.ToTable("PetProfile", (string)null);
                 });
 
-            modelBuilder.Entity("PetDb.Models.PetType", b =>
+            modelBuilder.Entity("Pets.Db.Models.PetType", b =>
                 {
                     b.Property<byte>("Id")
                         .HasColumnType("tinyint");
@@ -182,7 +188,7 @@ namespace PetDb.Migrations
                     b.ToTable("PetType", (string)null);
                 });
 
-            modelBuilder.Entity("PetDb.Models.Profile", b =>
+            modelBuilder.Entity("Pets.Db.Models.Profile", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
@@ -205,6 +211,7 @@ namespace PetDb.Migrations
                         .HasColumnType("nvarchar(20)");
 
                     b.Property<int?>("LocationId")
+                        .IsRequired()
                         .HasColumnType("int");
 
                     b.Property<string>("PhoneNumber")
@@ -223,50 +230,7 @@ namespace PetDb.Migrations
                     b.ToTable("Profile", (string)null);
                 });
 
-            modelBuilder.Entity("PetDb.Models.RefreshToken", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<Guid>("AccountId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedByIp")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Expires")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ReplacedByToken")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("Revoked")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("RevokedByIp")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Token")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountId");
-
-                    b.ToTable("RefreshToken", (string)null);
-                });
-
-            modelBuilder.Entity("PetDb.Models.Sex", b =>
+            modelBuilder.Entity("Pets.Db.Models.Sex", b =>
                 {
                     b.Property<byte>("Id")
                         .HasColumnType("tinyint");
@@ -281,63 +245,135 @@ namespace PetDb.Migrations
                     b.ToTable("Sex", (string)null);
                 });
 
-            modelBuilder.Entity("PetDb.Models.PetBreed", b =>
+            modelBuilder.Entity("Pets.Db.Models.Account", b =>
                 {
-                    b.HasOne("PetDb.Models.PetType", null)
+                    b.OwnsMany("PetDb.Models.RefreshToken", "RefreshTokens", b1 =>
+                        {
+                            b1.Property<Guid>("AccountId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
+
+                            b1.Property<DateTime>("Created")
+                                .HasColumnType("datetime2");
+
+                            b1.Property<string>("CreatedByIp")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<DateTime>("Expires")
+                                .HasColumnType("datetime2");
+
+                            b1.Property<string>("ReplacedByToken")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<DateTime?>("Revoked")
+                                .HasColumnType("datetime2");
+
+                            b1.Property<string>("RevokedByIp")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<string>("Token")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.HasKey("AccountId", "Id");
+
+                            b1.ToTable("RefreshTokens");
+
+                            b1.WithOwner("Account")
+                                .HasForeignKey("AccountId");
+
+                            b1.Navigation("Account");
+                        });
+
+                    b.Navigation("RefreshTokens");
+                });
+
+            modelBuilder.Entity("Pets.Db.Models.PetBreed", b =>
+                {
+                    b.HasOne("Pets.Db.Models.PetType", null)
                         .WithMany()
                         .HasForeignKey("TypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("PetDb.Models.PetProfile", b =>
+            modelBuilder.Entity("Pets.Db.Models.PetProfile", b =>
                 {
-                    b.HasOne("PetDb.Models.PetBreed", null)
-                        .WithMany()
+                    b.HasOne("Pets.Db.Models.PetBreed", "Breed")
+                        .WithMany("PetProfiles")
                         .HasForeignKey("BreedId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PetDb.Models.Profile", null)
-                        .WithMany()
+                    b.HasOne("Pets.Db.Models.Profile", "Owner")
+                        .WithMany("PetProfiles")
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PetDb.Models.Sex", null)
-                        .WithMany()
+                    b.HasOne("Pets.Db.Models.Sex", "Sex")
+                        .WithMany("PetProfiles")
                         .HasForeignKey("SexId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Breed");
+
+                    b.Navigation("Owner");
+
+                    b.Navigation("Sex");
                 });
 
-            modelBuilder.Entity("PetDb.Models.Profile", b =>
+            modelBuilder.Entity("Pets.Db.Models.Profile", b =>
                 {
-                    b.HasOne("PetDb.Models.Country", null)
-                        .WithMany()
+                    b.HasOne("Pets.Db.Models.Country", "Country")
+                        .WithMany("Profiles")
                         .HasForeignKey("CountryCode")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PetDb.Models.Location", null)
-                        .WithMany()
-                        .HasForeignKey("LocationId");
-                });
-
-            modelBuilder.Entity("PetDb.Models.RefreshToken", b =>
-                {
-                    b.HasOne("PetDb.Models.Account", "Profile")
-                        .WithMany("RefreshTokens")
-                        .HasForeignKey("AccountId")
+                    b.HasOne("Pets.Db.Models.Location", "Location")
+                        .WithMany("Profiles")
+                        .HasForeignKey("LocationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Profile");
+                    b.Navigation("Country");
+
+                    b.Navigation("Location");
                 });
 
-            modelBuilder.Entity("PetDb.Models.Account", b =>
+            modelBuilder.Entity("Pets.Db.Models.Country", b =>
                 {
-                    b.Navigation("RefreshTokens");
+                    b.Navigation("Profiles");
+                });
+
+            modelBuilder.Entity("Pets.Db.Models.Location", b =>
+                {
+                    b.Navigation("Profiles");
+                });
+
+            modelBuilder.Entity("Pets.Db.Models.PetBreed", b =>
+                {
+                    b.Navigation("PetProfiles");
+                });
+
+            modelBuilder.Entity("Pets.Db.Models.Profile", b =>
+                {
+                    b.Navigation("PetProfiles");
+                });
+
+            modelBuilder.Entity("Pets.Db.Models.Sex", b =>
+                {
+                    b.Navigation("PetProfiles");
                 });
 #pragma warning restore 612, 618
         }

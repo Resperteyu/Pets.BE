@@ -1,12 +1,13 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using NetTopologySuite.Geometries;
 
 #nullable disable
 
-namespace PetDb.Migrations
+namespace Pets.Db.Migrations
 {
     /// <inheritdoc />
-    public partial class AddPetDbTables : Migration
+    public partial class AddPetsDbTables : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -51,7 +52,8 @@ namespace PetDb.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Latitude = table.Column<decimal>(type: "decimal(9,6)", nullable: false),
-                    Longitude = table.Column<decimal>(type: "decimal(9,6)", nullable: false)
+                    Longitude = table.Column<decimal>(type: "decimal(9,6)", nullable: false),
+                    GeoLocation = table.Column<Point>(type: "geography", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -83,7 +85,7 @@ namespace PetDb.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "RefreshToken",
+                name: "RefreshTokens",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -99,9 +101,9 @@ namespace PetDb.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RefreshToken", x => x.Id);
+                    table.PrimaryKey("PK_RefreshTokens", x => new { x.AccountId, x.Id });
                     table.ForeignKey(
-                        name: "FK_RefreshToken_Account_AccountId",
+                        name: "FK_RefreshTokens_Account_AccountId",
                         column: x => x.AccountId,
                         principalTable: "Account",
                         principalColumn: "Id",
@@ -119,7 +121,7 @@ namespace PetDb.Migrations
                     PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     EmailVerified = table.Column<bool>(type: "bit", nullable: false),
                     PhoneVerified = table.Column<bool>(type: "bit", nullable: false),
-                    LocationId = table.Column<int>(type: "int", nullable: true)
+                    LocationId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -134,14 +136,16 @@ namespace PetDb.Migrations
                         name: "FK_Profile_Location_LocationId",
                         column: x => x.LocationId,
                         principalTable: "Location",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
                 name: "PetBreed",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     TypeId = table.Column<byte>(type: "tinyint", nullable: false),
                     Title = table.Column<string>(type: "nvarchar(40)", maxLength: 40, nullable: false)
                 },
@@ -164,7 +168,7 @@ namespace PetDb.Migrations
                     OwnerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     SexId = table.Column<byte>(type: "tinyint", nullable: false),
                     BreedId = table.Column<int>(type: "int", nullable: false),
-                    DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    DateOfBirth = table.Column<DateTime>(type: "date", nullable: false),
                     AvailableForBreeding = table.Column<bool>(type: "bit", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: false)
@@ -221,11 +225,6 @@ namespace PetDb.Migrations
                 name: "IX_Profile_LocationId",
                 table: "Profile",
                 column: "LocationId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_RefreshToken_AccountId",
-                table: "RefreshToken",
-                column: "AccountId");
         }
 
         /// <inheritdoc />
@@ -235,7 +234,7 @@ namespace PetDb.Migrations
                 name: "PetProfile");
 
             migrationBuilder.DropTable(
-                name: "RefreshToken");
+                name: "RefreshTokens");
 
             migrationBuilder.DropTable(
                 name: "PetBreed");

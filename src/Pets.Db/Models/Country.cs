@@ -8,5 +8,7 @@
         public string Name { get; set; }
 
         public string DialCode { get; set; }
+
+        public ICollection<Profile> Profiles { get; } = new List<Profile>();
     }
 }

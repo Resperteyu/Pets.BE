@@ -1,4 +1,7 @@
-﻿namespace Pets.Db.Models
+﻿
+using NetTopologySuite.Geometries;
+
+namespace Pets.Db.Models
 {
     public class Location
     {
@@ -7,5 +10,9 @@
         public decimal Latitude { get; set; }
 
         public decimal Longitude { get; set; }
+
+        public Point GeoLocation { get; set; }
+
+        public ICollection<Profile> Profiles { get; } = new List<Profile>();
     }
 }

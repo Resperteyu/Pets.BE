@@ -17,6 +17,7 @@ public partial class PetsDbContext : DbContext
     }
 
     public DbSet<Account> Accounts { get; set; }
+
     public DbSet<Profile> Profiles { get; set; }
 
     public DbSet<Country> Countries { get; set; }
@@ -35,7 +36,8 @@ public partial class PetsDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Data Source=.;Initial Catalog=PetDb-test;Integrated Security=True;TrustServerCertificate=Yes");
+        => optionsBuilder.UseSqlServer("Data Source=.;Initial Catalog=PetDb-test;Integrated Security=True;TrustServerCertificate=Yes"
+            , x => x.UseNetTopologySuite());
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -56,31 +58,6 @@ public partial class PetsDbContext : DbContext
             entity.ToTable("Account");
         });
 
-        modelBuilder.Entity<RefreshToken>(entity =>
-        {
-            //TDB
-
-            entity.Property<int>("Id")
-                .ValueGeneratedOnAdd()
-                .HasColumnType("int")
-                .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-            entity.Property<Guid>("AccountId").HasColumnType("uniqueidentifier");
-            entity.Property<DateTime>("Created").HasColumnType("datetime2");
-            entity.Property<string>("CreatedByIp").HasColumnType("nvarchar(max)");
-            entity.Property<DateTime>("Expires").HasColumnType("datetime2");
-            entity.Property<string>("ReplacedByToken").HasColumnType("nvarchar(max)");
-            entity.Property<DateTime?>("Revoked").HasColumnType("datetime2");
-            entity.Property<string>("RevokedByIp").HasColumnType("nvarchar(max)");
-            entity.Property<string>("Token").HasColumnType("nvarchar(max)");
-
-            entity.HasIndex("AccountId");
-
-            entity.ToTable("RefreshToken");
-
-            //TDB entity.WithOwner("Account").HasForeignKey("AccountId"); do we need reference to account at all?
-        });
-
         modelBuilder.Entity<Profile>(entity =>
         {
             entity.Property(e => e.Id).ValueGeneratedNever();
@@ -88,9 +65,8 @@ public partial class PetsDbContext : DbContext
             entity.Property(e => e.FirstName).HasMaxLength(20);
             entity.Property(e => e.LastName).HasMaxLength(20);
 
-            //entity.HasOne<Account>().WithOne().HasForeignKey(p => p.Id); one to one relations, ProfileId and AccountId are the same
-            entity.HasOne<Country>().WithMany().HasForeignKey(p => p.CountryCode);
-            entity.HasOne<Location>().WithMany().HasForeignKey(p => p.LocationId);
+            entity.HasOne(e => e.Country).WithMany(e => e.Profiles).HasForeignKey(p => p.CountryCode).IsRequired();
+            entity.HasOne(e => e.Location).WithMany(e => e.Profiles).HasForeignKey(p => p.LocationId).IsRequired();
 
             entity.ToTable("Profile");
         });
@@ -108,7 +84,6 @@ public partial class PetsDbContext : DbContext
 
         modelBuilder.Entity<PetBreed>(entity =>
         {
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Title).HasMaxLength(40);
 
             entity.HasOne<PetType>().WithMany().HasForeignKey(p => p.TypeId);
@@ -118,15 +93,13 @@ public partial class PetsDbContext : DbContext
 
         modelBuilder.Entity<PetProfile>(entity =>
         {
-            entity.Property(e => e.Id).ValueGeneratedNever();
-
             entity.Property(e => e.Name).HasMaxLength(20);
             entity.Property(e => e.Description).HasMaxLength(250);
+            entity.Property(e => e.DateOfBirth).HasColumnType("date");
 
-            entity.HasOne<PetBreed>().WithMany().HasForeignKey(p => p.BreedId);
-            entity.HasOne<Profile>().WithMany().HasForeignKey(p => p.OwnerId);
-            entity.HasOne<Sex>().WithMany().HasForeignKey(p => p.SexId);
-
+            entity.HasOne(e => e.Breed).WithMany(e => e.PetProfiles).HasForeignKey(p => p.BreedId).IsRequired();
+            entity.HasOne(e => e.Owner).WithMany(e => e.PetProfiles).HasForeignKey(p => p.OwnerId).IsRequired();
+            entity.HasOne(e => e.Sex).WithMany(e => e.PetProfiles).HasForeignKey(p => p.SexId).IsRequired();
 
             entity.ToTable("PetProfile");
         });

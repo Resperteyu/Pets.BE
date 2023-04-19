@@ -5,6 +5,7 @@
         public Guid Id { get; set; }
 
         public string CountryCode { get; set; }
+        public virtual Country Country { get; set; }
 
         public string FirstName { get; set; }
 
@@ -17,11 +18,8 @@
         public bool PhoneVerified { get; set; }
 
         public int? LocationId { get; set; }
+        public virtual Location Location { get; set; }
 
-        //public virtual Country CountryCodeNavigation { get; set; }
-
-        //public virtual Location Location { get; set; }
-
-        //public virtual ICollection<PetProfile> PetProfiles { get; } = new List<PetProfile>();
+        public ICollection<PetProfile> PetProfiles { get; } = new List<PetProfile>();
     }
 }

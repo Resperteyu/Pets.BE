@@ -9,6 +9,6 @@
 
         public string Title { get; set; }
 
-        //public virtual PetType Type { get; set; }
+        public ICollection<PetProfile> PetProfiles { get; } = new List<PetProfile>();
     }
 }

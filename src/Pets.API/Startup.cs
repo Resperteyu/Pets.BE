@@ -27,7 +27,7 @@ namespace Pets.API
     // This method gets called by the runtime. Use this method to add services to the container.
     public void ConfigureServices(IServiceCollection services)
     {
-      services.AddDbContext<DbContext>();
+      services.AddDbContext<PetsDbContext>();
       services.AddHealthChecks();
       services.AddControllersWithViews();
       services.AddMemoryCache();
