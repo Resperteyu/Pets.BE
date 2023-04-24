@@ -126,6 +126,6 @@ public partial class PetsDbContext : DbContext
             entity.ToTable("Location");
         });
 
-
+        modelBuilder.Seed();
     }
 }
