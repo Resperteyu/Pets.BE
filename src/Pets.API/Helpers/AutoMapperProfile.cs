@@ -1,33 +1,39 @@
-using System;
-using AutoMapper;
 using Pets.API.Authentication.Service.Models;
-using Pets.API.Models;
+using Pets.API.Responses.Dtos;
 using Pets.Db.Models;
 
 namespace Pets.API.Helpers
 {
     public class AutoMapperProfile : AutoMapper.Profile
-  {
-    public AutoMapperProfile()
     {
-      CreateMap<Account, AccountResponse>();
+        public AutoMapperProfile()
+        {
+            CreateMap<Account, AccountResponse>();
 
-      CreateMap<Account, AuthenticateResponse>();
+            CreateMap<Account, AuthenticateResponse>();
 
-      CreateMap<RegisterRequest, Account>();
+            CreateMap<RegisterRequest, Account>();
 
-      CreateMap<CreateRequest, Account>();
+            CreateMap<CreateRequest, Account>();
 
-      CreateMap<UpdateRequest, Account>()
-          .ForAllMembers(x => x.Condition(
-              (src, dest, prop) =>
-              {
-                if (prop == null) return false;
-                if (prop.GetType() == typeof(string) && string.IsNullOrEmpty((string)prop)) return false;
+            CreateMap<UpdateRequest, Account>()
+              .ForAllMembers(x => x.Condition(
+                  (src, dest, prop) =>
+                  {
+                    if (prop == null) return false;
+                    if (prop.GetType() == typeof(string) && string.IsNullOrEmpty((string)prop)) return false;
 
-                return true;
-              }
-          ));
+                    return true;
+                  }
+              ));
+
+            CreateMap<Sex, SexDto>();
+
+            CreateMap<PetType, PetTypeDto>();
+
+            CreateMap<PetBreed, PetBreedDto>();
+
+            CreateMap<Country, CountryDto>();
+        }        
     }
-  }
 }
