@@ -34,6 +34,10 @@ namespace Pets.API.Helpers
             CreateMap<PetBreed, PetBreedDto>();
 
             CreateMap<Country, CountryDto>();
+
+            CreateMap<PetProfile, PetProfileDto>();
+
+            CreateMap<Profile, PetOwnerInfosDto>();
         }        
     }
 }
