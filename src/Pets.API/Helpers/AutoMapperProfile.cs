@@ -1,4 +1,5 @@
 using Pets.API.Authentication.Service.Models;
+using Pets.API.Requests;
 using Pets.API.Responses.Dtos;
 using Pets.Db.Models;
 
@@ -38,6 +39,8 @@ namespace Pets.API.Helpers
             CreateMap<PetProfile, PetProfileDto>();
 
             CreateMap<Profile, PetOwnerInfosDto>();
+
+            CreateMap<CreatePetRequest, PetProfile>();
         }        
     }
 }

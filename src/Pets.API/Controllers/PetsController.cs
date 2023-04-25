@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Pets.API.Authentication.Service;
+using Pets.API.Requests;
 using Pets.API.Responses.Dtos;
 using Pets.API.Services;
 using System;
@@ -9,7 +11,7 @@ namespace Pets.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class PetsController : ControllerBase
+    public class PetsController : BaseController
     {
         private readonly IPetProfileService _petProfileService;
         public PetsController(IPetProfileService petProfileService)
@@ -23,7 +25,7 @@ namespace Pets.API.Controllers
             var petProfile = await _petProfileService.GetByPetId(petId);
 
             if (petProfile == null)
-                return NotFound();
+                return NotFound("Pet not found");
 
             return Ok(petProfile);
         }
@@ -35,10 +37,31 @@ namespace Pets.API.Controllers
 
             //what to return if owner does not exist??
 
-            if (petProfiles == null)
-                return NotFound();
-
             return Ok(petProfiles);
+        }
+
+        [Authorize]
+        [HttpPost]
+        public async Task<ActionResult<Guid>> Post(CreatePetRequest request)
+        {
+            var petId = await _petProfileService.CreatePet(request, Account.Id);
+            return Ok(petId);
+        }
+
+        [Authorize]
+        [HttpPut]
+        public async Task<ActionResult> Put(UpdatePetRequest request)
+        {
+            var petEntity = await _petProfileService.GetEntityByPetId(request.Id);
+
+            if (petEntity == null)
+                return NotFound("Pet not found");
+
+            if (petEntity.OwnerId != Account.Id)
+                return Unauthorized("You don't own this pet");
+
+            await _petProfileService.UpdatePet(request, petEntity);
+            return Ok();
         }
     }
 }
