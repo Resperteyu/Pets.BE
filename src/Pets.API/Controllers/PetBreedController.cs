@@ -16,10 +16,9 @@ namespace Pets.API.Controllers
             _petBreedService = petBreedService;
         }
 
-        [HttpGet("all")]
+        [HttpGet]
         public async Task<ActionResult<List<PetBreedDto>>> GetAll()
         {
-
             var petBreeds = await _petBreedService.GetAll();
             return Ok(petBreeds);
         }

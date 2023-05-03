@@ -16,7 +16,7 @@ namespace Pets.API.Controllers
             _petTypeService = petTypeService;
         }
 
-        [HttpGet("all")]
+        [HttpGet]
         public async Task<ActionResult<List<PetTypeDto>>> GetAll()
         {
 
