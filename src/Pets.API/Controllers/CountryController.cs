@@ -16,7 +16,7 @@ namespace Pets.API.Controllers
             _countryService = countryService;
         }
 
-        [HttpGet("all")]
+        [HttpGet]
         public async Task<ActionResult<List<CountryDto>>> GetAll()
         {
             var countries = await _countryService.GetAll();

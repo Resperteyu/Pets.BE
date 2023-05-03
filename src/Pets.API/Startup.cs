@@ -47,6 +47,7 @@ namespace Pets.API
             services.AddScoped<IPetTypeService, PetTypeService>();
             services.AddScoped<IPetBreedService, PetBreedService>();
             services.AddScoped<ICountryService, CountryService>();
+            services.AddScoped<IPetProfileService, PetProfileService>();
 
             services.AddApplicationInsightsTelemetry();
         }

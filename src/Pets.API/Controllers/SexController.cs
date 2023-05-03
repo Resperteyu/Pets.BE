@@ -16,7 +16,7 @@ namespace Pets.API.Controllers
             _sexService = sexService;
         }
 
-        [HttpGet("all")]
+        [HttpGet]
         public async Task<ActionResult<List<SexDto>>> GetAll()
         {
 
