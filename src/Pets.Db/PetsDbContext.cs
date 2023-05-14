@@ -1,22 +1,22 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using PetDb.Models;
 using Pets.Db.Models;
 
 namespace Pets.Db;
 
-public partial class PetsDbContext : DbContext
+public partial class PetsDbContext : IdentityDbContext<ApplicationUser>
 {
     public PetsDbContext()
     {
+
     }
 
     public PetsDbContext(DbContextOptions<PetsDbContext> options)
         : base(options)
     {
     }
-
-    public DbSet<Account> Accounts { get; set; }
 
     public DbSet<Profile> Profiles { get; set; }
 
@@ -33,26 +33,9 @@ public partial class PetsDbContext : DbContext
     public DbSet<Sex> Sexes { get; set; }
 
     public DbSet<RefreshToken> RefreshTokens { get; set; }
-
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Account>(entity =>
-        {
-            entity.Property<DateTime>("Created").HasColumnType("datetime2");
-            entity.Property<string>("Email").HasColumnType("nvarchar(max)");
-            entity.Property<string>("PasswordHash").HasColumnType("nvarchar(max)");
-            entity.Property<DateTime?>("PasswordReset").HasColumnType("datetime2");
-            entity.Property<string>("ResetToken").HasColumnType("nvarchar(max)");
-            entity.Property<DateTime?>("ResetTokenExpires").HasColumnType("datetime2");
-            entity.Property<DateTime?>("Updated").HasColumnType("datetime2");
-            entity.Property<string>("VerificationToken").HasColumnType("nvarchar(max)");
-            entity.Property<DateTime?>("Verified").HasColumnType("datetime2");
-
-            entity.OwnsMany(e => e.RefreshTokens);
-
-            entity.ToTable("Account");
-        });
-
         modelBuilder.Entity<Profile>(entity =>
         {
             entity.Property(e => e.Id).ValueGeneratedNever();
@@ -121,6 +104,7 @@ public partial class PetsDbContext : DbContext
             entity.ToTable("Location");
         });
 
+        base.OnModelCreating(modelBuilder);
         modelBuilder.Seed();
     }
 }

@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Pets.API.Authentication.Service;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Pets.API.Requests;
 using Pets.API.Responses.Dtos;
 using Pets.API.Services;
+using Pets.Db.Models;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -11,12 +13,15 @@ namespace Pets.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class PetsController : BaseController
+    public class PetsController : ControllerBase
     {
         private readonly IPetProfileService _petProfileService;
-        public PetsController(IPetProfileService petProfileService)
+        private readonly UserManager<ApplicationUser> _userManager;
+
+        public PetsController(IPetProfileService petProfileService, UserManager<ApplicationUser> userManager)
         {
             _petProfileService = petProfileService;
+            _userManager = userManager;
         }
 
         [HttpGet("{petId:Guid}")]
@@ -44,15 +49,9 @@ namespace Pets.API.Controllers
         [HttpPost]
         public async Task<ActionResult<Guid>> Post(CreatePetRequest request)
         {
-            try
-            {
-                var petId = await _petProfileService.CreatePet(request, Account.Id);
-                return Ok(petId);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Oops, something went wrong...");
-            }
+            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User)); // TODO Insert in context?
+            var petId = await _petProfileService.CreatePet(request, userId);
+            return Ok(petId);
         }
 
         [Authorize]
@@ -60,30 +59,15 @@ namespace Pets.API.Controllers
         public async Task<ActionResult> Put(UpdatePetRequest request)
         {
             var petEntity = await _petProfileService.GetEntityByPetId(request.Id);
+            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
 
             if (petEntity == null)
                 return NotFound("Pet not found");
 
-            if (petEntity.OwnerId != Account.Id)
+            if (petEntity.OwnerId != userId)
                 return Unauthorized("You don't own this pet");
 
             await _petProfileService.UpdatePet(request, petEntity);
-            return Ok();
-        }
-
-        [Authorize]
-        [HttpDelete("{petId:Guid}")]
-        public async Task<ActionResult> Delete(Guid petId)
-        {
-            var petEntity = await _petProfileService.GetEntityByPetId(petId);
-
-            if (petEntity == null)
-                return NotFound("Pet not found");
-
-            if (petEntity.OwnerId != Account.Id)
-                return Unauthorized("You don't own this pet");
-
-            await _petProfileService.DeletePet(petEntity);
             return Ok();
         }
     }

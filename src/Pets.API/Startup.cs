@@ -1,16 +1,20 @@
-using System;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Pets.API.Authentication.Service;
-using Pets.API.Email.Service;
-using Pets.API.Middleware;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using Pets.Db;
+using Pets.API.Config;
+using Pets.API.Middleware;
 using Pets.API.Services;
+using Pets.Db;
+using Pets.Db.Models;
+using SendGrid.Extensions.DependencyInjection;
+using System;
 
 namespace Pets.API
 {
@@ -27,23 +31,44 @@ namespace Pets.API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<PetsDbContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"), x => x.UseNetTopologySuite()));
+             options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"), x => x.UseNetTopologySuite()));
             services.AddHealthChecks();
-            services.AddControllersWithViews();
+
+            services.AddControllers();
             services.AddMemoryCache();
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-            services.AddSwaggerGen(c =>
-              {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Pets API", Version = "v1" });
-              });
 
-              var emailConfig = Configuration
-                .GetSection("EmailConfiguration")
-                .Get<EmailConfiguration>();
-              emailConfig.Password = Environment.GetEnvironmentVariable("EmailPassword");
-            services.AddSingleton(emailConfig);
-            services.AddScoped<IEmailService, EmailService>();
-            services.AddScoped<IAccountService, AccountService>();
+            services.AddPetsAuth(Configuration);
+
+            IdentityBuilder builder = services.AddIdentityCore<ApplicationUser>(options =>
+            {
+                options.SignIn.RequireConfirmedAccount = true;
+                options.User.RequireUniqueEmail = true;
+                options.Password.RequireDigit = false;
+                options.Password.RequiredLength = 6;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireLowercase = false;
+            });
+
+            builder = new IdentityBuilder(builder.UserType, typeof(IdentityRole), builder.Services);
+            builder.AddUserManager<UserManager<ApplicationUser>>()
+                .AddUserManager<UserManager<ApplicationUser>>()
+                .AddRoleManager<RoleManager<IdentityRole>>()
+                .AddSignInManager<SignInManager<ApplicationUser>>()
+                .AddEntityFrameworkStores<PetsDbContext>()
+                .AddTokenProvider<DataProtectorTokenProvider<ApplicationUser>>(TokenOptions.DefaultProvider);
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Pets API", Version = "v1" });
+            });
+
+            services.AddSendGrid(options =>
+                options.ApiKey = Configuration.GetValue<string>("SendGridApiKey") ?? throw new Exception("The 'SendGridApiKey' is not configured")
+            );
+            services.AddTransient<IEmailSender, SendGridEmailSender>();
+
             services.AddScoped<ISexService, SexService>();
             services.AddScoped<IPetTypeService, PetTypeService>();
             services.AddScoped<IPetBreedService, PetBreedService>();
@@ -53,7 +78,7 @@ namespace Pets.API
             services.AddApplicationInsightsTelemetry();
         }
 
-    // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, PetsDbContext context)
         {
             context.Database.Migrate();
@@ -72,29 +97,21 @@ namespace Pets.API
 
             app.UseStaticFiles();
 
-              app.UseSwagger();
+            app.UseSwagger();
+            app.UseSwaggerUI();
 
-              app.UseSwaggerUI(c =>
-              {
-                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Pets.API V1");
-                    c.RoutePrefix = string.Empty;
-              });
+            app.UseRouting();
 
-              app.UseRouting();
+            app.UseAuthentication();
+            app.UseAuthorization();
 
-              app.UseAuthorization();
+            app.UseMiddleware<ErrorHandlerMiddleware>();
 
-              app.UseMiddleware<ErrorHandlerMiddleware>();
-              app.UseMiddleware<JwtMiddleware>();
-
-              app.UseEndpoints(endpoints =>
-              {
-                    endpoints.MapHealthChecks("/health");
-                    endpoints.MapControllerRoute(
-                        name: "default",
-                        pattern: "{controller=Home}/{action=Index}/{id?}"
-                    );
-              });
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+                endpoints.MapHealthChecks("/health");
+            });
         }
-  }
+    }
 }
