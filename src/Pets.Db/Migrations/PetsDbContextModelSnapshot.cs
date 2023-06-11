@@ -2372,25 +2372,21 @@ namespace Pets.Db.Migrations
                                 .HasColumnType("datetime2");
 
                             b1.Property<string>("CreatedByIp")
-                                .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
                             b1.Property<DateTime>("Expires")
                                 .HasColumnType("datetime2");
 
                             b1.Property<string>("ReplacedByToken")
-                                .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
                             b1.Property<DateTime?>("Revoked")
                                 .HasColumnType("datetime2");
 
                             b1.Property<string>("RevokedByIp")
-                                .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
                             b1.Property<string>("Token")
-                                .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
                             b1.HasKey("AccountId", "Id");

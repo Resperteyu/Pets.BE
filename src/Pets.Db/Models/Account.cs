@@ -11,7 +11,7 @@ namespace Pets.Db.Models
         public string VerificationToken { get; set; }
         public DateTime? Verified { get; set; }
         public bool IsVerified => Verified.HasValue || PasswordReset.HasValue;
-        public string ResetToken { get; set; }
+        public string? ResetToken { get; set; }
         public DateTime? ResetTokenExpires { get; set; }
         public DateTime? PasswordReset { get; set; }
         public DateTime Created { get; set; }
