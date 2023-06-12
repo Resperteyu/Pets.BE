@@ -18,6 +18,7 @@ namespace Pets.API.Services
         Task<List<PetProfileDto>> GetByOwnerId(Guid petId);
         Task<Guid> CreatePet(CreatePetRequest model, Guid ownerId);
         Task UpdatePet(UpdatePetRequest model, PetProfile entity);
+        Task DeletePet(PetProfile entity);
     }
 
     public class PetProfileService : IPetProfileService
@@ -82,6 +83,12 @@ namespace Pets.API.Services
 
             _context.PetProfiles.Update(entity);
             await _context.SaveChangesAsync();
-        }   
+        }
+
+        public async Task DeletePet(PetProfile entity)
+        {
+            _context.PetProfiles.Remove(entity);
+            await _context.SaveChangesAsync();
+        }
     }
 }

@@ -63,5 +63,21 @@ namespace Pets.API.Controllers
             await _petProfileService.UpdatePet(request, petEntity);
             return Ok();
         }
+
+        [Authorize]
+        [HttpDelete("{petId:Guid}")]
+        public async Task<ActionResult> Delete(Guid petId)
+        {
+            var petEntity = await _petProfileService.GetEntityByPetId(petId);
+
+            if (petEntity == null)
+                return NotFound("Pet not found");
+
+            if (petEntity.OwnerId != Account.Id)
+                return Unauthorized("You don't own this pet");
+
+            await _petProfileService.DeletePet(petEntity);
+            return Ok();
+        }
     }
 }

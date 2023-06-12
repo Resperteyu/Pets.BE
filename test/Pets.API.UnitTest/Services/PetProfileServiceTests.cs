@@ -201,5 +201,32 @@ namespace Pets.API.UnitTest.Services
             Assert.Equal(updatePetRequest.AvailableForBreeding, updatedPetProfile.AvailableForBreeding);
             Assert.Equal(updatePetRequest.Description, updatedPetProfile.Description);
         }
+
+        [Fact]
+        public async Task DeletePet_RemovesPetProfile()
+        {
+            // Arrange
+            var ownerId = Guid.NewGuid();
+            var petProfile = new PetProfile
+            {
+                Id = Guid.NewGuid(),
+                Name = "Test Pet",
+                OwnerId = ownerId,
+                SexId = 1,
+                BreedId = 1,
+                DateOfBirth = new DateTime(2020, 1, 1),
+                AvailableForBreeding = true,
+                Description = "Test description"
+            };
+            _context.PetProfiles.Add(petProfile);
+            await _context.SaveChangesAsync();
+
+            // Act
+            await _petProfileService.DeletePet(petProfile);
+
+            // Assert
+            petProfile = await _context.PetProfiles.FindAsync(petProfile.Id);
+            Assert.Null(petProfile);
+        }
     }
 }
