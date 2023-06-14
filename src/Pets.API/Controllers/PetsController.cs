@@ -44,8 +44,15 @@ namespace Pets.API.Controllers
         [HttpPost]
         public async Task<ActionResult<Guid>> Post(CreatePetRequest request)
         {
-            var petId = await _petProfileService.CreatePet(request, Account.Id);
-            return Ok(petId);
+            try
+            {
+                var petId = await _petProfileService.CreatePet(request, Account.Id);
+                return Ok(petId);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Oops, something went wrong...");
+            }
         }
 
         [Authorize]

@@ -20,8 +20,15 @@ namespace Pets.API.Controllers
         [HttpPost("authenticate")]
         public async Task<ActionResult<AuthenticateResponse>> Authenticate(AuthenticateRequest model)
         {
-            var response = await _accountService.AuthenticateAsync(model, IpAddress());
-            return Ok(response);
+            try
+            {
+                var response = await _accountService.AuthenticateAsync(model, IpAddress());
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Oops, something went wrong...");
+            }
         }
 
         [HttpPost("refresh-token")]
@@ -51,10 +58,17 @@ namespace Pets.API.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterRequest model)
         {
-            var authenticateResponse = await _accountService.RegisterAsync(model, IpAddress());
-            if (authenticateResponse == null)
-                return StatusCode(409, "Email is already registered");
-            return Ok(authenticateResponse);
+            try
+            {
+                var authenticateResponse = await _accountService.RegisterAsync(model, IpAddress());
+                if (authenticateResponse == null)
+                    return StatusCode(409, "Email is already registered");
+                return Ok(authenticateResponse);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Oops, something went wrong...");
+            }
         }
 
         [HttpPost("forgot-password")]

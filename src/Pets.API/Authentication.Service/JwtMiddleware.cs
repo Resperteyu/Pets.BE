@@ -36,7 +36,8 @@ namespace Pets.API.Authentication.Service
       try
       {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(Environment.GetEnvironmentVariable("JWTSecret"));
+        var secret = Environment.GetEnvironmentVariable("JWTSecret");
+        var key = Encoding.ASCII.GetBytes(secret);
         tokenHandler.ValidateToken(token, new TokenValidationParameters
         {
           ValidateIssuerSigningKey = true,
@@ -48,7 +49,7 @@ namespace Pets.API.Authentication.Service
         }, out SecurityToken validatedToken);
 
         var jwtToken = (JwtSecurityToken)validatedToken;
-        var accountId = int.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
+        var accountId = Guid.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
 
         // attach account to context on successful jwt validation
         context.Items["Account"] = await dataContext.Accounts.FindAsync(accountId);
