@@ -1,3 +1,4 @@
+using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
@@ -15,6 +16,8 @@ using Pets.Db;
 using Pets.Db.Models;
 using SendGrid.Extensions.DependencyInjection;
 using System;
+using System.Linq;
+using System.Text.Json;
 
 namespace Pets.API
 {
@@ -110,7 +113,35 @@ namespace Pets.API
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapGet("/", async context => await context.Response.WriteAsync("There is nothing here, this is an API."));
+                endpoints.MapGet("/robots933456.txt", async context => await context.Response.WriteAsync($"User-agent: *{Environment.NewLine}Disallow: /"));
                 endpoints.MapHealthChecks("/health");
+                endpoints.MapHealthChecks("/health/detail", new HealthCheckOptions
+                {
+                    ResponseWriter = async (context, report) =>
+                    {
+                        var content = new
+                        {
+                            Status = report.Status.ToString(),
+                            Results = report.Entries.ToDictionary(e => e.Key, e => new
+                            {
+                                Status = e.Value.Status.ToString(),
+                                e.Value.Description,
+                                e.Value.Duration
+                            }),
+                            report.TotalDuration
+                        };
+
+                        context.Response.ContentType = "application/json";
+                        await context.Response.WriteAsync(JsonSerializer.Serialize(content, new JsonSerializerOptions { WriteIndented = true }));
+                    }
+                });
+
+                endpoints.MapHealthChecks("/health/report", new HealthCheckOptions()
+                {
+                    Predicate = _ => true,
+                    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+                });
             });
         }
     }
