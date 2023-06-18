@@ -2,8 +2,8 @@
 
 ### TODO
 
+- [ ] Rework auth responses classes
 - [ ] Add probes to healthcheck
-- [ ] Authenticate swagger
 - [ ] Remove wwwwroot
 - [ ] Normalize routes (/api?)
 - [ ] Policy authorisation vs role authorisation
