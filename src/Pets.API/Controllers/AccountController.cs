@@ -23,7 +23,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Pets.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class AccountController : ControllerBase
     {
