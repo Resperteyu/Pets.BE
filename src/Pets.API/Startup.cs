@@ -53,6 +53,7 @@ namespace Pets.API
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireUppercase = false;
                 options.Password.RequireLowercase = false;
+                options.ClaimsIdentity.UserIdClaimType = "Id";
             });
 
             builder = new IdentityBuilder(builder.UserType, typeof(IdentityRole), builder.Services);
