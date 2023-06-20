@@ -454,6 +454,7 @@ namespace Pets.API.Controllers
 
             return new AuthResult()
             {
+                Id = new Guid(user.Id),
                 Token = jwtToken,
                 Success = true,
                 RefreshToken = refreshToken.Token
