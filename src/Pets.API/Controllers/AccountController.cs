@@ -277,7 +277,6 @@ namespace Pets.API.Controllers
             return NoContent();
         }
 
-
         [HttpPost]
         [Route("refresh-token")]
         public async Task<IActionResult> RefreshToken(TokenModel request)
