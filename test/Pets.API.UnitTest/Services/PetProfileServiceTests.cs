@@ -5,7 +5,6 @@ using Pets.API.Services;
 using Pets.Db;
 using Pets.Db.Models;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -38,7 +37,7 @@ namespace Pets.API.UnitTest.Services
             byte sexId = 1;
             var sex = new Sex { Id = 1, Title = "Male" };
             await _context.Sexes.AddAsync(sex);
-            var owner = new Db.Models.Profile
+            var owner = new ApplicationUser
             {
                 Id = ownerId,
                 FirstName = "John",
@@ -47,14 +46,17 @@ namespace Pets.API.UnitTest.Services
                 LocationId = 1, //TODO: Why is it required on the DB and not in code?
                 PhoneNumber = "123456789"
             };
-            _context.Profiles.Add(owner);
+            _context.Users.Add(owner);
             var petProfile = new PetProfile
             {
                 Id = Guid.NewGuid(),
                 Name = "Test Pet",
                 OwnerId = ownerId,
+                Owner = owner,
                 BreedId = breedId,
+                Breed = petBreed,
                 SexId = sexId,
+                Sex = sex,
                 Description = "Test Description",
             };
             _context.PetProfiles.Add(petProfile);
@@ -101,7 +103,7 @@ namespace Pets.API.UnitTest.Services
             byte sexId = 1;
             var sex = new Sex { Id = 1, Title = "Male" };
             await _context.Sexes.AddAsync(sex);
-            var owner = new Db.Models.Profile
+            var owner = new ApplicationUser
             {
                 Id = ownerId,
                 FirstName = "John",
@@ -110,23 +112,29 @@ namespace Pets.API.UnitTest.Services
                 LocationId = 1, //TODO: Why is it required on the DB and not in code?
                 PhoneNumber = "123456789"
             };
-            _context.Profiles.Add(owner);
+            _context.Users.Add(owner);
             var petProfile1 = new PetProfile
             {
                 Id = Guid.NewGuid(),
-                Name = "Test Pet 1",
+                Name = "Test Pet",
                 OwnerId = ownerId,
+                Owner = owner,
                 BreedId = breedId,
+                Breed = petBreed,
                 SexId = sexId,
-                Description = "Test Description 1",
+                Sex = sex,
+                Description = "Test Description",
             };
             var petProfile2 = new PetProfile
             {
                 Id = Guid.NewGuid(),
                 Name = "Test Pet 2",
                 OwnerId = ownerId,
+                Owner = owner,
                 BreedId = breedId,
+                Breed = petBreed,
                 SexId = sexId,
+                Sex = sex,
                 Description = "Test Description 2",
             };
             _context.PetProfiles.AddRange(petProfile1, petProfile2);
@@ -165,16 +173,31 @@ namespace Pets.API.UnitTest.Services
         {
             // Arrange
             var ownerId = Guid.NewGuid();
+            var owner = new ApplicationUser
+            {
+                Id = ownerId,
+                FirstName = "John",
+                LastName = "Doe",
+                CountryCode = "UK",
+                LocationId = 1, //TODO: Why is it required on the DB and not in code?
+                PhoneNumber = "123456789"
+            };
+            var breedId = 1;
+            var petBreed = new PetBreed { Id = breedId, TypeId = 2, Title = "Border Collie" };
+            byte sexId = 1;
+            var sex = new Sex { Id = 1, Title = "Male" };
+            await _context.Sexes.AddAsync(sex);
             var petProfile = new PetProfile
             {
                 Id = Guid.NewGuid(),
                 Name = "Test Pet",
                 OwnerId = ownerId,
-                SexId = 1,
-                BreedId = 1,
-                DateOfBirth = new DateTime(2020, 1, 1),
-                AvailableForBreeding = true,
-                Description = "Test description"
+                Owner = owner,
+                BreedId = breedId,
+                Breed = petBreed,
+                SexId = sexId,
+                Sex = sex,
+                Description = "Test Description",
             };
             _context.PetProfiles.Add(petProfile);
             await _context.SaveChangesAsync();
@@ -207,16 +230,31 @@ namespace Pets.API.UnitTest.Services
         {
             // Arrange
             var ownerId = Guid.NewGuid();
+            var owner = new ApplicationUser
+            {
+                Id = ownerId,
+                FirstName = "John",
+                LastName = "Doe",
+                CountryCode = "UK",
+                LocationId = 1, //TODO: Why is it required on the DB and not in code?
+                PhoneNumber = "123456789"
+            };
+            var breedId = 1;
+            var petBreed = new PetBreed { Id = breedId, TypeId = 2, Title = "Border Collie" };
+            byte sexId = 1;
+            var sex = new Sex { Id = 1, Title = "Male" };
+            await _context.Sexes.AddAsync(sex);
             var petProfile = new PetProfile
             {
                 Id = Guid.NewGuid(),
                 Name = "Test Pet",
                 OwnerId = ownerId,
-                SexId = 1,
-                BreedId = 1,
-                DateOfBirth = new DateTime(2020, 1, 1),
-                AvailableForBreeding = true,
-                Description = "Test description"
+                Owner = owner,
+                BreedId = breedId,
+                Breed = petBreed,
+                SexId = sexId,
+                Sex = sex,
+                Description = "Test Description",
             };
             _context.PetProfiles.Add(petProfile);
             await _context.SaveChangesAsync();

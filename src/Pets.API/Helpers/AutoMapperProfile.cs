@@ -8,6 +8,8 @@ namespace Pets.API.Helpers
     {
         public AutoMapperProfile()
         {
+            CreateMap<ApplicationUser, PetOwnerInfosDto>();
+
             CreateMap<Sex, SexDto>();
 
             CreateMap<PetType, PetTypeDto>();
@@ -17,8 +19,6 @@ namespace Pets.API.Helpers
             CreateMap<Country, CountryDto>();
 
             CreateMap<PetProfile, PetProfileDto>();
-
-            CreateMap<Profile, PetOwnerInfosDto>();
 
             CreateMap<CreatePetRequest, PetProfile>();
         }        

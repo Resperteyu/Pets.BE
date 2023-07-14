@@ -9,6 +9,7 @@
 
         public string DialCode { get; set; }
 
-        public ICollection<Profile> Profiles { get; } = new List<Profile>();
+        public ICollection<ApplicationUser> ApplicationUsers { get; } = new List<ApplicationUser>();
+
     }
 }

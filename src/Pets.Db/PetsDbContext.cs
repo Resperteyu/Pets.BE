@@ -3,10 +3,11 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using PetDb.Models;
 using Pets.Db.Models;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Pets.Db;
 
-public partial class PetsDbContext : IdentityDbContext<ApplicationUser>
+public partial class PetsDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
 {
     public PetsDbContext()
     {
@@ -17,8 +18,6 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser>
         : base(options)
     {
     }
-
-    public DbSet<Profile> Profiles { get; set; }
 
     public DbSet<Country> Countries { get; set; }
 
@@ -36,17 +35,27 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser>
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Profile>(entity =>
+        modelBuilder.Entity<ApplicationUser>(entity =>
         {
-            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.ToTable(name: "Users");
             entity.Property(e => e.CountryCode).HasColumnType("char(2)");
             entity.Property(e => e.FirstName).HasMaxLength(20);
             entity.Property(e => e.LastName).HasMaxLength(20);
+            entity.HasOne(e => e.Country).WithMany().HasForeignKey(p => p.CountryCode).IsRequired(false);
+            entity.HasOne(e => e.Location).WithMany().HasForeignKey(p => p.LocationId).IsRequired(false);
+            entity.HasKey(e => e.Id);
+        });
 
-            entity.HasOne(e => e.Country).WithMany(e => e.Profiles).HasForeignKey(p => p.CountryCode).IsRequired();
-            entity.HasOne(e => e.Location).WithMany(e => e.Profiles).HasForeignKey(p => p.LocationId).IsRequired();
+        modelBuilder.Entity<IdentityRole<Guid>>(entity =>
+        {
+            entity.ToTable(name: "Roles");
+            entity.HasKey(e => e.Id);
+        });
 
-            entity.ToTable("Profile");
+        modelBuilder.Entity<IdentityUserRole<Guid>>(entity =>
+        {
+            entity.ToTable(name: "UserRoles");
+            entity.HasKey(e => new { e.UserId, e.RoleId });
         });
 
         modelBuilder.Entity<Country>(entity =>
@@ -105,6 +114,6 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser>
         });
 
         base.OnModelCreating(modelBuilder);
-        modelBuilder.Seed();
+        //modelBuilder.Seed();
     }
 }

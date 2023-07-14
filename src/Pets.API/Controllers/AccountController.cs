@@ -403,7 +403,7 @@ namespace Pets.API.Controllers
                 _context.RefreshTokens.Update(storedRefreshToken);
                 await _context.SaveChangesAsync();
 
-                var dbUser = await _userManager.FindByIdAsync(storedRefreshToken.UserId);
+                var dbUser = await _userManager.FindByIdAsync(storedRefreshToken.UserId.ToString());
                 return await GenerateJwtToken(dbUser);
             }
             catch (Exception ex)
@@ -423,7 +423,7 @@ namespace Pets.API.Controllers
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim("Id", user.Id),
+                    new Claim("Id", user.Id.ToString()),
                     new Claim(JwtRegisteredClaimNames.Email, user.Email),
                     new Claim(JwtRegisteredClaimNames.Iss, _configuration["JWT:ValidIssuer"]),         
                     new Claim(JwtRegisteredClaimNames.Aud, _configuration["JWT:ValidAudience"]),
@@ -453,7 +453,7 @@ namespace Pets.API.Controllers
 
             return new AuthResult()
             {
-                Id = new Guid(user.Id),
+                Id = user.Id,
                 Token = jwtToken,
                 Success = true,
                 RefreshToken = refreshToken.Token

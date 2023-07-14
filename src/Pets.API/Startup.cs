@@ -56,10 +56,9 @@ namespace Pets.API
                 options.ClaimsIdentity.UserIdClaimType = "Id";
             });
 
-            builder = new IdentityBuilder(builder.UserType, typeof(IdentityRole), builder.Services);
+            builder = new IdentityBuilder(builder.UserType, typeof(IdentityRole<Guid>), builder.Services);
             builder.AddUserManager<UserManager<ApplicationUser>>()
-                .AddUserManager<UserManager<ApplicationUser>>()
-                .AddRoleManager<RoleManager<IdentityRole>>()
+                .AddRoleManager<RoleManager<IdentityRole<Guid>>>()
                 .AddSignInManager<SignInManager<ApplicationUser>>()
                 .AddEntityFrameworkStores<PetsDbContext>()
                 .AddTokenProvider<DataProtectorTokenProvider<ApplicationUser>>(TokenOptions.DefaultProvider);

@@ -13,6 +13,6 @@ namespace Pets.Db.Models
 
         public Point GeoLocation { get; set; }
 
-        public ICollection<Profile> Profiles { get; } = new List<Profile>();
+        public ICollection<ApplicationUser> ApplicationUsers { get; } = new List<ApplicationUser>();
     }
 }
