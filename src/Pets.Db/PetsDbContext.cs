@@ -38,11 +38,10 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser, Identity
         modelBuilder.Entity<ApplicationUser>(entity =>
         {
             entity.ToTable(name: "Users");
-            entity.Property(e => e.CountryCode).HasColumnType("char(2)");
             entity.Property(e => e.FirstName).HasMaxLength(20);
             entity.Property(e => e.LastName).HasMaxLength(20);
-            entity.HasOne(e => e.Country).WithMany().HasForeignKey(p => p.CountryCode).IsRequired(false);
-            entity.HasOne(e => e.Location).WithMany().HasForeignKey(p => p.LocationId).IsRequired(false);
+            entity.HasOne(e => e.Country).WithMany(e => e.ApplicationUsers).IsRequired(false);
+            entity.HasOne(e => e.Location).WithMany(e => e.ApplicationUsers).IsRequired(false);
             entity.HasKey(e => e.Id);
         });
 
@@ -60,9 +59,9 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser, Identity
 
         modelBuilder.Entity<Country>(entity =>
         {
-            entity.HasKey(e => e.CountryCode);
+            entity.HasKey(e => e.Code);
 
-            entity.Property(e => e.CountryCode).HasColumnType("char(2)");
+            entity.Property(e => e.Code).HasColumnType("char(2)");
             entity.Property(e => e.Name).HasMaxLength(20);
             entity.Property(e => e.DialCode).HasMaxLength(4);
 

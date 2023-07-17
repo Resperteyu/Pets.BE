@@ -34,8 +34,8 @@ namespace Pets.API.UnitTest.Services
             // Arrange
             var countries = new List<Country>
             {
-                new Country { CountryCode = "GB", Name = "United Kingdom", DialCode = "44" }, // TODO: DialCode not in dto?
-                new Country { CountryCode = "DE", Name = "Germany", DialCode = "88" },
+                new Country { Code = "GB", Name = "United Kingdom", DialCode = "44" }, // TODO: DialCode not in dto?
+                new Country { Code = "DE", Name = "Germany", DialCode = "88" },
             };
             await _context.Countries.AddRangeAsync(countries);
             await _context.SaveChangesAsync();

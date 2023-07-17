@@ -8,14 +8,12 @@ namespace Pets.Db.Models
         public string? RefreshToken { get; set; }
         public DateTime RefreshTokenExpiryTime { get; set; }
 
-        public string?  CountryCode { get; set; }
         public virtual Country? Country { get; set; }
 
         public string? FirstName { get; set; }
 
         public string? LastName { get; set; }
 
-        public int? LocationId { get; set; }
         public virtual Location? Location { get; set; }
 
         public virtual ICollection<PetProfile> PetProfiles { get; set; } = new List<PetProfile>();

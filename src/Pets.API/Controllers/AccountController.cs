@@ -29,7 +29,7 @@ namespace Pets.API.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly RoleManager<IdentityRole<Guid>> _roleManager;
         private readonly IConfiguration _configuration;
         private readonly PetsDbContext _context;
         private readonly TokenValidationParameters _tokenValidationParameters;
@@ -38,7 +38,7 @@ namespace Pets.API.Controllers
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            RoleManager<IdentityRole> roleManager,
+            RoleManager<IdentityRole<Guid>> roleManager,
             IEmailSender emailSender,
             TokenValidationParameters tokenValidationParameters,
             PetsDbContext context,
@@ -177,9 +177,9 @@ namespace Pets.API.Controllers
                     new Response { Status = "Error", Message = new List<string> { "User creation failed! Please check user details and try again." } });
 
             if (!await _roleManager.RoleExistsAsync(UserRoles.Admin))
-                await _roleManager.CreateAsync(new IdentityRole(UserRoles.Admin));
+                await _roleManager.CreateAsync(new IdentityRole<Guid>(UserRoles.Admin));
             if (!await _roleManager.RoleExistsAsync(UserRoles.User))
-                await _roleManager.CreateAsync(new IdentityRole(UserRoles.User));
+                await _roleManager.CreateAsync(new IdentityRole<Guid>(UserRoles.User));
 
             if (await _roleManager.RoleExistsAsync(UserRoles.Admin))
             {
