@@ -19,6 +19,7 @@ namespace Pets.API.Services
         Task<Guid> CreatePet(CreatePetRequest model, Guid ownerId);
         Task UpdatePet(UpdatePetRequest model, PetProfile entity);
         Task DeletePet(PetProfile entity);
+        Task<List<PetProfileDto>> Search(int age, byte sex, byte petType, bool availableForBreeding, int? petBreed);
     }
 
     public class PetProfileService : IPetProfileService
@@ -89,6 +90,29 @@ namespace Pets.API.Services
         {
             _context.PetProfiles.Remove(entity);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<PetProfileDto>> Search(int age, byte sex, byte petType, bool availableForBreeding, int? petBreed)
+        {
+            IQueryable<PetProfile> petProfiles = _context.PetProfiles
+                                            .Include(i => i.Breed)
+                                            .Include(i => i.Sex)
+                                            .Where(i => i.SexId == sex &&
+                                                i.Breed.TypeId == petType &&
+                                                i.AvailableForBreeding == availableForBreeding);
+
+            if (age > 0)
+            {
+                DateTime targetDateOfBirth = DateTime.Today.AddYears(-age);
+                petProfiles = petProfiles.Where(i => i.DateOfBirth <= targetDateOfBirth);
+            }
+            if (petBreed.HasValue)
+            {
+                petProfiles = petProfiles.Where(i => i.BreedId == petBreed);
+            }
+
+
+            return _mapper.Map<List<PetProfileDto>>(await petProfiles.ToListAsync());
         }
     }
 }
