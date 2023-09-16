@@ -19,7 +19,7 @@ namespace Pets.API.Services
         Task<Guid> CreatePet(CreatePetRequest model, Guid ownerId);
         Task UpdatePet(UpdatePetRequest model, PetProfile entity);
         Task DeletePet(PetProfile entity);
-        Task<List<PetProfileDto>> Search(int age, byte sex, byte petType, bool availableForBreeding, int? petBreed);
+        Task<List<PetProfileDto>> Search(bool availableForBreeding, byte? sexId, int? age, byte? typeId, int? breedId);
     }
 
     public class PetProfileService : IPetProfileService
@@ -92,23 +92,32 @@ namespace Pets.API.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<PetProfileDto>> Search(int age, byte sex, byte petType, bool availableForBreeding, int? petBreed)
+        public async Task<List<PetProfileDto>> Search(bool availableForBreeding, byte? sexId, int? age, byte? typeId, int? breedId)
         {
             IQueryable<PetProfile> petProfiles = _context.PetProfiles
                                             .Include(i => i.Breed)
                                             .Include(i => i.Sex)
-                                            .Where(i => i.SexId == sex &&
-                                                i.Breed.TypeId == petType &&
-                                                i.AvailableForBreeding == availableForBreeding);
+                                            .Where(i => i.AvailableForBreeding == availableForBreeding);
 
-            if (age > 0)
+            if (sexId.HasValue)
             {
-                DateTime targetDateOfBirth = DateTime.Today.AddYears(-age);
+                petProfiles = petProfiles.Where(i => i.SexId == sexId);
+            }
+
+            if (age.HasValue && age > 0)
+            {
+                DateTime targetDateOfBirth = DateTime.Today.AddYears(-age.Value);
                 petProfiles = petProfiles.Where(i => i.DateOfBirth <= targetDateOfBirth);
             }
-            if (petBreed.HasValue)
+
+            if (typeId.HasValue)
             {
-                petProfiles = petProfiles.Where(i => i.BreedId == petBreed);
+                petProfiles = petProfiles.Where(i => i.Breed.TypeId == typeId);
+            }
+
+            if (breedId.HasValue)
+            {
+                petProfiles = petProfiles.Where(i => i.BreedId == breedId);
             }
 
 

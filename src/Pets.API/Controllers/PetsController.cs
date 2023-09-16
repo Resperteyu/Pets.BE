@@ -49,9 +49,11 @@ namespace Pets.API.Controllers
 
         [Authorize]
         [HttpGet("search")]
-        public async Task<ActionResult<List<PetProfileDto>>> Search(int age, byte sex, byte petType, int? petBreed)
+        public async Task<ActionResult<List<PetProfileDto>>> Search(byte? sexId, int? age, byte? typeId, int? breedId)
         {
-            var petProfiles = await _petProfileService.Search(age, sex, petType, availableForBreeding: true, petBreed); //TODO: Location perimeter search
+            //TODO: Location perimeter search
+            //TODO: return image url
+            var petProfiles = await _petProfileService.Search(availableForBreeding: true, sexId, age, typeId, breedId); 
 
             return Ok(petProfiles);
         }
