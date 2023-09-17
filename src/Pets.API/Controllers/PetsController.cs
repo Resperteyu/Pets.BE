@@ -24,6 +24,7 @@ namespace Pets.API.Controllers
             _userManager = userManager;
         }
 
+        [Authorize]
         [HttpGet("{petId:Guid}")]
         public async Task<ActionResult<PetProfileDto>> GetByPetId(Guid petId)
         {
@@ -35,12 +36,24 @@ namespace Pets.API.Controllers
             return Ok(petProfile);
         }
 
+        [Authorize]
         [HttpGet("owner/{ownerId:Guid}")]
         public async Task<ActionResult<List<PetProfileDto>>> GetByOwnerId(Guid ownerId)
         {
             var petProfiles = await _petProfileService.GetByOwnerId(ownerId);
 
             //what to return if owner does not exist??
+
+            return Ok(petProfiles);
+        }
+
+        [Authorize]
+        [HttpGet("search")]
+        public async Task<ActionResult<List<PetProfileDto>>> Search(byte? sexId, int? age, byte? typeId, int? breedId)
+        {
+            //TODO: Location perimeter search
+            //TODO: return image url
+            var petProfiles = await _petProfileService.Search(availableForBreeding: true, sexId, age, typeId, breedId); 
 
             return Ok(petProfiles);
         }
