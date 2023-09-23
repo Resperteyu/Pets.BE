@@ -79,7 +79,7 @@ namespace Pets.API.Controllers
                 return BadRequest(result.Errors);
             }
 
-            return NoContent();
+            return Ok(userProfile);
         }
 
         [HttpDelete]
