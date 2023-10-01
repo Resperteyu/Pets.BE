@@ -20,6 +20,7 @@ namespace Pets.API.Services
         Task UpdatePet(UpdatePetRequest model, PetProfile entity);
         Task DeletePet(PetProfile entity);
         Task<List<PetProfileDto>> Search(bool availableForBreeding, byte? sexId, int? age, byte? typeId, int? breedId);
+        Task<List<PetProfileDto>> GetMates(PetProfile entity, Guid userId);
     }
 
     public class PetProfileService : IPetProfileService
@@ -122,6 +123,20 @@ namespace Pets.API.Services
 
 
             return _mapper.Map<List<PetProfileDto>>(await petProfiles.ToListAsync());
+        }
+
+        public async Task<List<PetProfileDto>> GetMates(PetProfile entity, Guid userId)
+        {
+            //TO DO: introduce mate preferences associated to specific pet
+
+            var petProfiles = await _context.PetProfiles.Where(x => x.OwnerId == userId)
+                                            .Where(x => x.SexId != entity.SexId)
+                                            .Where(x => x.Breed.TypeId == entity.Breed.TypeId)
+                                            .Include(i => i.Breed)
+                                            .Include(i => i.Sex)
+                                            .ToListAsync();
+
+            return _mapper.Map<List<PetProfileDto>>(petProfiles);
         }
     }
 }

@@ -100,5 +100,24 @@ namespace Pets.API.Controllers
             await _petProfileService.DeletePet(petEntity);
             return Ok();
         }
+
+        [Authorize]
+        [HttpGet("{petId:Guid}/mates")]
+        public async Task<ActionResult<List<PetProfileDto>>> GetMates(Guid petId)
+        {
+            var petEntity = await _petProfileService.GetEntityByPetId(petId);
+          
+            if (petEntity == null)
+                return NotFound("Pet not found");
+
+            if (!petEntity.AvailableForBreeding)
+                return BadRequest("Pet is not available for breeding");
+
+            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));            
+
+            var petProfiles = await _petProfileService.GetMates(petEntity, userId); 
+
+            return Ok(petProfiles);
+        }
     }
 }
