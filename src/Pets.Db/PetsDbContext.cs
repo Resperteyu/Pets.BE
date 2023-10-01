@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using PetDb.Models;
 using Pets.Db.Models;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Pets.Db;
 
@@ -32,7 +31,11 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser, Identity
     public DbSet<Sex> Sexes { get; set; }
 
     public DbSet<RefreshToken> RefreshTokens { get; set; }
-    
+
+    public DbSet<MateRequestState> MateRequestStates { get; set; }
+
+    public DbSet<MateRequest> MateRequests { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<ApplicationUser>(entity =>
@@ -112,7 +115,32 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser, Identity
             entity.ToTable("Location");
         });
 
+        modelBuilder.Entity<MateRequestState>(entity =>
+        {
+            entity.Property(e => e.Title).HasMaxLength(20);
+
+            entity.ToTable("MateRequestState");
+        });
+
+        modelBuilder.Entity<MateRequest>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Description).HasMaxLength(3000);
+            entity.Property(e => e.AmountAgreement).HasMaxLength(250);
+            entity.Property(e => e.LitterSplitAgreement).HasMaxLength(250);
+            entity.Property(e => e.BreedingPlaceAgreement).HasMaxLength(250);
+            entity.Property(e => e.Response).HasMaxLength(3000);
+            entity.Property(e => e.Comment).HasMaxLength(1000);
+            entity.Property(e => e.CreationDate).HasColumnType("date");
+
+            entity.HasOne(p => p.PetProfile).WithMany().HasForeignKey(p => p.PetProfileId).IsRequired();
+            entity.HasOne(p => p.PetMateProfile).WithMany().HasForeignKey(p => p.PetMateProfileId).IsRequired();
+            entity.HasOne(p => p.MateRequestState).WithMany(p => p.MateRequests).HasForeignKey(p => p.MateRequestStateId).IsRequired();
+
+            entity.ToTable("MateRequest");
+        });
+
         base.OnModelCreating(modelBuilder);
-        //modelBuilder.Seed();
+        modelBuilder.Seed_MateRequestState();
     }
 }

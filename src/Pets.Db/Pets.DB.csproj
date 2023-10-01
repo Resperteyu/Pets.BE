@@ -10,6 +10,7 @@
   <ItemGroup>
     <None Remove="appsettings.json" />
     <None Remove="SeedData\Country.csv" />
+    <None Remove="SeedData\MateRequestState.csv" />
     <None Remove="SeedData\PetBreed.csv" />
     <None Remove="SeedData\PetType.csv" />
     <None Remove="SeedData\Sex.csv" />
@@ -25,6 +26,7 @@
     <EmbeddedResource Include="SeedData\Country.csv" />
     <EmbeddedResource Include="SeedData\PetBreed.csv" />
     <EmbeddedResource Include="SeedData\PetType.csv" />
+    <EmbeddedResource Include="SeedData\MateRequestState.csv" />
     <EmbeddedResource Include="SeedData\Sex.csv" />
   </ItemGroup>
 
