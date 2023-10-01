@@ -42,8 +42,8 @@ namespace Pets.API.UnitTest.Services
                 Id = ownerId,
                 FirstName = "John",
                 LastName = "Doe",
-                CountryCode = "UK",
-                LocationId = 1, //TODO: Why is it required on the DB and not in code?
+                //CountryCode = "UK",
+                //LocationId = 1, //TODO: Why is it required on the DB and not in code?
                 PhoneNumber = "123456789"
             };
             _context.Users.Add(owner);
@@ -108,8 +108,8 @@ namespace Pets.API.UnitTest.Services
                 Id = ownerId,
                 FirstName = "John",
                 LastName = "Doe",
-                CountryCode = "UK",
-                LocationId = 1, //TODO: Why is it required on the DB and not in code?
+                //CountryCode = "UK",
+                //LocationId = 1, //TODO: Why is it required on the DB and not in code?
                 PhoneNumber = "123456789"
             };
             _context.Users.Add(owner);
@@ -178,8 +178,8 @@ namespace Pets.API.UnitTest.Services
                 Id = ownerId,
                 FirstName = "John",
                 LastName = "Doe",
-                CountryCode = "UK",
-                LocationId = 1, //TODO: Why is it required on the DB and not in code?
+                //CountryCode = "UK",
+                //LocationId = 1, //TODO: Why is it required on the DB and not in code?
                 PhoneNumber = "123456789"
             };
             var breedId = 1;
@@ -235,8 +235,8 @@ namespace Pets.API.UnitTest.Services
                 Id = ownerId,
                 FirstName = "John",
                 LastName = "Doe",
-                CountryCode = "UK",
-                LocationId = 1, //TODO: Why is it required on the DB and not in code?
+                //CountryCode = "UK",
+                //LocationId = 1, //TODO: Why is it required on the DB and not in code?
                 PhoneNumber = "123456789"
             };
             var breedId = 1;
