@@ -612,13 +612,13 @@ namespace Pets.Db.Migrations
                     b.HasOne("Pets.Db.Models.PetProfile", "PetMateProfile")
                         .WithMany()
                         .HasForeignKey("PetMateProfileId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Pets.Db.Models.PetProfile", "PetProfile")
                         .WithMany()
                         .HasForeignKey("PetProfileId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("MateRequestState");

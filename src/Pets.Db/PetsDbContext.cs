@@ -133,8 +133,8 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser, Identity
             entity.Property(e => e.Comment).HasMaxLength(1000);
             entity.Property(e => e.CreationDate).HasColumnType("date");
 
-            entity.HasOne(p => p.PetProfile).WithMany().HasForeignKey(p => p.PetProfileId).IsRequired();
-            entity.HasOne(p => p.PetMateProfile).WithMany().HasForeignKey(p => p.PetMateProfileId).IsRequired();
+            entity.HasOne(p => p.PetProfile).WithMany().HasForeignKey(p => p.PetProfileId).OnDelete(DeleteBehavior.NoAction).IsRequired();
+            entity.HasOne(p => p.PetMateProfile).WithMany().HasForeignKey(p => p.PetMateProfileId).OnDelete(DeleteBehavior.NoAction).IsRequired();
             entity.HasOne(p => p.MateRequestState).WithMany(p => p.MateRequests).HasForeignKey(p => p.MateRequestStateId).IsRequired();
 
             entity.ToTable("MateRequest");
