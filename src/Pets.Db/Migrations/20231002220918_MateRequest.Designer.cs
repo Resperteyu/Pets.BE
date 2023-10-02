@@ -13,7 +13,7 @@ using Pets.Db;
 namespace Pets.Db.Migrations
 {
     [DbContext(typeof(PetsDbContext))]
-    [Migration("20231001145258_MateRequest")]
+    [Migration("20231002220918_MateRequest")]
     partial class MateRequest
     {
         /// <inheritdoc />
@@ -615,13 +615,13 @@ namespace Pets.Db.Migrations
                     b.HasOne("Pets.Db.Models.PetProfile", "PetMateProfile")
                         .WithMany()
                         .HasForeignKey("PetMateProfileId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Pets.Db.Models.PetProfile", "PetProfile")
                         .WithMany()
                         .HasForeignKey("PetProfileId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("MateRequestState");

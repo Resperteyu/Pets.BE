@@ -54,14 +54,12 @@ namespace Pets.Db.Migrations
                         name: "FK_MateRequest_PetProfile_PetMateProfileId",
                         column: x => x.PetMateProfileId,
                         principalTable: "PetProfile",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_MateRequest_PetProfile_PetProfileId",
                         column: x => x.PetProfileId,
                         principalTable: "PetProfile",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.InsertData(
