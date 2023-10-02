@@ -49,11 +49,14 @@ namespace Pets.API.Controllers
 
         [Authorize]
         [HttpGet("search")]
-        public async Task<ActionResult<List<PetProfileDto>>> Search(byte? sexId, int? age, byte? typeId, int? breedId)
+        public async Task<ActionResult<List<PetProfileDto>>> Search(byte? sexId, int? age, byte? typeId,
+            int? breedId, double? latitude, double? longitude, SearchRadiusType? searchRadiusType)
         {
             //TODO: Location perimeter search
             //TODO: return image url
-            var petProfiles = await _petProfileService.Search(availableForBreeding: true, sexId, age, typeId, breedId); 
+            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
+            var petProfiles = await _petProfileService.Search(availableForBreeding: true, sexId, age, typeId, breedId, userId,
+                latitude, longitude, searchRadiusType);
 
             return Ok(petProfiles);
         }
