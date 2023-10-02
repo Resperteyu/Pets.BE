@@ -19,8 +19,9 @@ namespace Pets.API.Services
         Task<Guid> CreatePet(CreatePetRequest model, Guid ownerId);
         Task UpdatePet(UpdatePetRequest model, PetProfile entity);
         Task DeletePet(PetProfile entity);
-        Task<List<PetProfileDto>> Search(bool availableForBreeding, byte? sexId, int? age, byte? typeId, int? breedId);
         Task<List<PetProfileDto>> GetMates(PetProfile entity, Guid userId);
+        Task<List<PetProfileDto>> Search(bool availableForBreeding, byte? sexId, int? age, byte? typeId, int? breedId, Guid userId,
+            double? latitude, double? longitude, SearchRadiusType? searchRadiusType);
     }
 
     public class PetProfileService : IPetProfileService
@@ -93,12 +94,14 @@ namespace Pets.API.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<PetProfileDto>> Search(bool availableForBreeding, byte? sexId, int? age, byte? typeId, int? breedId)
+        public async Task<List<PetProfileDto>> Search(bool availableForBreeding, byte? sexId, int? age,
+            byte? typeId, int? breedId, Guid userId, double? latitude, double? longitude, SearchRadiusType? searchRadiusType)
         {
             IQueryable<PetProfile> petProfiles = _context.PetProfiles
                                             .Include(i => i.Breed)
                                             .Include(i => i.Sex)
-                                            .Where(i => i.AvailableForBreeding == availableForBreeding);
+                                            .Where(i => i.AvailableForBreeding == availableForBreeding
+                                                && i.OwnerId != userId);
 
             if (sexId.HasValue)
             {
