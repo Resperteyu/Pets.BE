@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NetTopologySuite.Geometries;
 
 namespace Pets.API.Services
 {
@@ -20,8 +21,7 @@ namespace Pets.API.Services
         Task UpdatePet(UpdatePetRequest model, PetProfile entity);
         Task DeletePet(PetProfile entity);
         Task<List<PetProfileDto>> GetMates(PetProfile entity, Guid userId);
-        Task<List<PetProfileDto>> Search(bool availableForBreeding, byte? sexId, int? age, byte? typeId, int? breedId, Guid userId,
-            double? latitude, double? longitude, SearchRadiusType? searchRadiusType);
+        Task<List<PetProfileDto>> Search(SearchParams searchParams);
     }
 
     public class PetProfileService : IPetProfileService
@@ -94,34 +94,50 @@ namespace Pets.API.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<PetProfileDto>> Search(bool availableForBreeding, byte? sexId, int? age,
-            byte? typeId, int? breedId, Guid userId, double? latitude, double? longitude, SearchRadiusType? searchRadiusType)
+        public async Task<List<PetProfileDto>> Search(SearchParams searchParams)
         {
             IQueryable<PetProfile> petProfiles = _context.PetProfiles
                                             .Include(i => i.Breed)
                                             .Include(i => i.Sex)
-                                            .Where(i => i.AvailableForBreeding == availableForBreeding
-                                                && i.OwnerId != userId);
+                                            .Include(i => i.Owner)
+                                            .Where(i => i.AvailableForBreeding == searchParams.AvailableForBreeding
+                                                && i.OwnerId != searchParams.UserId);
 
-            if (sexId.HasValue)
+            if (searchParams.SexId.HasValue)
             {
-                petProfiles = petProfiles.Where(i => i.SexId == sexId);
+                petProfiles = petProfiles.Where(i => i.SexId == searchParams.SexId);
             }
 
-            if (age.HasValue && age > 0)
+            if (searchParams.Age.HasValue && searchParams.Age > 0)
             {
-                DateTime targetDateOfBirth = DateTime.Today.AddYears(-age.Value);
+                DateTime targetDateOfBirth = DateTime.Today.AddYears(-searchParams.Age.Value);
                 petProfiles = petProfiles.Where(i => i.DateOfBirth <= targetDateOfBirth);
             }
 
-            if (typeId.HasValue)
+            if (searchParams.TypeId.HasValue)
             {
-                petProfiles = petProfiles.Where(i => i.Breed.TypeId == typeId);
+                petProfiles = petProfiles.Where(i => i.Breed.TypeId == searchParams.TypeId);
             }
 
-            if (breedId.HasValue)
+            if (searchParams.BreedId.HasValue)
             {
-                petProfiles = petProfiles.Where(i => i.BreedId == breedId);
+                petProfiles = petProfiles.Where(i => i.BreedId == searchParams.BreedId);
+            }
+
+            if (searchParams.SearchRadiusType != SearchRadiusType.Unknown &&
+                searchParams.SearchRadius.HasValue && searchParams.Latitude.HasValue &&
+                searchParams.Longitude.HasValue)
+            {
+                double radiusInMeters = searchParams.SearchRadiusType switch
+                {
+                    SearchRadiusType.Miles => searchParams.SearchRadius.Value * 1609.34, // Convert miles to meters
+                    SearchRadiusType.Kilometers => searchParams.SearchRadius.Value * 1000, // Convert kilometers to meters
+                };
+
+                var geometryFactory = NetTopologySuite.NtsGeometryServices.Instance.CreateGeometryFactory(4326);
+                var searchPoint = geometryFactory.CreatePoint(new Coordinate(searchParams.Longitude.Value, searchParams.Latitude.Value));
+
+                petProfiles = petProfiles.Where(i => i.Owner.Location.GeoLocation.Distance(searchPoint) <= radiusInMeters);
             }
 
 
