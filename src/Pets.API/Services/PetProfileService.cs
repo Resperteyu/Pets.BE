@@ -21,7 +21,7 @@ namespace Pets.API.Services
         Task UpdatePet(UpdatePetRequest model, PetProfile entity);
         Task DeletePet(PetProfile entity);
         Task<List<PetProfileDto>> GetMates(PetProfile entity, Guid userId);
-        Task<List<PetProfileDto>> Search(SearchParams searchParams);
+        Task<List<PetSearchResultDto>> Search(SearchParams searchParams);
     }
 
     public class PetProfileService : IPetProfileService
@@ -94,12 +94,13 @@ namespace Pets.API.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<PetProfileDto>> Search(SearchParams searchParams)
+        public async Task<List<PetSearchResultDto>> Search(SearchParams searchParams)
         {
             IQueryable<PetProfile> petProfiles = _context.PetProfiles
                                             .Include(i => i.Breed)
                                             .Include(i => i.Sex)
                                             .Include(i => i.Owner)
+                                            .Include(i => i.Owner.Location)
                                             .Where(i => i.AvailableForBreeding == searchParams.AvailableForBreeding
                                                 && i.OwnerId != searchParams.UserId);
 
@@ -124,6 +125,7 @@ namespace Pets.API.Services
                 petProfiles = petProfiles.Where(i => i.BreedId == searchParams.BreedId);
             }
 
+            Point searchPoint = null;
             if (searchParams.SearchRadiusType != SearchRadiusType.Unknown &&
                 searchParams.SearchRadius.HasValue && searchParams.Latitude.HasValue &&
                 searchParams.Longitude.HasValue)
@@ -135,13 +137,49 @@ namespace Pets.API.Services
                 };
 
                 var geometryFactory = NetTopologySuite.NtsGeometryServices.Instance.CreateGeometryFactory(4326);
-                var searchPoint = geometryFactory.CreatePoint(new Coordinate(searchParams.Longitude.Value, searchParams.Latitude.Value));
+                searchPoint = geometryFactory.CreatePoint(new Coordinate(searchParams.Longitude.Value, searchParams.Latitude.Value));
 
                 petProfiles = petProfiles.Where(i => i.Owner.Location.GeoLocation.Distance(searchPoint) <= radiusInMeters);
             }
 
+            return await petProfiles.Select(i => new PetSearchResultDto
+            {
+                Id = i.Id,
+                AvailableForBreeding = i.AvailableForBreeding,
+                Breed = new PetBreedDto
+                {
+                    Id = i.Breed.Id,
+                    Title = i.Breed.Title,
+                    TypeId = i.Breed.TypeId
+                },
+                DateOfBirth = i.DateOfBirth,
+                Description = i.Description,
+                DistanceFromSearchLocation = (searchPoint != null) ? CalculateDistanceFromSearchLocation(i.Owner.Location.GeoLocation.Distance(searchPoint),
+                    searchParams.SearchRadiusType.Value) : null,
+                Owner = new PetOwnerInfosDto
+                {
+                    FirstName = i.Owner.FirstName,
+                    LastName = i.Owner.LastName,
+                    Id = i.Owner.Id
+                },
+                Name = i.Name,
+                Sex = new SexDto
+                {
+                    Id = i.Sex.Id,
+                    Title = i.Sex.Title
+                }
+            }).ToListAsync();
+        }
 
-            return _mapper.Map<List<PetProfileDto>>(await petProfiles.ToListAsync());
+        private static double CalculateDistanceFromSearchLocation(double distanceInMeters, SearchRadiusType searchRadiusType)
+        {
+            double distance = searchRadiusType switch
+            {
+                SearchRadiusType.Miles => Math.Round(distanceInMeters * 0.000621371, 1),
+                SearchRadiusType.Kilometers => Math.Round(distanceInMeters * 0.001, 1)
+            };
+
+            return distance;
         }
 
         public async Task<List<PetProfileDto>> GetMates(PetProfile entity, Guid userId)

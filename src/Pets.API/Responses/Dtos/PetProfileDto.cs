@@ -37,7 +37,7 @@ namespace Pets.API.Responses.Dtos
 
         public PetBreedDto Breed { get; set; }
 
-        public PetAge Age { get; set; }
+        public PetAge Age { get; private set; }
 
         public class PetAge
         {
