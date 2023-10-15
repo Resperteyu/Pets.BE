@@ -1,0 +1,23 @@
+﻿using Pets.Db.Models;
+using System;
+
+namespace Pets.API.Responses.Dtos
+{
+    public class MateRequestDto
+    {
+        public Guid Id { get; set; }
+        public PetProfile PetProfile { get; set; }
+
+        public PetProfile PetMateProfile { get; set; }
+
+        public string Description { get; set; }
+        public string AmountAgreement { get; set; }
+        public string LitterSplitAgreement { get; set; }
+        public string BreedingPlaceAgreement { get; set; }
+        public DateTime CreationDate { get; set; }
+        public string Response { get; set; }
+        public string Comment { get; set; }
+
+        public MateRequestState MateRequestState { get; set; }
+    }
+}
