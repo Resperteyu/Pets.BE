@@ -26,6 +26,8 @@ namespace Pets.API.Services
 
     public class PetProfileService : IPetProfileService
     {
+        private const int SEARCH_MAX_RESULTS = 50;
+
         private readonly PetsDbContext _context;
         private readonly IMapper _mapper;
 
@@ -142,6 +144,8 @@ namespace Pets.API.Services
                 petProfiles = petProfiles.Where(i => i.Owner.Location.GeoLocation.Distance(searchPoint) <= radiusInMeters);
             }
 
+            petProfiles = petProfiles.Take(SEARCH_MAX_RESULTS);
+
             return await petProfiles.Select(i => new PetSearchResultDto
             {
                 Id = i.Id,
@@ -161,6 +165,7 @@ namespace Pets.API.Services
                     FirstName = i.Owner.FirstName,
                     LastName = i.Owner.LastName,
                     Id = i.Owner.Id
+                    // TODO: Add owner rough address
                 },
                 Name = i.Name,
                 Sex = new SexDto
