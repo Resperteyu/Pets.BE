@@ -7,7 +7,7 @@ using Pets.API.Services;
 namespace Pets.API.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("mate-request-state")]
     public class MateRequestStateController : ControllerBase
     {
         private readonly IMateRequestStateService _mateRequestStateService;
