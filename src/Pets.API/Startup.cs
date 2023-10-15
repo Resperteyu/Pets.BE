@@ -107,10 +107,12 @@ namespace Pets.API
             services.AddTransient<IEmailSender, SendGridEmailSender>();
 
             services.AddScoped<ISexService, SexService>();
+            services.AddScoped<IMateRequestStateService, MateRequestStateService>();
             services.AddScoped<IPetTypeService, PetTypeService>();
             services.AddScoped<IPetBreedService, PetBreedService>();
             services.AddScoped<ICountryService, CountryService>();
             services.AddScoped<IPetProfileService, PetProfileService>();
+            services.AddScoped<IMateRequestService, IMateRequestService>();
 
             services.AddApplicationInsightsTelemetry();
         }

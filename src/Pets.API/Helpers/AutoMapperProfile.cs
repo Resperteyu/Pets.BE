@@ -12,6 +12,8 @@ namespace Pets.API.Helpers
 
             CreateMap<Sex, SexDto>();
 
+            CreateMap<MateRequestState, MateRequestStateDto>();
+
             CreateMap<PetType, PetTypeDto>();
 
             CreateMap<PetBreed, PetBreedDto>();
@@ -21,6 +23,10 @@ namespace Pets.API.Helpers
             CreateMap<PetProfile, PetProfileDto>();
 
             CreateMap<CreatePetRequest, PetProfile>();
+
+            CreateMap<CreateMateRequestRequest, MateRequest>();
+
+            CreateMap<MateRequest, MateRequestDto>();
         }        
     }
 }
