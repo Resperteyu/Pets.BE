@@ -12,7 +12,7 @@ using Pets.Db.Models;
 namespace Pets.API.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("mate-request")]
     public class MateRequestController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;

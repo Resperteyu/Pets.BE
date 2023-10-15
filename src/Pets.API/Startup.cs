@@ -112,7 +112,7 @@ namespace Pets.API
             services.AddScoped<IPetBreedService, PetBreedService>();
             services.AddScoped<ICountryService, CountryService>();
             services.AddScoped<IPetProfileService, PetProfileService>();
-            services.AddScoped<IMateRequestService, IMateRequestService>();
+            services.AddScoped<IMateRequestService, MateRequestService>();
 
             services.AddApplicationInsightsTelemetry();
         }
