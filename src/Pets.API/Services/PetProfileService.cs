@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NetTopologySuite.Geometries;
 
 namespace Pets.API.Services
 {
@@ -20,12 +21,13 @@ namespace Pets.API.Services
         Task UpdatePet(UpdatePetRequest model, PetProfile entity);
         Task DeletePet(PetProfile entity);
         Task<List<PetProfileDto>> GetMates(PetProfile entity, Guid userId);
-        Task<List<PetProfileDto>> Search(bool availableForBreeding, byte? sexId, int? age, byte? typeId, int? breedId, Guid userId,
-            double? latitude, double? longitude, SearchRadiusType? searchRadiusType);
+        Task<List<PetSearchResultDto>> Search(SearchParams searchParams);
     }
 
     public class PetProfileService : IPetProfileService
     {
+        private const int SEARCH_MAX_RESULTS = 50;
+
         private readonly PetsDbContext _context;
         private readonly IMapper _mapper;
 
@@ -94,38 +96,95 @@ namespace Pets.API.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<PetProfileDto>> Search(bool availableForBreeding, byte? sexId, int? age,
-            byte? typeId, int? breedId, Guid userId, double? latitude, double? longitude, SearchRadiusType? searchRadiusType)
+        public async Task<List<PetSearchResultDto>> Search(SearchParams searchParams)
         {
             IQueryable<PetProfile> petProfiles = _context.PetProfiles
                                             .Include(i => i.Breed)
                                             .Include(i => i.Sex)
-                                            .Where(i => i.AvailableForBreeding == availableForBreeding
-                                                && i.OwnerId != userId);
+                                            .Include(i => i.Owner)
+                                            .Include(i => i.Owner.Location)
+                                            .Where(i => i.AvailableForBreeding == searchParams.AvailableForBreeding
+                                                && i.OwnerId != searchParams.UserId);
 
-            if (sexId.HasValue)
+            if (searchParams.SexId.HasValue)
             {
-                petProfiles = petProfiles.Where(i => i.SexId == sexId);
+                petProfiles = petProfiles.Where(i => i.SexId == searchParams.SexId);
             }
 
-            if (age.HasValue && age > 0)
+            if (searchParams.Age.HasValue && searchParams.Age > 0)
             {
-                DateTime targetDateOfBirth = DateTime.Today.AddYears(-age.Value);
+                DateTime targetDateOfBirth = DateTime.Today.AddYears(-searchParams.Age.Value);
                 petProfiles = petProfiles.Where(i => i.DateOfBirth <= targetDateOfBirth);
             }
 
-            if (typeId.HasValue)
+            if (searchParams.TypeId.HasValue)
             {
-                petProfiles = petProfiles.Where(i => i.Breed.TypeId == typeId);
+                petProfiles = petProfiles.Where(i => i.Breed.TypeId == searchParams.TypeId);
             }
 
-            if (breedId.HasValue)
+            if (searchParams.BreedId.HasValue)
             {
-                petProfiles = petProfiles.Where(i => i.BreedId == breedId);
+                petProfiles = petProfiles.Where(i => i.BreedId == searchParams.BreedId);
             }
 
+            Point searchPoint = null;
+            if (searchParams.SearchRadiusType != SearchRadiusType.Unknown &&
+                searchParams.SearchRadius.HasValue && searchParams.Latitude.HasValue &&
+                searchParams.Longitude.HasValue)
+            {
+                double radiusInMeters = searchParams.SearchRadiusType switch
+                {
+                    SearchRadiusType.Miles => searchParams.SearchRadius.Value * 1609.34, // Convert miles to meters
+                    SearchRadiusType.Kilometers => searchParams.SearchRadius.Value * 1000, // Convert kilometers to meters
+                };
 
-            return _mapper.Map<List<PetProfileDto>>(await petProfiles.ToListAsync());
+                var geometryFactory = NetTopologySuite.NtsGeometryServices.Instance.CreateGeometryFactory(4326);
+                searchPoint = geometryFactory.CreatePoint(new Coordinate(searchParams.Longitude.Value, searchParams.Latitude.Value));
+
+                petProfiles = petProfiles.Where(i => i.Owner.Location.GeoLocation.Distance(searchPoint) <= radiusInMeters);
+            }
+
+            petProfiles = petProfiles.Take(SEARCH_MAX_RESULTS);
+
+            return await petProfiles.Select(i => new PetSearchResultDto
+            {
+                Id = i.Id,
+                AvailableForBreeding = i.AvailableForBreeding,
+                Breed = new PetBreedDto
+                {
+                    Id = i.Breed.Id,
+                    Title = i.Breed.Title,
+                    TypeId = i.Breed.TypeId
+                },
+                DateOfBirth = i.DateOfBirth,
+                Description = i.Description,
+                DistanceFromSearchLocation = (searchPoint != null) ? CalculateDistanceFromSearchLocation(i.Owner.Location.GeoLocation.Distance(searchPoint),
+                    searchParams.SearchRadiusType.Value) : null,
+                Owner = new PetOwnerInfosDto
+                {
+                    FirstName = i.Owner.FirstName,
+                    LastName = i.Owner.LastName,
+                    Id = i.Owner.Id
+                    // TODO: Add owner rough address
+                },
+                Name = i.Name,
+                Sex = new SexDto
+                {
+                    Id = i.Sex.Id,
+                    Title = i.Sex.Title
+                }
+            }).ToListAsync();
+        }
+
+        private static double CalculateDistanceFromSearchLocation(double distanceInMeters, SearchRadiusType searchRadiusType)
+        {
+            double distance = searchRadiusType switch
+            {
+                SearchRadiusType.Miles => Math.Round(distanceInMeters * 0.000621371, 1),
+                SearchRadiusType.Kilometers => Math.Round(distanceInMeters * 0.001, 1)
+            };
+
+            return distance;
         }
 
         public async Task<List<PetProfileDto>> GetMates(PetProfile entity, Guid userId)
