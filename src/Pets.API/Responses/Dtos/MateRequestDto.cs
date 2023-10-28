@@ -6,9 +6,9 @@ namespace Pets.API.Responses.Dtos
     public class MateRequestDto
     {
         public Guid Id { get; set; }
-        public PetProfile PetProfile { get; set; }
+        public PetProfileDto PetProfile { get; set; }
 
-        public PetProfile PetMateProfile { get; set; }
+        public PetProfileDto PetMateProfile { get; set; }
 
         public string Description { get; set; }
         public string AmountAgreement { get; set; }
@@ -18,6 +18,6 @@ namespace Pets.API.Responses.Dtos
         public string Response { get; set; }
         public string Comment { get; set; }
 
-        public MateRequestState MateRequestState { get; set; }
+        public MateRequestStateDto MateRequestState { get; set; }
     }
 }
