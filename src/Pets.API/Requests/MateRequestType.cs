@@ -1,6 +1,6 @@
 ﻿namespace Pets.API.Requests
 {
-    public enum MateRequestFilterType
+    public enum MateRequestType
     {
         All,
         Initiated,

@@ -65,11 +65,31 @@ namespace Pets.API.Controllers
 
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<List<MateRequestDto>>> GetBy(MateRequestFilterType? filterType)
+        public async Task<ActionResult<List<MateRequestDto>>> GetBy([FromQuery] MateRequestSearchParams mateRequestSearchParams)
         {
             var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
-            var mateRequests = await _mateRequestService.GetBy(userId, filterType);
+            var mateRequests = await _mateRequestService.GetBy(userId, mateRequestSearchParams);
             return Ok(mateRequests);
+        }
+
+        [Authorize]
+        [HttpGet]
+        public async Task<ActionResult<MateRequestDto>> GetById(Guid id)
+        {
+            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
+            var mateRequest = await _mateRequestService.GetById(id);
+            if (mateRequest == null)
+            {
+                return BadRequest("Mate request not found");
+            }
+
+            if(mateRequest.PetMateProfile.Owner.Id != userId 
+                || mateRequest.PetProfile.Owner.Id != userId) 
+            {
+                return Unauthorized("You are not authorised to see this request");
+            }
+
+            return Ok(mateRequest);
         }
     }
 }
