@@ -16,6 +16,7 @@ using Microsoft.OpenApi.Models;
 using Pets.API.Config;
 using Pets.API.Middleware;
 using Pets.API.Services;
+using Pets.API.Settings;
 using Pets.Db;
 using Pets.Db.Models;
 using SendGrid.Extensions.DependencyInjection;
@@ -113,6 +114,12 @@ namespace Pets.API
             services.AddScoped<ICountryService, CountryService>();
             services.AddScoped<IPetProfileService, PetProfileService>();
             services.AddScoped<IMateRequestService, MateRequestService>();
+            services.AddSingleton<IImageStorageService, ImageStorageService>();
+
+            services.AddOptions<BlobStorageSettings>().Configure(options =>
+            {
+                Configuration.Bind("BlobStorage", options);
+            });
 
             services.AddApplicationInsightsTelemetry();
         }

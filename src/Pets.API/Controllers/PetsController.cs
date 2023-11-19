@@ -1,13 +1,19 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Pets.API.Requests;
 using Pets.API.Responses.Dtos;
 using Pets.API.Services;
 using Pets.Db.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
+using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
 namespace Pets.API.Controllers
 {
@@ -17,11 +23,18 @@ namespace Pets.API.Controllers
     {
         private readonly IPetProfileService _petProfileService;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IImageStorageService _imageStorageService;
+        private readonly ILogger<PetsController> _logger;
 
-        public PetsController(IPetProfileService petProfileService, UserManager<ApplicationUser> userManager)
+        public PetsController(IPetProfileService petProfileService,
+            UserManager<ApplicationUser> userManager,
+            IImageStorageService imageStorageService,
+            ILogger<PetsController> logger)
         {
             _petProfileService = petProfileService;
             _userManager = userManager;
+            _imageStorageService = imageStorageService;
+            _logger = logger;
         }
 
         [Authorize]
@@ -120,6 +133,61 @@ namespace Pets.API.Controllers
             var petProfiles = await _petProfileService.GetMates(petEntity, userId); 
 
             return Ok(petProfiles);
+        }
+
+        [Authorize]
+        [HttpPut("{petId:Guid}/image")]
+        public async Task<IActionResult> SaveImage(Guid petId, [FromForm] IEnumerable<IFormFile> imageFile, CancellationToken cancellationToken)
+        { 
+            try
+            {
+                var img = imageFile.FirstOrDefault();
+
+                if (img == null || img.Length == 0)
+                {
+                    return BadRequest("No image file provided.");
+                }
+
+                if (img.ContentType is not ("image/jpeg" or "image/png"))
+                {
+                    return BadRequest("Invalid content type.");
+                }
+
+                var petEntity = await _petProfileService.GetEntityByPetId(petId);
+
+                if (petEntity == null)
+                    return NotFound("Pet not found");
+
+                var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
+                if (petEntity.OwnerId != userId)
+                    return Unauthorized("You don't own this pet");
+
+                await _imageStorageService.UploadPetImage(petId, img, cancellationToken);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding image for {PetId}", petId);
+            }
+            return StatusCode(500);
+        }
+
+        //[Authorize]
+        [HttpGet("{petId:Guid}/image")]
+        public Task GetPetImage(Guid petId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                HttpContext.Response.Clear();
+                HttpContext.Response.Headers.Clear();
+                return _imageStorageService.GetImage(petId, HttpContext, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting image for {PetId}", petId);
+            }
+            return Task.CompletedTask;
         }
     }
 }
