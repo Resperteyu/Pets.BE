@@ -24,6 +24,14 @@ Really we are just keeping two things in secrets at the moment, alongside the co
 }
 ```
 
+### Azurite
+For blob storage
+```
+npm install -g azurite
+azurite --silent --location c:\azurite --debug c:\azurite\debug.log
+```
+
+
 ## TODO
 
 - [ ] Add social logins

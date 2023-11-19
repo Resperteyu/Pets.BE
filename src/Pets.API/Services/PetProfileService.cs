@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NetTopologySuite.Geometries;
+using System.Threading;
 
 namespace Pets.API.Services
 {
@@ -30,11 +31,14 @@ namespace Pets.API.Services
 
         private readonly PetsDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IImageStorageService _imageStorageService;
 
-        public PetProfileService(PetsDbContext context, IMapper mapper)
+        public PetProfileService(PetsDbContext context, IMapper mapper,
+            IImageStorageService imageStorageService)
         {
             _context = context;
             _mapper = mapper;
+            _imageStorageService = imageStorageService;
         }
 
         public async Task<PetProfile> GetEntityByPetId(Guid petId)
@@ -94,6 +98,7 @@ namespace Pets.API.Services
         {
             _context.PetProfiles.Remove(entity);
             await _context.SaveChangesAsync();
+            await _imageStorageService.DeleteImage(entity.Id, CancellationToken.None);
         }
 
         public async Task<List<PetSearchResultDto>> Search(SearchParams searchParams)
