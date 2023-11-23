@@ -14,6 +14,7 @@ namespace Pets.API.UnitTest.Services
     {
         private readonly IMapper _mapper;
         private readonly IPetProfileService _petProfileService;
+        private readonly IImageStorageService _imageStorageService;
         private readonly PetsDbContext _context;
 
         public PetProfileServiceTests()
@@ -23,7 +24,7 @@ namespace Pets.API.UnitTest.Services
 
             var mapperConfig = new MapperConfiguration(cfg => cfg.AddProfile(new AutoMapperProfile()));
             _mapper = mapperConfig.CreateMapper();
-            _petProfileService = new PetProfileService(_context, _mapper);
+            _petProfileService = new PetProfileService(_context, _mapper, null);
         }
 
         [Fact]

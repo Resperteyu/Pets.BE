@@ -17,7 +17,9 @@ namespace Pets.API.Services
     {
         Task<Guid> CreateMateRequest(CreateMateRequestRequest model);
         Task<List<MateRequestDto>> GetBy(Guid userId, MateRequestSearchParams mateRequestSearchParams);
-        Task<MateRequestDto> GetById(Guid id);
+        Task<MateRequestDto> GetById(Guid id, Guid ownerId);
+        Task UpdateResponse(PetMateRequestResponseRequest responseRequest);
+        Task UpdateTransition(PetMateRequestTransitionRequest transitionRequest);
 
     }
 
@@ -75,7 +77,7 @@ namespace Pets.API.Services
             return _mapper.Map<List<MateRequestDto>>(await mateRequests.ToListAsync());
         }
 
-        public async Task<MateRequestDto> GetById(Guid id)
+        public async Task<MateRequestDto> GetById(Guid id, Guid ownerId)
         {
             var mateRequest = await _context.MateRequests.Where(i => i.Id == id)
                                             .Include(i => i.PetProfile)
@@ -86,7 +88,38 @@ namespace Pets.API.Services
             if (mateRequest == null)
                 return null;
 
-            return _mapper.Map<MateRequestDto>(mateRequest);
+            var mateRequestDto = _mapper.Map<MateRequestDto>(mateRequest);
+            
+            mateRequestDto.IsRequester = mateRequestDto.PetMateProfile.Owner.Id == ownerId;
+            mateRequestDto.IsReceiver = mateRequestDto.PetProfile.Owner.Id == ownerId;
+
+            return mateRequestDto;
+        }
+
+        public async Task UpdateResponse(PetMateRequestResponseRequest responseRequest)
+        {
+            var entity = await _context.MateRequests.Where(i => i.Id == responseRequest.MateRequestId)
+                                      .Include(i => i.PetProfile)
+                                      .Include(i => i.PetMateProfile)
+                                      .SingleAsync();
+
+            entity.MateRequestStateId = responseRequest.MateRequestStateId;
+            entity.Response = responseRequest.Response;
+
+            _context.MateRequests.Update(entity);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateTransition(PetMateRequestTransitionRequest transitionRequest)
+        {
+            var entity = await _context.MateRequests.Where(i => i.Id == transitionRequest.MateRequestId)
+                                      .SingleAsync();
+
+            entity.MateRequestStateId = transitionRequest.MateRequestStateId;
+            entity.Comment = transitionRequest.Comment;
+
+            _context.MateRequests.Update(entity);
+            await _context.SaveChangesAsync();
         }
     }
 }

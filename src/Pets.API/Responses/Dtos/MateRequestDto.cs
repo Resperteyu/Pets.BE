@@ -18,6 +18,9 @@ namespace Pets.API.Responses.Dtos
         public string Response { get; set; }
         public string Comment { get; set; }
 
+        public bool IsRequester { get; set; }
+        public bool IsReceiver { get; set; }
+
         public MateRequestStateDto MateRequestState { get; set; }
     }
 }

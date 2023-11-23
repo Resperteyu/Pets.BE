@@ -14,6 +14,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Pets.API.Config;
+using Pets.API.Helpers;
 using Pets.API.Middleware;
 using Pets.API.Services;
 using Pets.API.Settings;
@@ -115,6 +116,7 @@ namespace Pets.API
             services.AddScoped<IPetProfileService, PetProfileService>();
             services.AddScoped<IMateRequestService, MateRequestService>();
             services.AddSingleton<IImageStorageService, ImageStorageService>();
+            services.AddSingleton<IMateRequestStateChangeValidator, MateRequestStateChangeValidator>();
 
             services.AddOptions<BlobStorageSettings>().Configure(options =>
             {
