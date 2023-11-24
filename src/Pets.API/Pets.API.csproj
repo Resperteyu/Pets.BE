@@ -29,4 +29,18 @@
     <Folder Include="Config\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="Templates\ConfirmationEmail.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Templates\ConfirmationEmail.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Templates\ForgotPasswordEmail.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Templates\ForgotPasswordEmail.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

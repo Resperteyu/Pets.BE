@@ -106,7 +106,8 @@ namespace Pets.API
             services.AddSendGrid(options =>
                 options.ApiKey = Configuration.GetValue<string>("SendGridApiKey") ?? throw new Exception("The 'SendGridApiKey' is not configured")
             );
-            services.AddTransient<IEmailSender, SendGridEmailSender>();
+            services.AddSingleton<IEmailSender, SendGridEmailSender>();
+            services.AddSingleton<EmailService>();
 
             services.AddScoped<ISexService, SexService>();
             services.AddScoped<IMateRequestStateService, MateRequestStateService>();
@@ -121,6 +122,10 @@ namespace Pets.API
             services.AddOptions<BlobStorageSettings>().Configure(options =>
             {
                 Configuration.Bind("BlobStorage", options);
+            });
+            services.AddOptions<WebSiteSettings>().Configure(options =>
+            {
+                Configuration.Bind("WebSite", options);
             });
 
             services.AddApplicationInsightsTelemetry();

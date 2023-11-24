@@ -30,16 +30,16 @@ namespace Pets.API.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly RoleManager<IdentityRole<Guid>> _roleManager;
+        private readonly EmailService _emailService;
         private readonly IConfiguration _configuration;
         private readonly PetsDbContext _context;
         private readonly TokenValidationParameters _tokenValidationParameters;
-        private readonly IEmailSender _emailSender;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             RoleManager<IdentityRole<Guid>> roleManager,
-            IEmailSender emailSender,
+            EmailService emailService,
             TokenValidationParameters tokenValidationParameters,
             PetsDbContext context,
             IConfiguration configuration)
@@ -47,9 +47,9 @@ namespace Pets.API.Controllers
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
+            _emailService = emailService;
             _configuration = configuration;
             _tokenValidationParameters = tokenValidationParameters;
-            _emailSender = emailSender;
             _context = context;
         }
 
@@ -141,8 +141,7 @@ namespace Pets.API.Controllers
                 var jwtToken = await GenerateJwtToken(newUser);
 
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(newUser);
-                var confirmationLink = $"https://localhost:5001/Verify/?email={newUser.Email}&token={token}";
-                await _emailSender.SendEmailAsync(newUser.Email, "Confirmation email link", confirmationLink);
+                await _emailService.SendConfirmationEmailAsync(newUser.Email, token);
 
                 return Ok(jwtToken);
 
@@ -194,52 +193,44 @@ namespace Pets.API.Controllers
 
         [HttpPost]
         [Route("forgot-password")]
-        public async Task<IActionResult> ForgotPassword([Required] string email)
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordModel request)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                var user = await _userManager.FindByEmailAsync(email);
-                if (user is not null)
-                {
-                    var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-
-
-                    var confirmationLink = $"https://localhost:5001/ResetPassword/?email={user.Email}&token={token}";
-                    await _emailSender.SendEmailAsync(user.Email, "Confirmation email link", confirmationLink);
-                }
+                return BadRequest();
             }
+
+            var user = await _userManager.FindByEmailAsync(request.Email);
+            if (user == null)
+            {
+                return NoContent();
+            }
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            await _emailService.SendForgotPasswordEmailAsync(user.Email, token);
 
             return NoContent();
         }
 
         [HttpPost]
         [Route("reset-password")]
-        public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
         {
-            // TODO Not use RegistrationResponse
             if (!ModelState.IsValid)
             {
-                return BadRequest(new RegistrationResponse()
-                {
-                    Success = false,
-                    Errors = new List<string>(){
-                    "Invalid payload"
-                }
-                });
+                return BadRequest();
             }
 
             var user = await _userManager.FindByEmailAsync(request.Email);
-            if (user is not null)
+            if (user == null)
             {
-                var resetPassResult = await _userManager.ResetPasswordAsync(user, request.Token, request.Password);
-                if (!resetPassResult.Succeeded)
-                { 
-                    return new JsonResult(new RegistrationResponse()
-                    {
-                        Success = false,
-                        Errors = resetPassResult.Errors.Select(x => x.Description).ToList()
-                    });
-                }
+                return NotFound();
+            }
+
+            var resetPassResult = await _userManager.ResetPasswordAsync(user, request.Token, request.Password);
+            if (!resetPassResult.Succeeded)
+            {
+                return BadRequest(new { Error = resetPassResult.ToString() });
             }
 
             return NoContent();

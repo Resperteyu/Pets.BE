@@ -1,0 +1,9 @@
+Hello,
+
+Thank you for signing up with [Your Company Name]! To complete the registration process, please click on the link below to confirm your email address:
+
+[Link]
+
+If you did not sign up for an account, please ignore this email.
+
+Thank you
