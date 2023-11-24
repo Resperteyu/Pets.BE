@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Pets.API.Requests;
 using Pets.Db;
 using System.Threading.Tasks;
 using System;
@@ -9,7 +8,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using Pets.API.Responses.Dtos;
-using SendGrid.Helpers.Mail;
+using Pets.API.Requests.MateRequest;
 
 namespace Pets.API.Services
 {
@@ -20,7 +19,7 @@ namespace Pets.API.Services
         Task<MateRequestDto> GetById(Guid id, Guid ownerId);
         Task UpdateResponse(PetMateRequestResponseRequest responseRequest);
         Task UpdateTransition(PetMateRequestTransitionRequest transitionRequest);
-
+        Task UpdateDetails(PetMateRequestUpdateRequest updateRequest);
     }
 
     public class MateRequestService : IMateRequestService
@@ -94,7 +93,7 @@ namespace Pets.API.Services
             mateRequestDto.IsReceiver = mateRequestDto.PetProfile.Owner.Id == ownerId;
 
             return mateRequestDto;
-        }
+        }        
 
         public async Task UpdateResponse(PetMateRequestResponseRequest responseRequest)
         {
@@ -117,6 +116,21 @@ namespace Pets.API.Services
 
             entity.MateRequestStateId = transitionRequest.MateRequestStateId;
             entity.Comment = transitionRequest.Comment;
+
+            _context.MateRequests.Update(entity);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateDetails(PetMateRequestUpdateRequest updateRequest)
+        {
+            var entity = await _context.MateRequests.Where(i => i.Id == updateRequest.MateRequestId)
+                                      .SingleAsync();
+
+            entity.MateRequestStateId = MateRequestStateConsts.SENT;
+            entity.Description = updateRequest.Description;
+            entity.LitterSplitAgreement = updateRequest.LitterSplitAgreement;
+            entity.BreedingPlaceAgreement = updateRequest.BreedingPlaceAgreement;
+            entity.AmountAgreement = updateRequest.AmountAgreement;
 
             _context.MateRequests.Update(entity);
             await _context.SaveChangesAsync();

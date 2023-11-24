@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Pets.API.Requests
+namespace Pets.API.Requests.MateRequest
 {
     public class CreateMateRequestRequest
     {

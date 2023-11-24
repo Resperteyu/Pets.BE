@@ -1,5 +1,4 @@
-﻿using Azure.Core;
-using Pets.API.Responses.Dtos;
+﻿using Pets.API.Responses.Dtos;
 
 namespace Pets.API.Helpers
 {
@@ -9,10 +8,8 @@ namespace Pets.API.Helpers
         public string Message { get; set; }
     }
 
-
     public interface IMateRequestStateChangeValidator
     {
-
         MateRequestStateChangeValidatorResult ValidateResponse(MateRequestDto mateRequest, byte responseState);
         MateRequestStateChangeValidatorResult ValidateTransition(MateRequestDto mateRequest, byte transitionState);
     }
@@ -29,7 +26,7 @@ namespace Pets.API.Helpers
             if (mateRequest.MateRequestState.Id != MateRequestStateConsts.SENT)
             {
                 result.Result = false;
-                result.Message = "Current state of mate-request doesn't allow this operation " + mateRequest.MateRequestState.Title;
+                result.Message = "Current state of mate-request does not allow this operation " + mateRequest.MateRequestState.Title;
                 return result;
             }
 
@@ -62,12 +59,10 @@ namespace Pets.API.Helpers
             }
 
             if (mateRequest.MateRequestState.Id == MateRequestStateConsts.ACCEPTED
-            &&
-            (transitionState != MateRequestStateConsts.FAILED && transitionState != MateRequestStateConsts.BREEDING)
-                )
+            && (transitionState != MateRequestStateConsts.FAILED && transitionState != MateRequestStateConsts.BREEDING))
             {
                 result.Result = false;
-                result.Message = "Current state of mate-request doesn't allow this operation " + mateRequest.MateRequestState.Title;
+                result.Message = "Current state of mate-request does not allow this operation " + mateRequest.MateRequestState.Title;
                 return result;
             }
 
@@ -77,7 +72,7 @@ namespace Pets.API.Helpers
                 )
             {
                 result.Result = false;
-                result.Message = "Current state of mate-request doesn't allow this operation " + mateRequest.MateRequestState.Title;
+                result.Message = "Current state of mate-request does not allow this operation " + mateRequest.MateRequestState.Title;
                 return result;
             }
 
@@ -86,7 +81,7 @@ namespace Pets.API.Helpers
                 && !mateRequest.IsRequester)
             {
                 result.Result = false;
-                result.Message = "Current state of mate-request doesn't allow this operation " + mateRequest.MateRequestState.Title;
+                result.Message = "Current state of mate-request does not allow this operation " + mateRequest.MateRequestState.Title;
                 return result;
             }
 

@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using Pets.API.Responses.Dtos;
 using Pets.API.Services;
 using Microsoft.AspNetCore.Authorization;
-using Pets.API.Requests;
 using System;
 using Microsoft.AspNetCore.Identity;
 using Pets.Db.Models;
 using Pets.API.Helpers;
+using Pets.API.Requests.MateRequest;
 
 namespace Pets.API.Controllers
 {
@@ -98,7 +98,7 @@ namespace Pets.API.Controllers
 
         [Authorize]
         [HttpPost("response")]
-        public async Task<ActionResult<Guid>> Post(PetMateRequestResponseRequest request)
+        public async Task<ActionResult> Post(PetMateRequestResponseRequest request)
         {
             var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
             
@@ -132,7 +132,7 @@ namespace Pets.API.Controllers
 
         [Authorize]
         [HttpPost("transition")]
-        public async Task<ActionResult<Guid>> Post(PetMateRequestTransitionRequest request)
+        public async Task<ActionResult> Post(PetMateRequestTransitionRequest request)
         {
             var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
             
@@ -159,6 +159,42 @@ namespace Pets.API.Controllers
             }    
 
             await _mateRequestService.UpdateTransition(request);
+
+            //TO DO: send email notification
+            return Ok();
+        }
+
+        [Authorize]
+        [HttpPatch]
+        public async Task<ActionResult> Patch(PetMateRequestUpdateRequest request)
+        {
+            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
+
+            var mateRequest = await _mateRequestService.GetById(request.MateRequestId, userId);
+            if (mateRequest == null)
+            {
+                return NotFound("Mate-request not found");
+            }
+
+            if (mateRequest.IsRequester == false)
+            {
+                return Unauthorized("You are not authorised to complete this operation");
+            }
+
+            if (mateRequest.MateRequestState.Id != MateRequestStateConsts.CHANGES_REQUESTED)
+            {
+                return BadRequest("Current state of mate-request does not allow this operation " + mateRequest.MateRequestState.Title);
+            }
+
+            if (string.IsNullOrEmpty(request.Description)
+                || string.IsNullOrEmpty(request.AmountAgreement)
+                || string.IsNullOrEmpty(request.LitterSplitAgreement)
+                || string.IsNullOrEmpty(request.BreedingPlaceAgreement))
+            {
+                return BadRequest();
+            }
+
+            await _mateRequestService.UpdateDetails(request);
 
             //TO DO: send email notification
             return Ok();

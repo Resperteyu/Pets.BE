@@ -1,4 +1,4 @@
-﻿namespace Pets.API.Requests
+﻿namespace Pets.API.Requests.MateRequest
 {
     public enum MateRequestType
     {

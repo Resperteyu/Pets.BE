@@ -1,4 +1,5 @@
 using Pets.API.Requests;
+using Pets.API.Requests.MateRequest;
 using Pets.API.Responses.Dtos;
 using Pets.Db.Models;
 
