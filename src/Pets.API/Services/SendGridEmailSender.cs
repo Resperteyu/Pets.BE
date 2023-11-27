@@ -7,30 +7,30 @@ namespace Pets.API.Services;
 
 public class SendGridEmailSender : IEmailSender
 {
-    private readonly ISendGridClient sendGridClient;
-    private readonly ILogger logger;
+    private readonly ISendGridClient _sendGridClient;
+    private readonly ILogger _logger;
 
     public SendGridEmailSender(ISendGridClient sendGridClient, ILogger<SendGridEmailSender> logger)
     {
-        this.sendGridClient = sendGridClient;
-        this.logger = logger;
+        _sendGridClient = sendGridClient;
+        _logger = logger;
     }
 
-    public async Task SendEmailAsync(string email, string subject, string htmlMessage)
+    public async Task SendEmailAsync(string email, string subject, string htmlMessage, string textMessage)
     {
         var msg = new SendGridMessage()
         {
             From = new EmailAddress("mggprom@gmail.com", "www.petshub.com"),
             Subject = subject,
-            PlainTextContent = htmlMessage,
+            PlainTextContent = textMessage,
             HtmlContent = htmlMessage
         };
         msg.AddTo(new EmailAddress(email));
 
-        var response = await sendGridClient.SendEmailAsync(msg);
+        var response = await _sendGridClient.SendEmailAsync(msg);
         if (!response.IsSuccessStatusCode)
         {
-            logger.LogError("Failed to send email");
+            _logger.LogError("Failed to send email");
         }
     }
 }
