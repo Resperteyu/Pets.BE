@@ -15,7 +15,7 @@ namespace Pets.API.Services
     public interface IMateRequestService
     {
         Task<Guid> CreateMateRequest(CreateMateRequestRequest model);
-        Task<List<MateRequestDto>> GetBy(Guid userId, MateRequestSearchParams mateRequestSearchParams);
+        Task<List<MateRequestDto>> Filter(Guid userId, MateRequestSearchParams mateRequestSearchParams);
         Task<MateRequestDto> GetById(Guid id, Guid ownerId);
         Task UpdateResponse(PetMateRequestResponseRequest responseRequest);
         Task UpdateTransition(PetMateRequestTransitionRequest transitionRequest);
@@ -45,9 +45,10 @@ namespace Pets.API.Services
             return mateRequestRecord.Entity.Id;
         }
 
-        public async Task<List<MateRequestDto>> GetBy(Guid userId, MateRequestSearchParams mateRequestSearchParams)
+        public async Task<List<MateRequestDto>> Filter(Guid userId, MateRequestSearchParams mateRequestSearchParams)
         {
             IQueryable<MateRequest> mateRequests = _context.MateRequests
+                                            .Include(i => i.MateRequestState)
                                             .Include(i => i.PetProfile)
                                             .Include(i => i.PetMateProfile);
                                             
@@ -79,8 +80,9 @@ namespace Pets.API.Services
         public async Task<MateRequestDto> GetById(Guid id, Guid ownerId)
         {
             var mateRequest = await _context.MateRequests.Where(i => i.Id == id)
-                                            .Include(i => i.PetProfile)
-                                            .Include(i => i.PetMateProfile)
+                                            .Include(i => i.MateRequestState)
+                                            .Include(i => i.PetProfile.Owner)
+                                            .Include(i => i.PetMateProfile.Owner)
                                             .SingleOrDefaultAsync();
 
 

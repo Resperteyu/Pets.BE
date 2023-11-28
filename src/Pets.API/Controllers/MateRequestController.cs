@@ -72,12 +72,12 @@ namespace Pets.API.Controllers
         public async Task<ActionResult<List<MateRequestDto>>> Filter([FromQuery] MateRequestSearchParams mateRequestSearchParams)
         {
             var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
-            var mateRequests = await _mateRequestService.GetBy(userId, mateRequestSearchParams);
+            var mateRequests = await _mateRequestService.Filter(userId, mateRequestSearchParams);
             return Ok(mateRequests);
         }
 
         [Authorize]
-        [HttpGet]
+        [HttpGet("{id:Guid}")]
         public async Task<ActionResult<MateRequestDto>> GetById(Guid id)
         {
             var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
@@ -88,7 +88,7 @@ namespace Pets.API.Controllers
             }
 
             if(mateRequest.PetMateProfile.Owner.Id != userId 
-                || mateRequest.PetProfile.Owner.Id != userId) 
+                && mateRequest.PetProfile.Owner.Id != userId) 
             {
                 return Unauthorized("You are not authorised to see this request");
             }
