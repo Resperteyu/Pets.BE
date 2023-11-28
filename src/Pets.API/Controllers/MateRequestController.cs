@@ -97,8 +97,8 @@ namespace Pets.API.Controllers
         }
 
         [Authorize]
-        [HttpPost("response")]
-        public async Task<ActionResult> Post(PetMateRequestResponseRequest request)
+        [HttpPost("reply")]
+        public async Task<ActionResult> Reply(PetMateRequestReplyRequest request)
         {
             var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
             
@@ -118,13 +118,13 @@ namespace Pets.API.Controllers
                 return BadRequest("Response comment cannot be empty");
             }
 
-            var validatorResult = _mateRequestStateChangeValidator.ValidateResponse(mateRequest, request.MateRequestStateId);
+            var validatorResult = _mateRequestStateChangeValidator.ValidateReply(mateRequest, request.MateRequestStateId);
             if (!validatorResult.Result)
             {
                 return BadRequest(validatorResult.Message);
             }
 
-            await _mateRequestService.UpdateResponse(request);
+            await _mateRequestService.UpdateReply(request);
 
             //TO DO: send email notification
             return Ok();
@@ -132,7 +132,7 @@ namespace Pets.API.Controllers
 
         [Authorize]
         [HttpPost("transition")]
-        public async Task<ActionResult> Post(PetMateRequestTransitionRequest request)
+        public async Task<ActionResult> Transition(PetMateRequestTransitionRequest request)
         {
             var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
             
@@ -142,7 +142,7 @@ namespace Pets.API.Controllers
                 return NotFound("Mate-request not found");
             }
             
-            if (mateRequest.IsReceiver == false || mateRequest.IsRequester == false)
+            if (mateRequest.IsReceiver == false && mateRequest.IsRequester == false)
             {
                 return Unauthorized("You are not authorised to complete this operation");
             }            

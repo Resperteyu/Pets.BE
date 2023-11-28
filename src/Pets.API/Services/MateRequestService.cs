@@ -17,7 +17,7 @@ namespace Pets.API.Services
         Task<Guid> CreateMateRequest(CreateMateRequestRequest model);
         Task<List<MateRequestDto>> Filter(Guid userId, MateRequestSearchParams mateRequestSearchParams);
         Task<MateRequestDto> GetById(Guid id, Guid ownerId);
-        Task UpdateResponse(PetMateRequestResponseRequest responseRequest);
+        Task UpdateReply(PetMateRequestReplyRequest responseRequest);
         Task UpdateTransition(PetMateRequestTransitionRequest transitionRequest);
         Task UpdateDetails(PetMateRequestUpdateRequest updateRequest);
     }
@@ -97,7 +97,7 @@ namespace Pets.API.Services
             return mateRequestDto;
         }        
 
-        public async Task UpdateResponse(PetMateRequestResponseRequest responseRequest)
+        public async Task UpdateReply(PetMateRequestReplyRequest responseRequest)
         {
             var entity = await _context.MateRequests.Where(i => i.Id == responseRequest.MateRequestId)
                                       .Include(i => i.PetProfile)

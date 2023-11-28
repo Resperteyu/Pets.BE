@@ -2,7 +2,7 @@
 
 namespace Pets.API.Requests.MateRequest
 {
-    public class PetMateRequestResponseRequest
+    public class PetMateRequestReplyRequest
     {
         public Guid MateRequestId { get; set; }
 

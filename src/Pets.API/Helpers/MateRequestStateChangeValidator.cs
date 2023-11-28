@@ -10,13 +10,13 @@ namespace Pets.API.Helpers
 
     public interface IMateRequestStateChangeValidator
     {
-        MateRequestStateChangeValidatorResult ValidateResponse(MateRequestDto mateRequest, byte responseState);
+        MateRequestStateChangeValidatorResult ValidateReply(MateRequestDto mateRequest, byte responseState);
         MateRequestStateChangeValidatorResult ValidateTransition(MateRequestDto mateRequest, byte transitionState);
     }
 
     public class MateRequestStateChangeValidator : IMateRequestStateChangeValidator
     {
-        public MateRequestStateChangeValidatorResult ValidateResponse(MateRequestDto mateRequest, byte responseState)
+        public MateRequestStateChangeValidatorResult ValidateReply(MateRequestDto mateRequest, byte responseState)
         {
             var result = new MateRequestStateChangeValidatorResult
             {
