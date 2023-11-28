@@ -68,8 +68,8 @@ namespace Pets.API.Controllers
         }
 
         [Authorize]
-        [HttpGet]
-        public async Task<ActionResult<List<MateRequestDto>>> GetBy([FromQuery] MateRequestSearchParams mateRequestSearchParams)
+        [HttpGet("filter")]
+        public async Task<ActionResult<List<MateRequestDto>>> Filter([FromQuery] MateRequestSearchParams mateRequestSearchParams)
         {
             var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
             var mateRequests = await _mateRequestService.GetBy(userId, mateRequestSearchParams);

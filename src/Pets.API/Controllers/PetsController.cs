@@ -128,8 +128,8 @@ namespace Pets.API.Controllers
             if (!petEntity.AvailableForBreeding)
                 return BadRequest("Pet is not available for breeding");
 
-            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));            
-
+            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
+            
             var petProfiles = await _petProfileService.GetMates(petEntity, userId); 
 
             return Ok(petProfiles);

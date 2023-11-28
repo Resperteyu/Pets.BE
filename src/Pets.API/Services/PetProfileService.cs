@@ -43,7 +43,9 @@ namespace Pets.API.Services
 
         public async Task<PetProfile> GetEntityByPetId(Guid petId)
         {
-            return await _context.PetProfiles.FindAsync(petId);
+            return await _context.PetProfiles.Where(x => x.Id == petId)
+                                            .Include(i => i.Breed)
+                                            .SingleOrDefaultAsync();
         }
 
         public async Task<PetProfileDto> GetByPetId(Guid petId)
@@ -195,7 +197,6 @@ namespace Pets.API.Services
         public async Task<List<PetProfileDto>> GetMates(PetProfile entity, Guid userId)
         {
             //TO DO: introduce mate preferences associated to specific pet
-
             var petProfiles = await _context.PetProfiles.Where(x => x.OwnerId == userId)
                                             .Where(x => x.SexId != entity.SexId)
                                             .Where(x => x.Breed.TypeId == entity.Breed.TypeId)
