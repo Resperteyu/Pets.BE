@@ -17,10 +17,23 @@ namespace Pets.API.Responses.Dtos
                 // Calculating and setting pet age as we cannot rely on client date & time
                 TimeSpan difference = DateTime.Now - value;
 
+                int years = 0; 
+                int months = 0;
+                int days = 0;
+                if (difference.Days > 30)
+                {
+                    months = (difference.Days % 365) / 30;
+                    if (difference.Days > 365)
+                        years = difference.Days / 365;
+                }
+                else
+                    days = difference.Days;
+
                 Age = new PetAge
                 {
-                    Years = difference.Days / 365,
-                    Months = (difference.Days % 365) / 30
+                    Years = years,
+                    Months = months,
+                    Days = days
                 };
             }
         }
@@ -43,6 +56,7 @@ namespace Pets.API.Responses.Dtos
         {
             public int Years { get; set; }
             public int Months { get; set; }
+            public int Days { get; set; }
         }
     }
 }
