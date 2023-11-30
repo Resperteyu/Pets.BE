@@ -12,7 +12,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Microsoft.FeatureManagement;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json;
 using Pets.API.Config;
 using Pets.API.Helpers;
 using Pets.API.Middleware;
@@ -23,6 +25,7 @@ using Pets.Db.Models;
 using SendGrid.Extensions.DependencyInjection;
 using System;
 using System.Linq;
+using System.Net.Http;
 using System.Text.Json;
 
 namespace Pets.API
@@ -43,13 +46,16 @@ namespace Pets.API
              options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"), x => x.UseNetTopologySuite()));
             services.AddHealthChecks();
 
-            services.AddControllers().AddNewtonsoftJson();
-
             services.AddControllers(options =>
             {
                 options.InputFormatters.Insert(0, GetJsonPatchInputFormatter());
+            })
+            .AddNewtonsoftJson(options =>
+            {
+                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
             });
 
+            services.AddFeatureManagement();
             services.AddMemoryCache();
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
@@ -106,6 +112,22 @@ namespace Pets.API
             services.AddSendGrid(options =>
                 options.ApiKey = Configuration.GetValue<string>("SendGridApiKey") ?? throw new Exception("The 'SendGridApiKey' is not configured")
             );
+
+            services.AddTransient<StubbedHttpClientHandler>();
+            services.AddHttpClient<IGeocodingService, GoogleGeocodingService>()
+                .ConfigurePrimaryHttpMessageHandler(serviceProvider =>
+                    {
+                        var featureManager = serviceProvider.GetRequiredService<IFeatureManager>();
+                        bool isStubbed = !featureManager.IsEnabledAsync("UseGeocodingApi").GetAwaiter().GetResult(); // Dynamically to use async? Just a ff on the service?
+
+                        if (isStubbed)
+                        {
+                            return serviceProvider.GetRequiredService<StubbedHttpClientHandler>();
+                        }
+
+                        return new HttpClientHandler();
+                    });
+
             services.AddSingleton<IEmailSender, SendGridEmailSender>();
             services.AddSingleton<EmailService>();
 
@@ -116,6 +138,7 @@ namespace Pets.API
             services.AddScoped<ICountryService, CountryService>();
             services.AddScoped<IPetProfileService, PetProfileService>();
             services.AddScoped<IMateRequestService, MateRequestService>();
+            services.AddScoped<IUserProfileService, UserProfileService>();
             services.AddSingleton<IImageStorageService, ImageStorageService>();
             services.AddSingleton<IMateRequestStateChangeValidator, MateRequestStateChangeValidator>();
 
@@ -183,7 +206,7 @@ namespace Pets.API
                         };
 
                         context.Response.ContentType = "application/json";
-                        await context.Response.WriteAsync(JsonSerializer.Serialize(content, new JsonSerializerOptions { WriteIndented = true }));
+                        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(content, new JsonSerializerOptions { WriteIndented = true }));
                     }
                 });
 

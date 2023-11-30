@@ -47,8 +47,8 @@ namespace Pets.API.UnitTest.Services
             Assert.NotNull(result);
             Assert.IsType<List<CountryDto>>(result);
             Assert.Equal(2, result.Count);
-            Assert.Contains(result, c => c.CountryCode == "GB" && c.Name == "United Kingdom");
-            Assert.Contains(result, c => c.CountryCode == "DE" && c.Name == "Germany");
+            Assert.Contains(result, c => c.Code == "GB" && c.Name == "United Kingdom");
+            Assert.Contains(result, c => c.Code == "DE" && c.Name == "Germany");
         }
     }
 }

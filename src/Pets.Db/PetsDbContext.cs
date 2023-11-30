@@ -43,8 +43,7 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser, Identity
             entity.ToTable(name: "Users");
             entity.Property(e => e.FirstName).HasMaxLength(20);
             entity.Property(e => e.LastName).HasMaxLength(20);
-            entity.HasOne(e => e.Country).WithMany(e => e.ApplicationUsers).IsRequired(false);
-            entity.HasOne(e => e.Location).WithMany(e => e.ApplicationUsers).IsRequired(false);
+            entity.HasOne(e => e.Address).WithMany(e => e.ApplicationUsers).IsRequired(false);
             entity.HasKey(e => e.Id);
         });
 
@@ -100,6 +99,20 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser, Identity
             entity.ToTable("PetType");
         });
 
+        modelBuilder.Entity<Address>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Line1).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Line2).HasMaxLength(100);
+            entity.Property(e => e.City).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Postcode).HasMaxLength(20).IsRequired();
+
+            entity.HasOne(e => e.Country).WithMany().IsRequired();
+            entity.HasOne(e => e.Location).WithMany().IsRequired();
+
+            entity.ToTable("Address");
+        });
+
         modelBuilder.Entity<Sex>(entity =>
         {
             entity.Property(e => e.Title).HasMaxLength(10);
@@ -141,6 +154,6 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser, Identity
         });
 
         base.OnModelCreating(modelBuilder);
-        modelBuilder.Seed_MateRequestState();
+        modelBuilder.Seed();
     }
 }

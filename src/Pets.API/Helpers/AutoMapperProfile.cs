@@ -1,7 +1,10 @@
+using NetTopologySuite;
+using NetTopologySuite.Geometries;
 using Pets.API.Requests;
 using Pets.API.Requests.MateRequest;
 using Pets.API.Responses.Dtos;
 using Pets.Db.Models;
+using Location = Pets.Db.Models.Location;
 
 namespace Pets.API.Helpers
 {
@@ -19,7 +22,13 @@ namespace Pets.API.Helpers
 
             CreateMap<PetBreed, PetBreedDto>();
 
-            CreateMap<Country, CountryDto>();
+            CreateMap<Country, CountryDto>()
+                .ReverseMap();
+
+            CreateMap<Location, LocationDto>();
+
+            CreateMap<LocationDto, Location>()
+                .ReverseMap();
 
             CreateMap<PetProfile, PetProfileDto>();
 
@@ -28,6 +37,14 @@ namespace Pets.API.Helpers
             CreateMap<CreateMateRequestRequest, MateRequest>();
 
             CreateMap<MateRequest, MateRequestDto>();
+
+            CreateMap<ApplicationUser, UserProfileDto>()
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.UserName))
+                .ReverseMap();
+
+            CreateMap<AddressDto, Address>()
+                .ForMember(dest => dest.Country, opt => opt.MapFrom<CountryResolver>())
+                .ReverseMap();
         }        
     }
 }

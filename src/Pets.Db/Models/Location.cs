@@ -12,7 +12,5 @@ namespace Pets.Db.Models
         public decimal Longitude { get; set; }
 
         public Point GeoLocation { get; set; }
-
-        public ICollection<ApplicationUser> ApplicationUsers { get; } = new List<ApplicationUser>();
     }
 }

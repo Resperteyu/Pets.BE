@@ -109,7 +109,8 @@ namespace Pets.API.Services
                                             .Include(i => i.Breed)
                                             .Include(i => i.Sex)
                                             .Include(i => i.Owner)
-                                            .Include(i => i.Owner.Location)
+                                            .Include(i => i.Owner.Address)
+                                                .ThenInclude(a => a.Location)
                                             .Where(i => i.AvailableForBreeding == searchParams.AvailableForBreeding
                                                 && i.OwnerId != searchParams.UserId);
 
@@ -148,7 +149,7 @@ namespace Pets.API.Services
                 var geometryFactory = NetTopologySuite.NtsGeometryServices.Instance.CreateGeometryFactory(4326);
                 searchPoint = geometryFactory.CreatePoint(new Coordinate(searchParams.Longitude.Value, searchParams.Latitude.Value));
 
-                petProfiles = petProfiles.Where(i => i.Owner.Location.GeoLocation.Distance(searchPoint) <= radiusInMeters);
+                petProfiles = petProfiles.Where(i => i.Owner.Address.Location.GeoLocation.Distance(searchPoint) <= radiusInMeters);
             }
 
             petProfiles = petProfiles.Take(SEARCH_MAX_RESULTS);
@@ -165,7 +166,7 @@ namespace Pets.API.Services
                 },
                 DateOfBirth = i.DateOfBirth,
                 Description = i.Description,
-                DistanceFromSearchLocation = (searchPoint != null) ? CalculateDistanceFromSearchLocation(i.Owner.Location.GeoLocation.Distance(searchPoint),
+                DistanceFromSearchLocation = (searchPoint != null) ? CalculateDistanceFromSearchLocation(i.Owner.Address.Location.GeoLocation.Distance(searchPoint),
                     searchParams.SearchRadiusType.Value) : null,
                 Owner = new PetOwnerInfosDto
                 {

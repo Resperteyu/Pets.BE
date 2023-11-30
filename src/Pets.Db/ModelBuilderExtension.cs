@@ -85,30 +85,5 @@ namespace Pets.Db
                 }
             }
         }
-
-        public static void Seed_MateRequestState(this ModelBuilder modelBuilder)
-        {
-            Assembly assembly = Assembly.GetExecutingAssembly();
-
-            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
-            {
-                IgnoreBlankLines = false,
-                HeaderValidated = null,
-                MissingFieldFound = null,
-            };
-
-            var resourceName = "Pets.Db.SeedData.MateRequestState.csv";
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            {
-                using (TextReader textReader = new StreamReader(stream))
-                {
-                    using (CsvReader csvReader = new CsvReader(textReader, config))
-                    {
-                        var mateRequestStates = csvReader.GetRecords<MateRequestState>().ToArray();
-                        modelBuilder.Entity<MateRequestState>().HasData(mateRequestStates);
-                    }
-                }
-            }
-        }
     }
 }

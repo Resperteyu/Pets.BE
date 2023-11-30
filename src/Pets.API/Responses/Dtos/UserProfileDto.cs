@@ -1,15 +1,13 @@
-﻿using Pets.Db.Models;
-
-namespace Pets.API.Responses
+﻿using Microsoft.Identity.Client;
+namespace Pets.API.Responses.Dtos
 {
-    public class UserProfileModel
+    public class UserProfileDto
     {
         public string Name { get; set; }
         public string Email { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Telephone { get; set; }
-        public string CountryName { get; set; }
-        public Location Location { get; set; }
+        public AddressDto Address { get; set; }
     }
 }

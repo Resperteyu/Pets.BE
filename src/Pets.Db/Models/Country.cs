@@ -8,8 +8,5 @@
         public string Name { get; set; }
 
         public string DialCode { get; set; }
-
-        public ICollection<ApplicationUser> ApplicationUsers { get; } = new List<ApplicationUser>();
-
     }
 }

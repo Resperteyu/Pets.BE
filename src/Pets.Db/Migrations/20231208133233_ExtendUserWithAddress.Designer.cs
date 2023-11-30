@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Pets.Db;
@@ -12,9 +13,11 @@ using Pets.Db;
 namespace Pets.Db.Migrations
 {
     [DbContext(typeof(PetsDbContext))]
-    partial class PetsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231208133233_ExtendUserWithAddress")]
+    partial class ExtendUserWithAddress
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -429,43 +432,6 @@ namespace Pets.Db.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("MateRequestState", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = (byte)1,
-                            Title = "Sent"
-                        },
-                        new
-                        {
-                            Id = (byte)2,
-                            Title = "Changes requested"
-                        },
-                        new
-                        {
-                            Id = (byte)3,
-                            Title = "Accepted"
-                        },
-                        new
-                        {
-                            Id = (byte)4,
-                            Title = "Breeding"
-                        },
-                        new
-                        {
-                            Id = (byte)5,
-                            Title = "Rejected"
-                        },
-                        new
-                        {
-                            Id = (byte)6,
-                            Title = "Completed"
-                        },
-                        new
-                        {
-                            Id = (byte)7,
-                            Title = "Failed"
-                        });
                 });
 
             modelBuilder.Entity("Pets.Db.Models.PetBreed", b =>

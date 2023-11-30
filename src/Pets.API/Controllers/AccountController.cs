@@ -245,9 +245,7 @@ namespace Pets.API.Controllers
                 return BadRequest(new RegistrationResponse()
                 {
                     Success = false,
-                    Errors = new List<string>(){
-                    "Invalid payload"
-                }
+                    Errors = new List<string>(){ "Invalid payload" }
                 });
             }
 

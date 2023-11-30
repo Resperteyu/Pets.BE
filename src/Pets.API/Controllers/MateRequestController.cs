@@ -36,17 +36,17 @@ namespace Pets.API.Controllers
         public async Task<ActionResult<Guid>> Post(CreateMateRequestRequest request)
         {
             var pet = await _petProfileService.GetByPetId(request.PetProfileId);
-            if(pet == null)
+            if (pet == null)
             {
                 return BadRequest("Pet not found");
             }
-            if(!pet.AvailableForBreeding)
+            if (!pet.AvailableForBreeding)
             {
                 return BadRequest("Pet is not available for breeding");
             }
 
             var mate = await _petProfileService.GetByPetId(request.PetMateProfileId);
-            if(mate == null)
+            if (mate == null)
             {
                 return BadRequest("Pet mate not found");
             }
@@ -55,7 +55,7 @@ namespace Pets.API.Controllers
                 return BadRequest("Pet mate not available for breeding");
             }
             var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
-            if(mate.Owner.Id != userId) 
+            if (mate.Owner.Id != userId)
             {
                 return BadRequest("You don't own the pet mate");
             }
