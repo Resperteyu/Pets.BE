@@ -23,11 +23,21 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="SeedData\Country.csv" />
-    <EmbeddedResource Include="SeedData\PetBreed.csv" />
-    <EmbeddedResource Include="SeedData\PetType.csv" />
-    <EmbeddedResource Include="SeedData\MateRequestState.csv" />
-    <EmbeddedResource Include="SeedData\Sex.csv" />
+    <Content Include="SeedData\Country.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SeedData\PetBreed.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SeedData\PetType.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SeedData\MateRequestState.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SeedData\Sex.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

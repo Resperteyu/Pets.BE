@@ -3,7 +3,6 @@ using CsvHelper.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Pets.Db.Models;
 using System.Globalization;
-using System.Reflection;
 
 namespace Pets.Db
 {
@@ -11,7 +10,8 @@ namespace Pets.Db
     {
         public static void Seed(this ModelBuilder modelBuilder)
         {
-            Assembly assembly = Assembly.GetExecutingAssembly();
+            var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            var seedDataDirectory = Path.Combine(baseDirectory, "SeedData");
 
             var config = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
@@ -20,69 +20,19 @@ namespace Pets.Db
                 MissingFieldFound = null,
             };
 
-            string resourceName = "Pets.Db.SeedData.Sex.csv";
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            {
-                using (TextReader textReader = new StreamReader(stream))
-                {
-                    using (CsvReader csvReader = new CsvReader(textReader, config))
-                    {
-                        var sex = csvReader.GetRecords<Sex>().ToArray();
-                        modelBuilder.Entity<Sex>().HasData(sex);
-                    }
-                }
-            }
+            modelBuilder.Entity<Sex>().HasData(LoadCsvData<Sex>(Path.Combine(seedDataDirectory, "Sex.csv"), config));
+            modelBuilder.Entity<Country>().HasData(LoadCsvData<Country>(Path.Combine(seedDataDirectory, "Country.csv"), config));
+            modelBuilder.Entity<PetType>().HasData(LoadCsvData<PetType>(Path.Combine(seedDataDirectory, "PetType.csv"), config));
+            modelBuilder.Entity<PetBreed>().HasData(LoadCsvData<PetBreed>(Path.Combine(seedDataDirectory, "PetBreed.csv"), config));
+            modelBuilder.Entity<MateRequestState>().HasData(LoadCsvData<MateRequestState>(Path.Combine(seedDataDirectory, "MateRequestState.csv"), config));
+        }
 
-            resourceName = "Pets.Db.SeedData.Country.csv";
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+        private static T[] LoadCsvData<T>(string filePath, CsvConfiguration config)
+        {
+            using (var reader = new StreamReader(filePath))
+            using (var csv = new CsvReader(reader, config))
             {
-                using (TextReader textReader = new StreamReader(stream))
-                {
-                    using (CsvReader csvReader = new CsvReader(textReader, config))
-                    {
-                        var countries = csvReader.GetRecords<Country>().ToArray();
-                        modelBuilder.Entity<Country>().HasData(countries);
-                    }
-                }
-            }
-
-            resourceName = "Pets.Db.SeedData.PetType.csv";
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            {
-                using (TextReader textReader = new StreamReader(stream))
-                {
-                    using (CsvReader csvReader = new CsvReader(textReader, config))
-                    {
-                        var petTypes = csvReader.GetRecords<PetType>().ToArray();
-                        modelBuilder.Entity<PetType>().HasData(petTypes);
-                    }
-                }
-            }
-
-            resourceName = "Pets.Db.SeedData.PetBreed.csv";
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            {
-                using (TextReader textReader = new StreamReader(stream))
-                {
-                    using (CsvReader csvReader = new CsvReader(textReader, config))
-                    {
-                        var petBreeds = csvReader.GetRecords<PetBreed>().ToArray();
-                        modelBuilder.Entity<PetBreed>().HasData(petBreeds);
-                    }
-                }
-            }
-
-            resourceName = "Pets.Db.SeedData.MateRequestState.csv";
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            {
-                using (TextReader textReader = new StreamReader(stream))
-                {
-                    using (CsvReader csvReader = new CsvReader(textReader, config))
-                    {
-                        var mateRequestStates = csvReader.GetRecords<MateRequestState>().ToArray();
-                        modelBuilder.Entity<MateRequestState>().HasData(mateRequestStates);
-                    }
-                }
+                return csv.GetRecords<T>().ToArray();
             }
         }
     }

@@ -39,7 +39,6 @@ namespace Pets.API.Helpers
             CreateMap<MateRequest, MateRequestDto>();
 
             CreateMap<ApplicationUser, UserProfileDto>()
-                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.UserName))
                 .ReverseMap();
 
             CreateMap<AddressDto, Address>()

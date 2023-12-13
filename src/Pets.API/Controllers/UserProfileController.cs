@@ -2,23 +2,10 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json.Linq;
 using Pets.API.Responses.Dtos;
 using Pets.API.Services;
 using Pets.Db.Models;
-using System.IO;
-using System.Net.Http;
-using System.Net;
-using System;
 using System.Threading.Tasks;
-using NetTopologySuite.Geometries;
-using Pets.Db;
-using System.Reflection;
-using CsvHelper.Configuration;
-using CsvHelper;
-using Microsoft.EntityFrameworkCore;
-using System.Globalization;
-using System.Linq;
 
 namespace Pets.API.Controllers
 {
