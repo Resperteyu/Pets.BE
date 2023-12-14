@@ -9,8 +9,6 @@ namespace Pets.Db.Models
 
         public DateTime RefreshTokenExpiryTime { get; set; }
 
-        public virtual Address? Address { get; set; }
-
         public string? FirstName { get; set; }
 
         public string? LastName { get; set; }
@@ -18,6 +16,8 @@ namespace Pets.Db.Models
         public virtual ICollection<PetProfile> PetProfiles { get; set; } = new List<PetProfile>();
 
         public virtual ICollection<RefreshToken>? RefreshTokens { get; set; }
+
+        public virtual Address? Address { get; set; }
     }
 
 }

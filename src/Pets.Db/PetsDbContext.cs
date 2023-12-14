@@ -43,7 +43,12 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser, Identity
             entity.ToTable(name: "Users");
             entity.Property(e => e.FirstName).HasMaxLength(20);
             entity.Property(e => e.LastName).HasMaxLength(20);
-            entity.HasOne(e => e.Address).WithMany(e => e.ApplicationUsers).IsRequired(false);
+
+            entity.HasOne(u => u.Address)
+                  .WithOne(a => a.ApplicationUser)
+                  .HasForeignKey<Address>(a => a.ApplicationUserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
             entity.HasKey(e => e.Id);
         });
 
@@ -107,8 +112,15 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser, Identity
             entity.Property(e => e.City).HasMaxLength(100).IsRequired();
             entity.Property(e => e.Postcode).HasMaxLength(20).IsRequired();
 
-            entity.HasOne(e => e.Country).WithMany().IsRequired();
-            entity.HasOne(e => e.Location).WithMany().IsRequired();
+            entity.HasOne(a => a.Location)
+                  .WithOne(l => l.Address)
+                  .HasForeignKey<Location>(l => l.AddressId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(a => a.Country)
+                .WithMany()
+                .HasForeignKey(a => a.CountryCode)
+                .OnDelete(DeleteBehavior.Restrict);
 
             entity.ToTable("Address");
         });

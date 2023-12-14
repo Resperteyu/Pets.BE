@@ -12,5 +12,8 @@ namespace Pets.Db.Models
         public decimal Longitude { get; set; }
 
         public Point GeoLocation { get; set; }
+
+        public int AddressId { get; set; }
+        public virtual Address Address { get; set; } = null!;
     }
 }

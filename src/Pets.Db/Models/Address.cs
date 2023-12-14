@@ -7,10 +7,12 @@
         public string? Line2 { get; set; }
         public required string City { get; set; }
         public required string Postcode { get; set; }
-        public required Country Country { get; set; }
+        public required string CountryCode { get; set; }
+        public virtual Country Country { get; set; } = null!;
 
-        public required Location Location { get; set; }
+        public virtual Location Location { get; set; } = null!;
 
-        public ICollection<ApplicationUser> ApplicationUsers { get; } = new List<ApplicationUser>();
+        public Guid? ApplicationUserId { get; set; }
+        public virtual ApplicationUser ApplicationUser { get; set; } = null!;
     }
 }

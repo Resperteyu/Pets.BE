@@ -26,17 +26,13 @@ namespace Pets.API.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IGeocodingService _geocodingService;
         private readonly IMapper _mapper;
-        private readonly IFeatureManager _featureManager;
-
 
         public UserProfileService(UserManager<ApplicationUser> userManager, IMapper mapper,
-            IGeocodingService geocodingService, IFeatureManager featureManager)
+            IGeocodingService geocodingService)
         {
             _userManager = userManager;
             _mapper = mapper;
             _geocodingService = geocodingService;
-            _featureManager = featureManager;
-            _featureManager = featureManager;
         }
 
         public async Task<UserProfileDto> GetUserProfile(string userId)
@@ -92,6 +88,7 @@ namespace Pets.API.Services
         public async Task<bool> DeleteUserProfile(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
+
             if (user == null)
             {
                 return false;
