@@ -63,7 +63,7 @@ namespace Pets.API.Controllers
 
                 if (existingUser == null || !await _signInManager.CanSignInAsync(existingUser))
                 {
-                    return BadRequest(new RegistrationResponse()
+                    return BadRequest(new AuthenticateResponse()
                     {
                         Success = false,
                         Errors = new List<string>()
@@ -85,7 +85,7 @@ namespace Pets.API.Controllers
                 else
                 {
                     // We dont want to give to much information on why the request has failed for security reasons
-                    return BadRequest(new RegistrationResponse()
+                    return BadRequest(new AuthenticateResponse()
                     {
                         Success = false,
                         Errors = new List<string>()
@@ -96,7 +96,7 @@ namespace Pets.API.Controllers
                 }
             }
 
-            return BadRequest(new RegistrationResponse()
+            return BadRequest(new AuthenticateResponse()
             {
                 Success = false,
                 Errors = new List<string>()
@@ -116,12 +116,12 @@ namespace Pets.API.Controllers
 
                 if (existingUser != null)
                 {
-                    return BadRequest(new RegistrationResponse()
+                    return BadRequest(new AuthenticateResponse()
                     {
                         Success = false,
                         Errors = new List<string>()
                         {
-                            "Email already exist"
+                            "Email already exists"
                         }
                     });
                 }
@@ -131,7 +131,7 @@ namespace Pets.API.Controllers
 
                 if (!isCreated.Succeeded)
                 {
-                    return new JsonResult(new RegistrationResponse()
+                    return new JsonResult(new AuthenticateResponse()
                     {
                         Success = false,
                         Errors = isCreated.Errors.Select(x => x.Description).ToList()
@@ -147,7 +147,7 @@ namespace Pets.API.Controllers
 
             }
 
-            return BadRequest(new RegistrationResponse()
+            return BadRequest(new AuthenticateResponse()
             {
                 Success = false,
                 Errors = new List<string>(){
@@ -242,7 +242,7 @@ namespace Pets.API.Controllers
         {
             if (!ModelState.IsValid) // TODO Create model? Don't use RegistrationResponse
             {
-                return BadRequest(new RegistrationResponse()
+                return BadRequest(new AuthenticateResponse()
                 {
                     Success = false,
                     Errors = new List<string>(){ "Invalid payload" }
@@ -255,7 +255,7 @@ namespace Pets.API.Controllers
                 var verifyResponse = await _userManager.ConfirmEmailAsync(user, token);
                 if (!verifyResponse.Succeeded)
                 {
-                    return new JsonResult(new RegistrationResponse()
+                    return new JsonResult(new AuthenticateResponse()
                     {
                         Success = false,
                         Errors = verifyResponse.Errors.Select(x => x.Description).ToList()
@@ -276,7 +276,7 @@ namespace Pets.API.Controllers
 
                 if (res == null)
                 {
-                    return BadRequest(new RegistrationResponse()
+                    return BadRequest(new AuthenticateResponse()
                     {
                         Errors = new List<string>() {
                     "Invalid tokens"
@@ -288,7 +288,7 @@ namespace Pets.API.Controllers
                 return Ok(res);
             }
 
-            return BadRequest(new RegistrationResponse()
+            return BadRequest(new AuthenticateResponse()
             {
                 Errors = new List<string>() {
                 "Invalid payload"
@@ -326,7 +326,7 @@ namespace Pets.API.Controllers
             return NoContent();
         }
 
-        private async Task<AuthResult> VerifyToken(TokenModel tokenRequest)
+        private async Task<AuthenticateResponse> VerifyToken(TokenModel tokenRequest)
         {
             try
             {
@@ -343,7 +343,7 @@ namespace Pets.API.Controllers
 
                 if (storedRefreshToken == null)
                 {
-                    return new AuthResult()
+                    return new AuthenticateResponse()
                     {
                         Errors = new List<string>() { "refresh token doesnt exist" },
                         Success = false
@@ -352,7 +352,7 @@ namespace Pets.API.Controllers
 
                 if (DateTime.UtcNow > storedRefreshToken.ExpiryDate)
                 {
-                    return new AuthResult()
+                    return new AuthenticateResponse()
                     {
                         Errors = new List<string>() { "Refresh Token has expired" },
                         Success = false
@@ -361,7 +361,7 @@ namespace Pets.API.Controllers
 
                 if (storedRefreshToken.IsUsed)
                 {
-                    return new AuthResult()
+                    return new AuthenticateResponse()
                     {
                         Errors = new List<string>() { "Refresh Token has been used" },
                         Success = false
@@ -370,7 +370,7 @@ namespace Pets.API.Controllers
 
                 if (storedRefreshToken.IsRevoked)
                 {
-                    return new AuthResult()
+                    return new AuthenticateResponse()
                     {
                         Errors = new List<string>() { "Refresh Token has been revoked" },
                         Success = false
@@ -381,7 +381,7 @@ namespace Pets.API.Controllers
 
                 if (storedRefreshToken.JwtId != jti)
                 {
-                    return new AuthResult()
+                    return new AuthenticateResponse()
                     {
                         Errors = new List<string>() { "The Refresh Token doesn't matech the saved token" },
                         Success = false
@@ -402,7 +402,7 @@ namespace Pets.API.Controllers
             }
         }
 
-        private async Task<AuthResult> GenerateJwtToken(ApplicationUser user)
+        private async Task<AuthenticateResponse> GenerateJwtToken(ApplicationUser user)
         {
             var jwtTokenHandler = new JwtSecurityTokenHandler();
 
@@ -440,7 +440,7 @@ namespace Pets.API.Controllers
             await _context.RefreshTokens.AddAsync(refreshToken);
             await _context.SaveChangesAsync();
 
-            return new AuthResult()
+            return new AuthenticateResponse()
             {
                 Id = user.Id,
                 Token = jwtToken,
