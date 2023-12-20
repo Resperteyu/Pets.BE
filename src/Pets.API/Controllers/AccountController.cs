@@ -78,9 +78,9 @@ namespace Pets.API.Controllers
 
                 if (isCorrect)
                 {
-                    var jwtToken = await GenerateJwtToken(existingUser);
+                    var authResponse = await GenerateAuthenticateResponse(existingUser);
 
-                    return Ok(jwtToken);
+                    return Ok(authResponse);
                 }
                 else
                 {
@@ -110,85 +110,35 @@ namespace Pets.API.Controllers
         [Route("register")]
         public async Task<IActionResult> Register([FromBody] RegisterModel request)
         {
-            if (ModelState.IsValid)
-            {
-                var existingUser = await _userManager.FindByEmailAsync(request.Email);
+            if (!ModelState.IsValid)
+                return BadRequest(new AuthenticateResponse { Success = false, Errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)).ToList() });
 
-                if (existingUser != null)
-                {
-                    return BadRequest(new AuthenticateResponse()
-                    {
-                        Success = false,
-                        Errors = new List<string>()
-                        {
-                            "Email already exists"
-                        }
-                    });
-                }
+            var existingUser = await _userManager.FindByEmailAsync(request.Email);
+            if (existingUser != null) 
+                return BadRequest( new AuthenticateResponse{ Success = false, Errors = new List<string> { "Email already exists" } });
 
-                var newUser = new ApplicationUser() { Email = request.Email, UserName = request.Email };
-                var isCreated = await _userManager.CreateAsync(newUser, request.Password);
+            var newUser = new ApplicationUser { Email = request.Email, UserName = request.Email };
+            var createUserResult = await _userManager.CreateAsync(newUser, request.Password);
+            if (!createUserResult.Succeeded)
+                return StatusCode(StatusCodes.Status500InternalServerError, 
+                    new AuthenticateResponse { Success = false, Errors = createUserResult.Errors.Select(x => x.Description).ToList() });
 
-                if (!isCreated.Succeeded)
-                {
-                    return new JsonResult(new AuthenticateResponse()
-                    {
-                        Success = false,
-                        Errors = isCreated.Errors.Select(x => x.Description).ToList()
-                    });
-                }
 
-                var jwtToken = await GenerateJwtToken(newUser);
+            var roleExists = await _roleManager.RoleExistsAsync(request.Role);
+            if (!roleExists)
+                return BadRequest(new AuthenticateResponse { Success = false, Errors = new List<string> { "Role does not exist" } });
 
-                var token = await _userManager.GenerateEmailConfirmationTokenAsync(newUser);
-                await _emailService.SendConfirmationEmailAsync(newUser.Email, token);
-
-                return Ok(jwtToken);
-
-            }
-
-            return BadRequest(new AuthenticateResponse()
-            {
-                Success = false,
-                Errors = new List<string>(){
-                    "Invalid payload"
-                }
-            });
-        }
-
-        [HttpPost]
-        [Route("register-admin")]
-        public async Task<IActionResult> RegisterAdmin([FromBody] RegisterModel request)
-        {
-            var userExists = await _userManager.FindByNameAsync(request.Username);
-            if (userExists != null)
-                return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = new List<string> { "User already exists!" } });
-
-            ApplicationUser user = new()
-            {
-                Email = request.Email,
-                SecurityStamp = Guid.NewGuid().ToString(),
-                UserName = request.Username
-            };
-            var result = await _userManager.CreateAsync(user, request.Password);
-            if (!result.Succeeded)
+            var roleResult = await _userManager.AddToRoleAsync(newUser, request.Role);
+            if (!roleResult.Succeeded)
                 return StatusCode(StatusCodes.Status500InternalServerError,
-                    new Response { Status = "Error", Message = new List<string> { "User creation failed! Please check user details and try again." } });
+                    new AuthenticateResponse { Success = false, Errors = roleResult.Errors.Select(x => x.Description).ToList() });
 
-            if (!await _roleManager.RoleExistsAsync(UserRoles.Admin))
-                await _roleManager.CreateAsync(new IdentityRole<Guid>(UserRoles.Admin));
-            if (!await _roleManager.RoleExistsAsync(UserRoles.User))
-                await _roleManager.CreateAsync(new IdentityRole<Guid>(UserRoles.User));
+            var authResponse = await GenerateAuthenticateResponse(newUser);
 
-            if (await _roleManager.RoleExistsAsync(UserRoles.Admin))
-            {
-                await _userManager.AddToRoleAsync(user, UserRoles.Admin);
-            }
-            if (await _roleManager.RoleExistsAsync(UserRoles.Admin))
-            {
-                await _userManager.AddToRoleAsync(user, UserRoles.User);
-            }
-            return Ok(new Response { Status = "Success", Message = new List<string> { "User created successfully!" } });
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(newUser);
+            await _emailService.SendConfirmationEmailAsync(newUser.Email, token);
+
+            return Ok(authResponse);
         }
 
         [HttpPost]
@@ -393,7 +343,7 @@ namespace Pets.API.Controllers
                 await _context.SaveChangesAsync();
 
                 var dbUser = await _userManager.FindByIdAsync(storedRefreshToken.UserId.ToString());
-                return await GenerateJwtToken(dbUser);
+                return await GenerateAuthenticateResponse(dbUser);
             }
             catch (Exception ex)
             {
@@ -402,23 +352,34 @@ namespace Pets.API.Controllers
             }
         }
 
-        private async Task<AuthenticateResponse> GenerateJwtToken(ApplicationUser user)
+        private async Task<AuthenticateResponse> GenerateAuthenticateResponse(ApplicationUser user)
         {
             var jwtTokenHandler = new JwtSecurityTokenHandler();
 
             var key = Encoding.ASCII.GetBytes(_configuration["JWT:Secret"]);
 
-            var tokenDescriptor = new SecurityTokenDescriptor
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var claims = new List<Claim>
             {
-                Subject = new ClaimsIdentity(new[]
-                {
                     new Claim("Id", user.Id.ToString()),
                     new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                    new Claim(JwtRegisteredClaimNames.Iss, _configuration["JWT:ValidIssuer"]),         
+                    new Claim(JwtRegisteredClaimNames.Iss, _configuration["JWT:ValidIssuer"]),
                     new Claim(JwtRegisteredClaimNames.Aud, _configuration["JWT:ValidAudience"]),
                     new Claim(JwtRegisteredClaimNames.Sub, user.Email),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-                }),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                    new Claim("emailVerified", user.EmailConfirmed.ToString()),
+                    new Claim("phoneVerified", user.PhoneNumberConfirmed.ToString()),
+            };
+
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["JWT:TokenValidityInMinutes"])),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };

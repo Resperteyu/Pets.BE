@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Pets.Db.Models;
+using System;
 using System.Collections.Generic;
 
 namespace Pets.API.Responses
