@@ -24,41 +24,6 @@ namespace Pets.Db.Migrations
                 name: "IX_AspNetUsers_CountryCode",
                 table: "AspNetUsers");
 
-            migrationBuilder.DeleteData(
-                table: "MateRequestState",
-                keyColumn: "Id",
-                keyValue: (byte)1);
-
-            migrationBuilder.DeleteData(
-                table: "MateRequestState",
-                keyColumn: "Id",
-                keyValue: (byte)2);
-
-            migrationBuilder.DeleteData(
-                table: "MateRequestState",
-                keyColumn: "Id",
-                keyValue: (byte)3);
-
-            migrationBuilder.DeleteData(
-                table: "MateRequestState",
-                keyColumn: "Id",
-                keyValue: (byte)4);
-
-            migrationBuilder.DeleteData(
-                table: "MateRequestState",
-                keyColumn: "Id",
-                keyValue: (byte)5);
-
-            migrationBuilder.DeleteData(
-                table: "MateRequestState",
-                keyColumn: "Id",
-                keyValue: (byte)6);
-
-            migrationBuilder.DeleteData(
-                table: "MateRequestState",
-                keyColumn: "Id",
-                keyValue: (byte)7);
-
             migrationBuilder.DropColumn(
                 name: "CountryCode",
                 table: "AspNetUsers");
@@ -146,20 +111,6 @@ namespace Pets.Db.Migrations
                 table: "AspNetUsers",
                 type: "char(2)",
                 nullable: true);
-
-            migrationBuilder.InsertData(
-                table: "MateRequestState",
-                columns: new[] { "Id", "Title" },
-                values: new object[,]
-                {
-                    { (byte)1, "Sent" },
-                    { (byte)2, "Changes requested" },
-                    { (byte)3, "Accepted" },
-                    { (byte)4, "Breeding" },
-                    { (byte)5, "Rejected" },
-                    { (byte)6, "Completed" },
-                    { (byte)7, "Failed" }
-                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetUsers_CountryCode",

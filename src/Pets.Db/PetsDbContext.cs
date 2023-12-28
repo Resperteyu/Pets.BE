@@ -166,6 +166,5 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser, Identity
         });
 
         base.OnModelCreating(modelBuilder);
-        modelBuilder.Seed();
     }
 }
