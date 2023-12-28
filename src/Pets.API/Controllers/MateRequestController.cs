@@ -17,18 +17,24 @@ namespace Pets.API.Controllers
     public class MateRequestController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly EmailService _emailService;
         private readonly IMateRequestService _mateRequestService;
         private readonly IPetProfileService _petProfileService;
         private readonly IMateRequestStateChangeValidator _mateRequestStateChangeValidator;
-        public MateRequestController(UserManager<ApplicationUser> userManager, 
+        private readonly IUserProfileService _userProfileService;
+        public MateRequestController(UserManager<ApplicationUser> userManager,
+            EmailService emailService,
             IMateRequestService mateRequestService, 
             IPetProfileService petProfileService,
-            IMateRequestStateChangeValidator mateRequestStateChangeValidator)
+            IMateRequestStateChangeValidator mateRequestStateChangeValidator,
+            IUserProfileService userProfileService)
         {
             _userManager = userManager;
+            _emailService = emailService;
             _mateRequestService = mateRequestService;
             _petProfileService = petProfileService;
             _mateRequestStateChangeValidator = mateRequestStateChangeValidator;
+            _userProfileService = userProfileService;
         }
 
         [Authorize]
@@ -64,6 +70,11 @@ namespace Pets.API.Controllers
             //this to the owner control without manipulating it during the mating process
 
             var mateRequestId = await _mateRequestService.CreateMateRequest(request);
+
+            //get email by userid.
+            var profile = await _userProfileService.GetUserProfile(pet.Owner.Id.ToString());
+            _emailService.SendMateRequestEmailAsync(profile.Email, mateRequestId);
+
             return Ok(mateRequestId);
         }
 
@@ -126,7 +137,9 @@ namespace Pets.API.Controllers
 
             await _mateRequestService.UpdateReply(request);
 
-            //TO DO: send email notification
+            var profile = await _userProfileService.GetUserProfile(mateRequest.PetMateProfile.Owner.Id.ToString());
+            _emailService.SendMateRequestStatusChangeEmailAsync(profile.Email, mateRequest.Id);
+
             return Ok();
         }
 
@@ -160,7 +173,12 @@ namespace Pets.API.Controllers
 
             await _mateRequestService.UpdateTransition(request);
 
-            //TO DO: send email notification
+            //get email by userid.
+
+            var sendEmailTo = mateRequest.IsRequester ? mateRequest.PetProfile.Owner.Id : mateRequest.PetMateProfile.Owner.Id;
+            var profile = await _userProfileService.GetUserProfile(sendEmailTo.ToString());
+            _emailService.SendMateRequestStatusChangeEmailAsync(profile.Email, mateRequest.Id);
+
             return Ok();
         }
 

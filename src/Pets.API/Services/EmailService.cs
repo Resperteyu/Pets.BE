@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -46,6 +47,32 @@ public class EmailService
         await _emailSender.SendEmailAsync(email, "Password Reset Request", htmlTemplate, textTemplate);
     }
 
+    public async Task SendMateRequestEmailAsync(string email, Guid mateRequestId)
+    {
+        var textTemplate = await GetEmailTemplateAsync("MateRequestEmail.txt");
+        var htmlTemplate = await GetEmailTemplateAsync("MateRequestEmail.html");
+
+        var link = BuildMateRequestLink(mateRequestId);
+
+        textTemplate = textTemplate.Replace("[Link]", link);
+        htmlTemplate = htmlTemplate.Replace("[Link]", link);
+
+        await _emailSender.SendEmailAsync(email, "Mate request received", htmlTemplate, textTemplate);
+    }
+
+    public async Task SendMateRequestStatusChangeEmailAsync(string email, Guid mateRequestId)
+    {
+        var textTemplate = await GetEmailTemplateAsync("MateRequestStatusChangeEmail.txt");
+        var htmlTemplate = await GetEmailTemplateAsync("MateRequestStatusChangeEmail.html");
+
+        var link = BuildMateRequestLink(mateRequestId);
+
+        textTemplate = textTemplate.Replace("[Link]", link);
+        htmlTemplate = htmlTemplate.Replace("[Link]", link);
+
+        await _emailSender.SendEmailAsync(email, "Mate request update", htmlTemplate, textTemplate);
+    }
+
     private async Task<string> GetEmailTemplateAsync(string templateName)
     {
         if (_emailTemplates.TryGetValue(templateName, out var template))
@@ -66,5 +93,10 @@ public class EmailService
         var encodedToken = WebUtility.UrlEncode(token);
 
         return $"{_webSiteSettings.RootUrl}/{path}?email={encodedEmail}&token={encodedToken}";
+    }
+
+    private string BuildMateRequestLink(Guid mateRequestId)
+    {
+        return $"{_webSiteSettings.RootUrl}/MyMateRequest/{mateRequestId}";
     }
 }
