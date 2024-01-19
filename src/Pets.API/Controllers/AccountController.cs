@@ -18,8 +18,6 @@ using PetDb.Models;
 using Pets.Db;
 using Microsoft.EntityFrameworkCore;
 using Pets.API.Services;
-using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Pets.API.Controllers
 {
@@ -117,7 +115,7 @@ namespace Pets.API.Controllers
             if (existingUser != null) 
                 return BadRequest( new AuthenticateResponse{ Success = false, Errors = new List<string> { "Email already exists" } });
 
-            var newUser = new ApplicationUser { Email = request.Email, UserName = request.Email };
+            var newUser = new ApplicationUser { Email = request.Email, UserName = request.Username };
             var createUserResult = await _userManager.CreateAsync(newUser, request.Password);
             if (!createUserResult.Succeeded)
                 return StatusCode(StatusCodes.Status500InternalServerError, 
@@ -366,7 +364,7 @@ namespace Pets.API.Controllers
                     new Claim(JwtRegisteredClaimNames.Email, user.Email),
                     new Claim(JwtRegisteredClaimNames.Iss, _configuration["JWT:ValidIssuer"]),
                     new Claim(JwtRegisteredClaimNames.Aud, _configuration["JWT:ValidAudience"]),
-                    new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+                    new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     new Claim("emailVerified", user.EmailConfirmed.ToString()),
                     new Claim("phoneVerified", user.PhoneNumberConfirmed.ToString()),

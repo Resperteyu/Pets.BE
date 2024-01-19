@@ -2,15 +2,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Pets.API.Responses;
 using Pets.API.Responses.Dtos;
-using Pets.Db;
 using Pets.Db.Models;
-using System.Linq;
 using System;
 using System.Threading.Tasks;
-using Microsoft.FeatureManagement;
 
 namespace Pets.API.Services
 {

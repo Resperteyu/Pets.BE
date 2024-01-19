@@ -1,8 +1,8 @@
-﻿using Microsoft.Identity.Client;
-namespace Pets.API.Responses.Dtos
+﻿namespace Pets.API.Responses.Dtos
 {
     public class UserProfileDto
     {
+        // TODO Both Username and Email are on the claims so really we can remove them from here
         public string UserName { get; set; }
         public string Email { get; set; }
         public string FirstName { get; set; }
