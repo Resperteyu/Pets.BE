@@ -15,6 +15,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
+using Pets.API.Clients;
 using Pets.API.Config;
 using Pets.API.Helpers;
 using Pets.API.Middleware;
@@ -141,6 +142,8 @@ namespace Pets.API
             services.AddScoped<IUserProfileService, UserProfileService>();
             services.AddSingleton<IImageStorageService, ImageStorageService>();
             services.AddSingleton<IMateRequestStateChangeValidator, MateRequestStateChangeValidator>();
+            services.AddSingleton<IFirebaseClient, FirebaseClient>();
+            services.AddSingleton<IChatService, ChatService>();
 
             services.AddOptions<BlobStorageSettings>().Configure(options =>
             {
@@ -149,6 +152,10 @@ namespace Pets.API
             services.AddOptions<WebSiteSettings>().Configure(options =>
             {
                 Configuration.Bind("WebSite", options);
+            });
+            services.AddOptions<FirestoreDbSettings>().Configure(options =>
+            {
+                Configuration.Bind("FirestoreDb", options);
             });
 
             services.AddApplicationInsightsTelemetry();
