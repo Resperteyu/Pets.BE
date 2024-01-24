@@ -52,18 +52,6 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser, Identity
             entity.HasKey(e => e.Id);
         });
 
-        modelBuilder.Entity<IdentityRole<Guid>>(entity =>
-        {
-            entity.ToTable(name: "Roles");
-            entity.HasKey(e => e.Id);
-        });
-
-        modelBuilder.Entity<IdentityUserRole<Guid>>(entity =>
-        {
-            entity.ToTable(name: "UserRoles");
-            entity.HasKey(e => new { e.UserId, e.RoleId });
-        });
-
         modelBuilder.Entity<Country>(entity =>
         {
             entity.HasKey(e => e.Code);
@@ -168,5 +156,6 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser, Identity
         });
 
         base.OnModelCreating(modelBuilder);
+        modelBuilder.Seed();
     }
 }

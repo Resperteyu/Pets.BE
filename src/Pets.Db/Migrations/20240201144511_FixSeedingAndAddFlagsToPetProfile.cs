@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -7,11 +8,50 @@
 namespace Pets.Db.Migrations
 {
     /// <inheritdoc />
-    public partial class AddEuropeanCountries : Migration
+    public partial class FixSeedingAndAddFlagsToPetProfile : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AddColumn<bool>(
+                name: "ForAdoption",
+                table: "PetProfile",
+                type: "bit",
+                nullable: false,
+                defaultValue: false);
+
+            migrationBuilder.AddColumn<bool>(
+                name: "ForSale",
+                table: "PetProfile",
+                type: "bit",
+                nullable: false,
+                defaultValue: false);
+
+            migrationBuilder.AddColumn<bool>(
+                name: "Missing",
+                table: "PetProfile",
+                type: "bit",
+                nullable: false,
+                defaultValue: false);
+
+            migrationBuilder.AddColumn<int>(
+                name: "Price",
+                table: "PetProfile",
+                type: "int",
+                nullable: false,
+                defaultValue: 0);
+
+            migrationBuilder.InsertData(
+                table: "AspNetRoles",
+                columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
+                values: new object[,]
+                {
+                    { new Guid("af3dd336-0bbb-4c52-b8cc-b45f90517155"), "ada39352-2b42-4a6c-a073-fe0a60f30107", "Administrator", "ADMINISTRATOR" },
+                    { new Guid("b82f0af8-26e8-4c3d-80d9-f9d85db6af10"), "b0411996-0450-4fb5-aa0f-ea0f1841c6aaba94c8a5-0198-4edf-9b2e-e2128a46457a", "PetOwner", "PETOWNER" },
+                    { new Guid("ba94c8a5-0198-4edf-9b2e-e2128a46457a"), "fe74e7b7-3ae7-4e32-9402-39545953b20a", "Shelter", "SHELTER" },
+                    { new Guid("d2631f51-a5a5-4413-afeb-8104e779b886"), "163b55d7-5be1-447b-b00a-4314f3e17b2c", "Professional", "PROFESSIONAL" }
+                });
+
             migrationBuilder.InsertData(
                 table: "Country",
                 columns: new[] { "Code", "DialCode", "Name" },
@@ -50,6 +90,26 @@ namespace Pets.Db.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DeleteData(
+                table: "AspNetRoles",
+                keyColumn: "Id",
+                keyValue: new Guid("af3dd336-0bbb-4c52-b8cc-b45f90517155"));
+
+            migrationBuilder.DeleteData(
+                table: "AspNetRoles",
+                keyColumn: "Id",
+                keyValue: new Guid("b82f0af8-26e8-4c3d-80d9-f9d85db6af10"));
+
+            migrationBuilder.DeleteData(
+                table: "AspNetRoles",
+                keyColumn: "Id",
+                keyValue: new Guid("ba94c8a5-0198-4edf-9b2e-e2128a46457a"));
+
+            migrationBuilder.DeleteData(
+                table: "AspNetRoles",
+                keyColumn: "Id",
+                keyValue: new Guid("d2631f51-a5a5-4413-afeb-8104e779b886"));
+
             migrationBuilder.DeleteData(
                 table: "Country",
                 keyColumn: "Code",
@@ -184,6 +244,22 @@ namespace Pets.Db.Migrations
                 table: "Country",
                 keyColumn: "Code",
                 keyValue: "SK");
+
+            migrationBuilder.DropColumn(
+                name: "ForAdoption",
+                table: "PetProfile");
+
+            migrationBuilder.DropColumn(
+                name: "ForSale",
+                table: "PetProfile");
+
+            migrationBuilder.DropColumn(
+                name: "Missing",
+                table: "PetProfile");
+
+            migrationBuilder.DropColumn(
+                name: "Price",
+                table: "PetProfile");
         }
     }
 }

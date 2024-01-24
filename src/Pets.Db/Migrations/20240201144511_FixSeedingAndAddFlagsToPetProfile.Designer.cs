@@ -13,8 +13,8 @@ using Pets.Db;
 namespace Pets.Db.Migrations
 {
     [DbContext(typeof(PetsDbContext))]
-    [Migration("20240129101642_AddFlagsToPetProfile")]
-    partial class AddFlagsToPetProfile
+    [Migration("20240201144511_FixSeedingAndAddFlagsToPetProfile")]
+    partial class FixSeedingAndAddFlagsToPetProfile
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -52,6 +52,36 @@ namespace Pets.Db.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("af3dd336-0bbb-4c52-b8cc-b45f90517155"),
+                            ConcurrencyStamp = "ada39352-2b42-4a6c-a073-fe0a60f30107",
+                            Name = "Administrator",
+                            NormalizedName = "ADMINISTRATOR"
+                        },
+                        new
+                        {
+                            Id = new Guid("b82f0af8-26e8-4c3d-80d9-f9d85db6af10"),
+                            ConcurrencyStamp = "b0411996-0450-4fb5-aa0f-ea0f1841c6aaba94c8a5-0198-4edf-9b2e-e2128a46457a",
+                            Name = "PetOwner",
+                            NormalizedName = "PETOWNER"
+                        },
+                        new
+                        {
+                            Id = new Guid("ba94c8a5-0198-4edf-9b2e-e2128a46457a"),
+                            ConcurrencyStamp = "fe74e7b7-3ae7-4e32-9402-39545953b20a",
+                            Name = "Shelter",
+                            NormalizedName = "SHELTER"
+                        },
+                        new
+                        {
+                            Id = new Guid("d2631f51-a5a5-4413-afeb-8104e779b886"),
+                            ConcurrencyStamp = "163b55d7-5be1-447b-b00a-4314f3e17b2c",
+                            Name = "Professional",
+                            NormalizedName = "PROFESSIONAL"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -338,6 +368,170 @@ namespace Pets.Db.Migrations
                     b.HasKey("Code");
 
                     b.ToTable("Country", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Code = "AT",
+                            DialCode = "+43",
+                            Name = "Austria"
+                        },
+                        new
+                        {
+                            Code = "BE",
+                            DialCode = "+32",
+                            Name = "Belgium"
+                        },
+                        new
+                        {
+                            Code = "BG",
+                            DialCode = "+359",
+                            Name = "Bulgaria"
+                        },
+                        new
+                        {
+                            Code = "HR",
+                            DialCode = "+385",
+                            Name = "Croatia"
+                        },
+                        new
+                        {
+                            Code = "CY",
+                            DialCode = "+357",
+                            Name = "Cyprus"
+                        },
+                        new
+                        {
+                            Code = "CZ",
+                            DialCode = "+420",
+                            Name = "Czech Republic"
+                        },
+                        new
+                        {
+                            Code = "DK",
+                            DialCode = "+45",
+                            Name = "Denmark"
+                        },
+                        new
+                        {
+                            Code = "EE",
+                            DialCode = "+372",
+                            Name = "Estonia"
+                        },
+                        new
+                        {
+                            Code = "FI",
+                            DialCode = "+358",
+                            Name = "Finland"
+                        },
+                        new
+                        {
+                            Code = "FR",
+                            DialCode = "+33",
+                            Name = "France"
+                        },
+                        new
+                        {
+                            Code = "DE",
+                            DialCode = "+49",
+                            Name = "Germany"
+                        },
+                        new
+                        {
+                            Code = "GR",
+                            DialCode = "+30",
+                            Name = "Greece"
+                        },
+                        new
+                        {
+                            Code = "HU",
+                            DialCode = "+36",
+                            Name = "Hungary"
+                        },
+                        new
+                        {
+                            Code = "IE",
+                            DialCode = "+353",
+                            Name = "Ireland"
+                        },
+                        new
+                        {
+                            Code = "IT",
+                            DialCode = "+39",
+                            Name = "Italy"
+                        },
+                        new
+                        {
+                            Code = "LV",
+                            DialCode = "+371",
+                            Name = "Latvia"
+                        },
+                        new
+                        {
+                            Code = "LT",
+                            DialCode = "+370",
+                            Name = "Lithuania"
+                        },
+                        new
+                        {
+                            Code = "LU",
+                            DialCode = "+352",
+                            Name = "Luxembourg"
+                        },
+                        new
+                        {
+                            Code = "MT",
+                            DialCode = "+356",
+                            Name = "Malta"
+                        },
+                        new
+                        {
+                            Code = "NL",
+                            DialCode = "+31",
+                            Name = "Netherlands"
+                        },
+                        new
+                        {
+                            Code = "PL",
+                            DialCode = "+48",
+                            Name = "Poland"
+                        },
+                        new
+                        {
+                            Code = "PT",
+                            DialCode = "+351",
+                            Name = "Portugal"
+                        },
+                        new
+                        {
+                            Code = "RO",
+                            DialCode = "+40",
+                            Name = "Romania"
+                        },
+                        new
+                        {
+                            Code = "SK",
+                            DialCode = "+421",
+                            Name = "Slovakia"
+                        },
+                        new
+                        {
+                            Code = "SI",
+                            DialCode = "+386",
+                            Name = "Slovenia"
+                        },
+                        new
+                        {
+                            Code = "ES",
+                            DialCode = "+34",
+                            Name = "Spain"
+                        },
+                        new
+                        {
+                            Code = "SE",
+                            DialCode = "+46",
+                            Name = "Sweden"
+                        });
                 });
 
             modelBuilder.Entity("Pets.Db.Models.Location", b =>

@@ -66,6 +66,7 @@ namespace Pets.API.Controllers
         }
 
         [Authorize]
+        [HttpGet("messages")]
         public async Task<ActionResult<List<ChatMessageDto>>> GetChats()
         {
             var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
