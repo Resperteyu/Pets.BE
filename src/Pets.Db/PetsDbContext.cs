@@ -157,6 +157,8 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser, Identity
             entity.Property(e => e.Response).HasMaxLength(3000);
             entity.Property(e => e.Comment).HasMaxLength(1000);
             entity.Property(e => e.CreationDate).HasColumnType("date");
+            entity.HasIndex(e => e.PetOwnerId);
+            entity.HasIndex(e => e.PetMateOwnerId);
 
             entity.HasOne(p => p.PetProfile).WithMany().HasForeignKey(p => p.PetProfileId).OnDelete(DeleteBehavior.NoAction).IsRequired();
             entity.HasOne(p => p.PetMateProfile).WithMany().HasForeignKey(p => p.PetMateProfileId).OnDelete(DeleteBehavior.NoAction).IsRequired();

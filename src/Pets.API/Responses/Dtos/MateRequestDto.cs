@@ -1,5 +1,4 @@
-﻿using Pets.Db.Models;
-using System;
+﻿using System;
 
 namespace Pets.API.Responses.Dtos
 {
@@ -7,8 +6,10 @@ namespace Pets.API.Responses.Dtos
     {
         public Guid Id { get; set; }
         public PetProfileDto PetProfile { get; set; }
+        public Guid PetOwnerId { get; set; }
 
         public PetProfileDto PetMateProfile { get; set; }
+        public Guid PetMateOwnerId { get; set; }
 
         public string Description { get; set; }
         public string AmountAgreement { get; set; }

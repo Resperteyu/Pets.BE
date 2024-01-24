@@ -14,7 +14,7 @@ namespace Pets.API.Services
 {
     public interface IMateRequestService
     {
-        Task<Guid> CreateMateRequest(CreateMateRequestRequest model);
+        Task<Guid> CreateMateRequest(CreateMateRequestRequest model, Guid PetOwnerId, Guid PetMateOwnerId);
         Task<List<MateRequestDto>> Filter(Guid userId, MateRequestSearchParams mateRequestSearchParams);
         Task<MateRequestDto> GetById(Guid id, Guid ownerId);
         Task UpdateReply(PetMateRequestReplyRequest responseRequest);
@@ -33,11 +33,13 @@ namespace Pets.API.Services
             _mapper = mapper;
         }
 
-        public async Task<Guid> CreateMateRequest(CreateMateRequestRequest model)
+        public async Task<Guid> CreateMateRequest(CreateMateRequestRequest model, Guid petOwnerId, Guid petMateOwnerId)
         {
             var mateRequest = _mapper.Map<MateRequest>(model);
             mateRequest.CreationDate = DateTime.UtcNow;
             mateRequest.MateRequestStateId = MateRequestStateConsts.SENT;
+            mateRequest.PetOwnerId = petOwnerId;
+            mateRequest.PetMateOwnerId = petMateOwnerId;
 
             var mateRequestRecord = await _context.MateRequests.AddAsync(mateRequest);
             await _context.SaveChangesAsync();
@@ -47,32 +49,32 @@ namespace Pets.API.Services
 
         public async Task<List<MateRequestDto>> Filter(Guid userId, MateRequestSearchParams mateRequestSearchParams)
         {
-            IQueryable<MateRequest> mateRequests = _context.MateRequests
-                                            .Include(i => i.MateRequestState)
-                                            .Include(i => i.PetProfile)
-                                            .Include(i => i.PetMateProfile);
+            IQueryable<MateRequest> mateRequests = _context.MateRequests;
                                             
             if(mateRequestSearchParams.Type.HasValue)
             {
                 switch(mateRequestSearchParams.Type.Value)
                 {
                     case MateRequestType.All:
-                        mateRequests = mateRequests.Where(i => i.PetProfile.OwnerId == userId || i.PetMateProfile.OwnerId == userId);
+                        mateRequests = mateRequests.Where(i => i.PetOwnerId == userId || i.PetMateOwnerId == userId);
                         break;
                     case MateRequestType.Initiated:
-                        mateRequests = mateRequests.Where(i => i.PetMateProfile.OwnerId == userId);
+                        mateRequests = mateRequests.Where(i => i.PetMateOwnerId == userId);
                         break;
                     case MateRequestType.Received:
-                        mateRequests = mateRequests.Where(i => i.PetProfile.OwnerId == userId);
+                        mateRequests = mateRequests.Where(i => i.PetOwnerId == userId);
                         break;
                 }
             }
             else
             {
-                mateRequests = mateRequests.Where(i => i.PetProfile.OwnerId == userId || i.PetMateProfile.OwnerId == userId);
+                mateRequests = mateRequests.Where(i => i.PetOwnerId == userId || i.PetMateOwnerId == userId);
             }
 
-            mateRequests = mateRequests.OrderByDescending(x => x.CreationDate);
+            mateRequests = mateRequests.Include(i => i.MateRequestState)
+                                        .Include(i => i.PetProfile)
+                                        .Include(i => i.PetMateProfile)
+                                        .OrderByDescending(x => x.CreationDate);
 
             return _mapper.Map<List<MateRequestDto>>(await mateRequests.ToListAsync());
         }
@@ -91,11 +93,11 @@ namespace Pets.API.Services
 
             var mateRequestDto = _mapper.Map<MateRequestDto>(mateRequest);
             
-            mateRequestDto.IsRequester = mateRequestDto.PetMateProfile.Owner.Id == ownerId;
-            mateRequestDto.IsReceiver = mateRequestDto.PetProfile.Owner.Id == ownerId;
+            mateRequestDto.IsRequester = mateRequestDto.PetMateOwnerId == ownerId;
+            mateRequestDto.IsReceiver = mateRequestDto.PetOwnerId == ownerId;
 
             return mateRequestDto;
-        }        
+        }
 
         public async Task UpdateReply(PetMateRequestReplyRequest responseRequest)
         {

@@ -568,7 +568,13 @@ namespace Pets.Db.Migrations
                     b.Property<byte>("MateRequestStateId")
                         .HasColumnType("tinyint");
 
+                    b.Property<Guid>("PetMateOwnerId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid>("PetMateProfileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("PetOwnerId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("PetProfileId")
@@ -582,7 +588,11 @@ namespace Pets.Db.Migrations
 
                     b.HasIndex("MateRequestStateId");
 
+                    b.HasIndex("PetMateOwnerId");
+
                     b.HasIndex("PetMateProfileId");
+
+                    b.HasIndex("PetOwnerId");
 
                     b.HasIndex("PetProfileId");
 

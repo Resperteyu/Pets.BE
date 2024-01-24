@@ -69,7 +69,7 @@ namespace Pets.API.Controllers
             //TO DO: understand when the pets become unavailable? we can just leave
             //this to the owner control without manipulating it during the mating process
 
-            var mateRequestId = await _mateRequestService.CreateMateRequest(request);
+            var mateRequestId = await _mateRequestService.CreateMateRequest(request, pet.Owner.Id, userId);
 
             //get email by userid.
             var profile = await _userProfileService.GetUserProfile(pet.Owner.Id.ToString());
@@ -98,8 +98,8 @@ namespace Pets.API.Controllers
                 return BadRequest("Mate request not found");
             }
 
-            if(mateRequest.PetMateProfile.Owner.Id != userId 
-                && mateRequest.PetProfile.Owner.Id != userId) 
+            if(mateRequest.PetMateOwnerId != userId 
+                && mateRequest.PetOwnerId != userId) 
             {
                 return Unauthorized("You are not authorised to see this request");
             }
@@ -137,7 +137,7 @@ namespace Pets.API.Controllers
 
             await _mateRequestService.UpdateReply(request);
 
-            var profile = await _userProfileService.GetUserProfile(mateRequest.PetMateProfile.Owner.Id.ToString());
+            var profile = await _userProfileService.GetUserProfile(mateRequest.PetMateOwnerId.ToString());
             _emailService.SendMateRequestStatusChangeEmailAsync(profile.Email, mateRequest.Id);
 
             return Ok();
@@ -174,8 +174,7 @@ namespace Pets.API.Controllers
             await _mateRequestService.UpdateTransition(request);
 
             //get email by userid.
-
-            var sendEmailTo = mateRequest.IsRequester ? mateRequest.PetProfile.Owner.Id : mateRequest.PetMateProfile.Owner.Id;
+            var sendEmailTo = mateRequest.IsRequester ? mateRequest.PetOwnerId : mateRequest.PetMateOwnerId;
             var profile = await _userProfileService.GetUserProfile(sendEmailTo.ToString());
             _emailService.SendMateRequestStatusChangeEmailAsync(profile.Email, mateRequest.Id);
 
@@ -214,7 +213,10 @@ namespace Pets.API.Controllers
 
             await _mateRequestService.UpdateDetails(request);
 
-            //TO DO: send email notification
+            //get email by userid.
+            var profile = await _userProfileService.GetUserProfile(mateRequest.PetOwnerId.ToString());
+            _emailService.SendMateRequestStatusChangeEmailAsync(profile.Email, mateRequest.Id);
+
             return Ok();
         }
     }
