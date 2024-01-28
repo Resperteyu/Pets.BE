@@ -100,7 +100,7 @@ namespace Pets.API.Services
         {
             _context.PetProfiles.Remove(entity);
             await _context.SaveChangesAsync();
-            await _imageStorageService.DeleteImage(entity.Id, CancellationToken.None);
+            await _imageStorageService.DeleteAllPetImages(entity.Id, CancellationToken.None);
         }
 
         public async Task<List<PetSearchResultDto>> Search(SearchParams searchParams)

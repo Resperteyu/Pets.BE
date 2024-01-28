@@ -7,14 +7,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using Pets.API.Settings;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using System.Linq;
+using Pets.API.Responses.Dtos;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Pets.API.Services;
 
 public interface IImageStorageService
 {
-    Task UploadPetImage(Guid petId, IFormFile imageFile, CancellationToken cancellationToken);
-    Task GetImage(Guid petId, HttpContext context, CancellationToken cancellationToken);
-    Task DeleteImage(Guid petId, CancellationToken cancellationToken);
+    Task UploadPetImage(Guid petId, bool isProfileImage, IFormFile imageFile, CancellationToken cancellationToken);
+    Task GetImage(Guid petId, bool isProfileImage, HttpContext context, CancellationToken cancellationToken);
+    Task<List<PetImageDto>> GetListOfPetImages(Guid petId, CancellationToken cancellationToken);
+    Task DeleteAllPetImages(Guid petId, CancellationToken cancellationToken);
+    Task DeleteImage(Guid imaageId, CancellationToken cancellationToken);
+    Task GetImage(Guid imageId, HttpContext context, CancellationToken cancellationToken);
 }
 
 public class ImageStorageService : IImageStorageService
@@ -23,6 +30,8 @@ public class ImageStorageService : IImageStorageService
     private readonly string _imagesContainer;
     private readonly ILogger<ImageStorageService> _logger;
     private readonly BlobContainerClient _blobContainerClient;
+
+    private const string IS_PROFILE_IMAGE_TAG = "isProfileImage";
 
     public ImageStorageService(IOptions<BlobStorageSettings> blobStorageSettings,
         ILogger<ImageStorageService> logger)
@@ -41,25 +50,73 @@ public class ImageStorageService : IImageStorageService
         }
     }
 
-    public async Task UploadPetImage(Guid petId, IFormFile imageFile, CancellationToken cancellationToken)
+    public async Task UploadPetImage(Guid petId, bool isProfileImage, IFormFile imageFile, CancellationToken cancellationToken)
     {
-        var blobClient = _blobContainerClient.GetBlobClient($"pets/{petId}");
+        var blobClient = _blobContainerClient.GetBlobClient($"pets/{Guid.NewGuid()}");
         await using var fileStream = imageFile.OpenReadStream();
 
-        await blobClient.UploadAsync(fileStream, new BlobHttpHeaders { ContentType = imageFile.ContentType },
+        BlobUploadOptions options = new BlobUploadOptions();
+        options.Tags = new Dictionary<string, string>
+        {
+            { "petId", petId.ToString() },
+            { IS_PROFILE_IMAGE_TAG, isProfileImage.ToString() }
+        };
+        options.HttpHeaders = new BlobHttpHeaders { ContentType = imageFile.ContentType };
+
+        await blobClient.UploadAsync(fileStream,
+            options,
             cancellationToken: cancellationToken);
     }
 
-    public async Task GetImage(Guid petId, HttpContext context, CancellationToken cancellationToken)
+    public async Task<List<PetImageDto>> GetListOfPetImages(Guid petId, CancellationToken cancellationToken)
     {
-        var blobClient = _blobContainerClient.GetBlobClient($"pets/{petId}");
+        string query = $@"""petId"" = '{petId}'";
+
+        var imageList = new List<PetImageDto>();
+
+        await foreach (TaggedBlobItem taggedBlobItem in _blobContainerClient.FindBlobsByTagsAsync(query, cancellationToken))
+        {
+            imageList.Add(new PetImageDto
+            {
+                ImageName = taggedBlobItem.BlobName,
+                IsProfileImage = taggedBlobItem.Tags.Any(x => x.Key == IS_PROFILE_IMAGE_TAG && x.Value == true.ToString())
+            });
+        }
+
+        return imageList;
+    }
+
+    public async Task GetImage(Guid imageId, HttpContext context, CancellationToken cancellationToken)
+    {
+        var blobClient = _blobContainerClient.GetBlobClient($"pets/{imageId}");
         await blobClient.DownloadToAsync(context.Response.Body, cancellationToken);
     }
 
-    public async Task DeleteImage(Guid petId, CancellationToken cancellationToken)
+    public async Task GetImage(Guid petId, bool isProfileImage, HttpContext context, CancellationToken cancellationToken)
     {
-        var blobClient = _blobContainerClient.GetBlobClient($"pets/{petId}");
-        await blobClient.DeleteIfExistsAsync(cancellationToken: cancellationToken);
+        string query = $@"""petId"" = '{petId}' AND ""{IS_PROFILE_IMAGE_TAG}"" = '{isProfileImage}'";
 
+        await foreach (TaggedBlobItem taggedBlobItem in _blobContainerClient.FindBlobsByTagsAsync(query, cancellationToken))
+        {
+            var blobClient = _blobContainerClient.GetBlobClient(taggedBlobItem.BlobName);
+            await blobClient.DownloadToAsync(context.Response.Body, cancellationToken);
+            break;
+        }
+    }
+
+    public async Task DeleteAllPetImages(Guid petId, CancellationToken cancellationToken)
+    {
+        string query = $@"""petId"" = '{petId}'";
+
+        await foreach (TaggedBlobItem taggedBlobItem in _blobContainerClient.FindBlobsByTagsAsync(query, cancellationToken))
+        {
+            await _blobContainerClient.DeleteBlobIfExistsAsync(taggedBlobItem.BlobName);
+        }
+    }
+
+    public async Task DeleteImage(Guid imageId, CancellationToken cancellationToken)
+    {
+        var blobClient = _blobContainerClient.GetBlobClient($"pets/{imageId}");
+        await blobClient.DeleteIfExistsAsync();
     }
 }

@@ -121,7 +121,7 @@ namespace Pets.API.Controllers
         public async Task<ActionResult<List<PetProfileDto>>> GetMates(Guid petId)
         {
             var petEntity = await _petProfileService.GetEntityByPetId(petId);
-          
+
             if (petEntity == null)
                 return NotFound("Pet not found");
 
@@ -129,16 +129,24 @@ namespace Pets.API.Controllers
                 return BadRequest("Pet is not available for breeding");
 
             var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
-            
-            var petProfiles = await _petProfileService.GetMates(petEntity, userId); 
+
+            var petProfiles = await _petProfileService.GetMates(petEntity, userId);
 
             return Ok(petProfiles);
         }
 
+        /// <summary>
+        /// Saves a pet image. If image header has IsProfileImage then it gets saved as profile image
+        /// </summary>
+        /// <param name="petId"></param>
+        /// <param name="imageFile"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         [Authorize]
         [HttpPut("{petId:Guid}/image")]
-        public async Task<IActionResult> SaveImage(Guid petId, [FromForm] IEnumerable<IFormFile> imageFile, CancellationToken cancellationToken)
-        { 
+        public async Task<IActionResult> SaveImage(Guid petId,
+            [FromForm] IEnumerable<IFormFile> imageFile, CancellationToken cancellationToken)
+        {
             try
             {
                 var img = imageFile.FirstOrDefault();
@@ -162,7 +170,8 @@ namespace Pets.API.Controllers
                 if (petEntity.OwnerId != userId)
                     return Unauthorized("You don't own this pet");
 
-                await _imageStorageService.UploadPetImage(petId, img, cancellationToken);
+                bool isProfileImage = img.Headers.ContainsKey("IsProfileImage");
+                await _imageStorageService.UploadPetImage(petId, isProfileImage, img, cancellationToken);
 
                 return Ok();
             }
@@ -173,21 +182,61 @@ namespace Pets.API.Controllers
             return StatusCode(500);
         }
 
-        //[Authorize]
         [HttpGet("{petId:Guid}/image")]
-        public Task GetPetImage(Guid petId, CancellationToken cancellationToken)
+        public Task GetPetProfileImage(Guid petId, CancellationToken cancellationToken)
         {
             try
             {
                 HttpContext.Response.Clear();
                 HttpContext.Response.Headers.Clear();
-                return _imageStorageService.GetImage(petId, HttpContext, cancellationToken);
+                return _imageStorageService.GetImage(petId, true, HttpContext, cancellationToken);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting image for {PetId}", petId);
             }
             return Task.CompletedTask;
+        }
+
+        [HttpGet("{petId:Guid}/image/{imageId:Guid}")]
+        public Task GetPetImage(Guid petId, Guid imageId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                HttpContext.Response.Clear();
+                HttpContext.Response.Headers.Clear();
+                return _imageStorageService.GetImage(imageId, HttpContext, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting image {ImageId} for {PetId}", imageId, petId);
+            }
+            return Task.CompletedTask;
+        }
+
+        [Authorize]
+        [HttpDelete("{petId:Guid}/image/{imageId:Guid}")]
+        public async Task<IActionResult> DeletePetImage(Guid petId,
+            Guid imageId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var petEntity = await _petProfileService.GetEntityByPetId(petId);
+
+                if (petEntity == null)
+                    return NotFound("Pet not found");
+
+                var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
+                if (petEntity.OwnerId != userId)
+                    return Unauthorized("You don't own this pet");
+
+                await _imageStorageService.DeleteImage(imageId, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting image {ImageId} for {PetId}", imageId, petId);
+            }
+            return StatusCode(500);
         }
     }
 }
