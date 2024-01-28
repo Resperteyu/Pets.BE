@@ -121,7 +121,7 @@ namespace Pets.API.Controllers
         public async Task<ActionResult<List<PetProfileDto>>> GetMates(Guid petId)
         {
             var petEntity = await _petProfileService.GetEntityByPetId(petId);
-          
+
             if (petEntity == null)
                 return NotFound("Pet not found");
 
@@ -129,8 +129,8 @@ namespace Pets.API.Controllers
                 return BadRequest("Pet is not available for breeding");
 
             var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
-            
-            var petProfiles = await _petProfileService.GetMates(petEntity, userId); 
+
+            var petProfiles = await _petProfileService.GetMates(petEntity, userId);
 
             return Ok(petProfiles);
         }
@@ -146,7 +146,7 @@ namespace Pets.API.Controllers
         [HttpPut("{petId:Guid}/image")]
         public async Task<IActionResult> SaveImage(Guid petId,
             [FromForm] IEnumerable<IFormFile> imageFile, CancellationToken cancellationToken)
-        { 
+        {
             try
             {
                 var img = imageFile.FirstOrDefault();
@@ -212,6 +212,31 @@ namespace Pets.API.Controllers
                 _logger.LogError(ex, "Error getting image {ImageId} for {PetId}", imageId, petId);
             }
             return Task.CompletedTask;
+        }
+
+        [Authorize]
+        [HttpDelete("{petId:Guid}/image/{imageId:Guid}")]
+        public async Task<IActionResult> DeletePetImage(Guid petId,
+            Guid imageId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var petEntity = await _petProfileService.GetEntityByPetId(petId);
+
+                if (petEntity == null)
+                    return NotFound("Pet not found");
+
+                var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
+                if (petEntity.OwnerId != userId)
+                    return Unauthorized("You don't own this pet");
+
+                await _imageStorageService.DeleteImage(imageId, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting image {ImageId} for {PetId}", imageId, petId);
+            }
+            return StatusCode(500);
         }
     }
 }

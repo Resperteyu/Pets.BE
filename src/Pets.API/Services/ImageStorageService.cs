@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
 using Pets.API.Responses.Dtos;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Pets.API.Services;
 
@@ -18,7 +19,8 @@ public interface IImageStorageService
     Task UploadPetImage(Guid petId, bool isProfileImage, IFormFile imageFile, CancellationToken cancellationToken);
     Task GetImage(Guid petId, bool isProfileImage, HttpContext context, CancellationToken cancellationToken);
     Task<List<PetImageDto>> GetListOfPetImages(Guid petId, CancellationToken cancellationToken);
-    Task DeleteImage(Guid petId, CancellationToken cancellationToken);
+    Task DeleteAllPetImages(Guid petId, CancellationToken cancellationToken);
+    Task DeleteImage(Guid imaageId, CancellationToken cancellationToken);
     Task GetImage(Guid imageId, HttpContext context, CancellationToken cancellationToken);
 }
 
@@ -102,15 +104,19 @@ public class ImageStorageService : IImageStorageService
         }
     }
 
-    public async Task DeleteImage(Guid petId, CancellationToken cancellationToken)
+    public async Task DeleteAllPetImages(Guid petId, CancellationToken cancellationToken)
     {
         string query = $@"""petId"" = '{petId}'";
-
-        var imageList = new List<PetImageDto>();
 
         await foreach (TaggedBlobItem taggedBlobItem in _blobContainerClient.FindBlobsByTagsAsync(query, cancellationToken))
         {
             await _blobContainerClient.DeleteBlobIfExistsAsync(taggedBlobItem.BlobName);
         }
+    }
+
+    public async Task DeleteImage(Guid imageId, CancellationToken cancellationToken)
+    {
+        var blobClient = _blobContainerClient.GetBlobClient($"pets/{imageId}");
+        await blobClient.DeleteIfExistsAsync();
     }
 }
