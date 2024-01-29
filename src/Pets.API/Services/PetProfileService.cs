@@ -122,6 +122,21 @@ namespace Pets.API.Services
                 petProfiles = petProfiles.Where(i => i.AvailableForBreeding == searchParams.AvailableForBreeding);
             }
 
+            if (searchParams.ForSale.HasValue)
+            {
+                petProfiles = petProfiles.Where(i => i.ForSale == searchParams.ForSale);
+            }
+
+            if (searchParams.ForAdoption.HasValue)
+            {
+                petProfiles = petProfiles.Where(i => i.ForAdoption == searchParams.ForAdoption);
+            }
+
+            if (searchParams.Missing.HasValue)
+            {
+                petProfiles = petProfiles.Where(i => i.Missing == searchParams.Missing);
+            }
+
             if (searchParams.SexId.HasValue)
             {
                 petProfiles = petProfiles.Where(i => i.SexId == searchParams.SexId);
@@ -166,6 +181,9 @@ namespace Pets.API.Services
             {
                 Id = i.Id,
                 AvailableForBreeding = i.AvailableForBreeding,
+                ForSale = i.ForSale,
+                ForAdoption = i.ForAdoption,
+                Missing = i.Missing,
                 Breed = new PetBreedDto
                 {
                     Id = i.Breed.Id,

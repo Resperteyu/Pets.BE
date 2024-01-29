@@ -13,6 +13,9 @@ namespace Pets.API.Requests
         public double? Longitude { get; set; }
         public SearchRadiusType? SearchRadiusType { get; set; }
         public int? SearchRadius { get; set; }
+        public bool? ForSale { get; set; }
+        public bool? ForAdoption { get; set; }
+        public bool? Missing { get; set; }
     }
 }
 
