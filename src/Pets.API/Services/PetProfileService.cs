@@ -115,8 +115,12 @@ namespace Pets.API.Services
                                             .Include(i => i.Owner)
                                             .Include(i => i.Owner.Address)
                                                 .ThenInclude(a => a.Location)
-                                            .Where(i => i.AvailableForBreeding == searchParams.AvailableForBreeding
-                                                && i.OwnerId != searchParams.UserId);
+                                            .Where(i => i.OwnerId != searchParams.UserId);
+
+            if(searchParams.AvailableForBreeding.HasValue)
+            {
+                petProfiles = petProfiles.Where(i => i.AvailableForBreeding == searchParams.AvailableForBreeding);
+            }
 
             if (searchParams.SexId.HasValue)
             {
@@ -174,9 +178,9 @@ namespace Pets.API.Services
                     searchParams.SearchRadiusType.Value) : null,
                 Owner = new PetOwnerInfosDto
                 {
-                    FirstName = i.Owner.FirstName,
-                    LastName = i.Owner.LastName,
-                    Id = i.Owner.Id
+                    Id = i.Owner.Id,
+                    UserName = i.Owner.UserName
+                    
                     // TODO: Add owner rough address
                 },
                 Name = i.Name,

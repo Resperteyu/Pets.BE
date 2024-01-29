@@ -67,7 +67,6 @@ namespace Pets.API.Controllers
             //TODO: Location perimeter search
             //TODO: return image url
             searchParams.UserId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
-            searchParams.AvailableForBreeding = true;
             var petProfiles = await _petProfileService.Search(searchParams);
 
             return Ok(petProfiles);

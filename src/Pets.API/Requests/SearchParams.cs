@@ -3,7 +3,7 @@ namespace Pets.API.Requests
 {
 	public class SearchParams
 	{
-        public bool AvailableForBreeding { get; set; }
+        public bool? AvailableForBreeding { get; set; }
         public byte? SexId { get; set; }
         public int? Age { get; set; }
         public byte? TypeId { get; set; }

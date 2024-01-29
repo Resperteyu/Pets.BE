@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Pets.API.Responses.Dtos;
 using Pets.API.Services;
 using Pets.Db.Models;
+using System;
 using System.Threading.Tasks;
 
 namespace Pets.API.Controllers
@@ -15,15 +16,18 @@ namespace Pets.API.Controllers
     [Route("[controller]")]
     [ApiController]
     public class UserProfileController : ControllerBase
-    {
-        private readonly IUserProfileService _userProfileService;
+    {        
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IUserProfileService _userProfileService;
+        private readonly IPetProfileService _petProfileService;
 
         public UserProfileController(UserManager<ApplicationUser> userManager, 
-            IUserProfileService userProfileService)
+            IUserProfileService userProfileService,
+            IPetProfileService petProfileService)
         {
             _userManager = userManager;
             _userProfileService = userProfileService;
+            _petProfileService = petProfileService;
         }
 
         [HttpGet]
@@ -56,6 +60,24 @@ namespace Pets.API.Controllers
             var success = await _userProfileService.DeleteUserProfile(userId);
 
             return success ? NoContent() : NotFound();
+        }
+
+        [HttpGet("{id:Guid}")]
+        public async Task<ActionResult<ViewUserProfileDto>> GetProfile(Guid id)
+        {
+            var userProfile = await _userProfileService.GetUserProfile(id.ToString());
+
+            if (userProfile == null)
+                return NotFound();
+
+            var viewUserProfileDto = new ViewUserProfileDto
+            {
+                Id = id,
+                UserName = userProfile.UserName,
+                Pets = await _petProfileService.GetByOwnerId(id)
+            };
+
+            return Ok(viewUserProfileDto);
         }
     }
 }
