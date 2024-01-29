@@ -2782,6 +2782,18 @@ namespace Pets.Db.Migrations
                     b.Property<byte>("SexId")
                         .HasColumnType("tinyint");
 
+                    b.Property<bool>("ForAdoption")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ForSale")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Missing")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Price")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BreedId");

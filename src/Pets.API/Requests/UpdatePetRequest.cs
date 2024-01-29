@@ -17,5 +17,13 @@ namespace Pets.API.Requests
         public string Name { get; set; }
 
         public string Description { get; set; }
+
+        public bool ForSale { get; set; }
+
+        public int Price { get; set; }
+
+        public bool ForAdoption { get; set; }
+
+        public bool Missing { get; set; }
     }
 }

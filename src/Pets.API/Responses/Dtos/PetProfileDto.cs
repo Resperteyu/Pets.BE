@@ -52,6 +52,11 @@ namespace Pets.API.Responses.Dtos
 
         public PetAge Age { get; private set; }
 
+        public bool ForSale { get; set; }
+        public int Price { get; set; }
+        public bool ForAdoption { get; set; }
+        public bool Missing { get; set; }
+
         public class PetAge
         {
             public int Years { get; set; }

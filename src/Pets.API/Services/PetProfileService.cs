@@ -91,6 +91,10 @@ namespace Pets.API.Services
             entity.AvailableForBreeding = request.AvailableForBreeding;
             entity.Name = request.Name;
             entity.Description = request.Description;
+            entity.ForSale = request.ForSale;
+            entity.Price = request.Price;
+            entity.ForAdoption  = request.ForAdoption;
+            entity.Missing = request.Missing;
 
             _context.PetProfiles.Update(entity);
             await _context.SaveChangesAsync();
