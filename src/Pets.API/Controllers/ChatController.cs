@@ -9,7 +9,6 @@ using Pets.API.Services;
 using Pets.Db.Models;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Threading.Tasks;
 
 namespace Pets.API.Controllers
@@ -66,7 +65,7 @@ namespace Pets.API.Controllers
         }
 
         [Authorize]
-        [HttpGet("messages")]
+        [HttpGet("infos")]
         public async Task<ActionResult<List<ChatMessageDto>>> GetChats()
         {
             var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
