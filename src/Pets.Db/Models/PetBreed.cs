@@ -10,5 +10,6 @@
         public string Title { get; set; }
 
         public ICollection<PetProfile> PetProfiles { get; } = new List<PetProfile>();
+        public ICollection<Litter> Litters { get; } = new List<Litter>();
     }
 }

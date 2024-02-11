@@ -4,16 +4,15 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Pets.API.Requests;
+using Pets.API.Requests.Search;
 using Pets.API.Responses.Dtos;
 using Pets.API.Services;
 using Pets.Db.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
 namespace Pets.API.Controllers
 {
@@ -47,6 +46,15 @@ namespace Pets.API.Controllers
                 return NotFound("Pet not found");
 
             return Ok(petProfile);
+        }
+
+        [Authorize]
+        [HttpGet("infos")]
+        public async Task<ActionResult<List<PetProfileDto>>> GetPetInfos()
+        {
+            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
+            var petProfiles = await _petProfileService.GetByOwnerId(userId);
+            return Ok(petProfiles);
         }
 
         [Authorize]

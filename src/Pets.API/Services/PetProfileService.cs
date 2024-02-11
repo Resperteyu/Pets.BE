@@ -10,6 +10,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using NetTopologySuite.Geometries;
 using System.Threading;
+using Pets.API.Requests.Search;
+using Pets.API.Responses.Dtos.Search;
+using Pets.API.Helpers;
 
 namespace Pets.API.Services
 {
@@ -192,7 +195,7 @@ namespace Pets.API.Services
                 },
                 DateOfBirth = i.DateOfBirth,
                 Description = i.Description,
-                DistanceFromSearchLocation = (searchPoint != null) ? CalculateDistanceFromSearchLocation(i.Owner.Address.Location.GeoLocation.Distance(searchPoint),
+                DistanceFromSearchLocation = (searchPoint != null) ? SearchHelper.CalculateDistanceFromSearchLocation(i.Owner.Address.Location.GeoLocation.Distance(searchPoint),
                     searchParams.SearchRadiusType.Value) : null,
                 Owner = new PetOwnerInfosDto
                 {
@@ -208,18 +211,7 @@ namespace Pets.API.Services
                     Title = i.Sex.Title
                 }
             }).ToListAsync();
-        }
-
-        private static double CalculateDistanceFromSearchLocation(double distanceInMeters, SearchRadiusType searchRadiusType)
-        {
-            double distance = searchRadiusType switch
-            {
-                SearchRadiusType.Miles => Math.Round(distanceInMeters * 0.000621371, 1),
-                SearchRadiusType.Kilometers => Math.Round(distanceInMeters * 0.001, 1)
-            };
-
-            return distance;
-        }
+        }        
 
         public async Task<List<PetProfileDto>> GetMates(PetProfile entity, Guid userId)
         {

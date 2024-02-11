@@ -1,6 +1,7 @@
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using Pets.API.Requests;
+using Pets.API.Requests.Litter;
 using Pets.API.Requests.MateRequest;
 using Pets.API.Responses.Dtos;
 using Pets.Db.Models;
@@ -37,6 +38,10 @@ namespace Pets.API.Helpers
             CreateMap<CreateMateRequestRequest, MateRequest>();
 
             CreateMap<MateRequest, MateRequestDto>();
+
+            CreateMap<Litter, LitterDto>();
+
+            CreateMap<CreateLitterRequest, Litter>();
 
             CreateMap<ApplicationUser, UserProfileDto>()
                 .ReverseMap();

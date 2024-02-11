@@ -36,6 +36,8 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser, Identity
 
     public DbSet<MateRequest> MateRequests { get; set; }
 
+    public DbSet<Litter> Litters { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<ApplicationUser>(entity =>
@@ -153,6 +155,26 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser, Identity
             entity.HasOne(p => p.MateRequestState).WithMany(p => p.MateRequests).HasForeignKey(p => p.MateRequestStateId).IsRequired();
 
             entity.ToTable("MateRequest");
+        });
+
+        modelBuilder.Entity<Litter>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Title).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.Description).HasMaxLength(3000).IsRequired();
+            entity.Property(e => e.CreationDate).HasColumnType("date").IsRequired();
+            entity.Property(e => e.Available).IsRequired();
+            entity.HasIndex(e => e.OwnerId);
+            entity.HasIndex(e => e.CreationDate);
+            entity.HasIndex(e => e.Available);
+
+            entity.HasOne(e => e.Breed).WithMany(e => e.Litters).HasForeignKey(p => p.BreedId).IsRequired();
+
+            entity.HasOne(p => p.MotherPetProfile).WithMany().HasForeignKey(p => p.MotherPetId).OnDelete(DeleteBehavior.NoAction).IsRequired();
+            entity.HasOne(p => p.FatherPetProfile).WithMany().HasForeignKey(p => p.FatherPetId).OnDelete(DeleteBehavior.NoAction).IsRequired();
+            entity.HasOne(e => e.Owner).WithMany(e => e.Litters).HasForeignKey(p => p.OwnerId).IsRequired();
+
+            entity.ToTable("Litter");
         });
 
         base.OnModelCreating(modelBuilder);
