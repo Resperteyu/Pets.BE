@@ -79,10 +79,13 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser, Identity
             entity.Property(e => e.Name).HasMaxLength(20);
             entity.Property(e => e.Description).HasMaxLength(250);
             entity.Property(e => e.DateOfBirth).HasColumnType("date");
+            entity.Property(e => e.CreationDate).HasColumnType("date").HasDefaultValue(DateTime.UtcNow).IsRequired();
 
             entity.HasOne(e => e.Breed).WithMany(e => e.PetProfiles).HasForeignKey(p => p.BreedId).IsRequired();
             entity.HasOne(e => e.Owner).WithMany(e => e.PetProfiles).HasForeignKey(p => p.OwnerId).IsRequired();
             entity.HasOne(e => e.Sex).WithMany(e => e.PetProfiles).HasForeignKey(p => p.SexId).IsRequired();
+
+            entity.HasIndex(e => e.CreationDate);
 
             entity.ToTable("PetProfile");
         });

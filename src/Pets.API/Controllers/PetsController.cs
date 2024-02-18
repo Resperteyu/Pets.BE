@@ -61,7 +61,7 @@ namespace Pets.API.Controllers
         [HttpGet("owner/{ownerId:Guid}")]
         public async Task<ActionResult<List<PetProfileDto>>> GetByOwnerId(Guid ownerId)
         {
-            var petProfiles = await _petProfileService.GetByOwnerId(ownerId);
+            var petProfiles = await _petProfileService.GetPetsView(ownerId);
 
             //what to return if owner does not exist??
 

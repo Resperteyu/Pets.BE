@@ -62,7 +62,7 @@ namespace Pets.API.Controllers
             return success ? NoContent() : NotFound();
         }
 
-        [HttpGet("{id:Guid}")]
+        [HttpGet("{id:Guid}/view")]
         public async Task<ActionResult<ViewUserProfileDto>> GetProfile(Guid id)
         {
             var userProfile = await _userProfileService.GetUserProfile(id.ToString());
@@ -74,7 +74,7 @@ namespace Pets.API.Controllers
             {
                 Id = id,
                 UserName = userProfile.UserName,
-                Pets = await _petProfileService.GetByOwnerId(id)
+                Pets = await _petProfileService.GetPetsView(id)
             };
 
             return Ok(viewUserProfileDto);

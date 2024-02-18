@@ -20,7 +20,8 @@ namespace Pets.API.Services
     {
         Task<PetProfile> GetEntityByPetId(Guid petId);
         Task<PetProfileDto> GetByPetId(Guid petId);
-        Task<List<PetProfileDto>> GetByOwnerId(Guid petId);
+        Task<List<PetProfileDto>> GetByOwnerId(Guid userId);
+        Task<List<PetProfileDto>> GetPetsView(Guid userId);
         Task<Guid> CreatePet(CreatePetRequest model, Guid ownerId);
         Task UpdatePet(UpdatePetRequest model, PetProfile entity);
         Task DeletePet(PetProfile entity);
@@ -75,10 +76,22 @@ namespace Pets.API.Services
             return _mapper.Map<List<PetProfileDto>>(petProfiles);
         }
 
+        public async Task<List<PetProfileDto>> GetPetsView(Guid ownerId)
+        {
+            var petProfiles = await _context.PetProfiles.Where(x => x.OwnerId == ownerId)
+                                            .Include(i => i.Breed)
+                                            .Include(i => i.Sex)
+                                            .OrderByDescending(x => x.CreationDate)
+                                            .ToListAsync();
+
+            return _mapper.Map<List<PetProfileDto>>(petProfiles);
+        }
+
         public async Task<Guid> CreatePet(CreatePetRequest request, Guid ownerId)
         {
             var pet = _mapper.Map<PetProfile>(request);
             pet.OwnerId = ownerId;
+            pet.CreationDate = DateTime.UtcNow;
 
             var petProfile = await _context.PetProfiles.AddAsync(pet);
             await _context.SaveChangesAsync();
@@ -178,7 +191,7 @@ namespace Pets.API.Services
                 petProfiles = petProfiles.Where(i => i.Owner.Address.Location.GeoLocation.Distance(searchPoint) <= radiusInMeters);
             }
 
-            petProfiles = petProfiles.Take(SEARCH_MAX_RESULTS);
+            petProfiles = petProfiles.Take(SEARCH_MAX_RESULTS).OrderByDescending(x => x.CreationDate);
 
             return await petProfiles.Select(i => new PetSearchResultDto
             {
@@ -218,6 +231,7 @@ namespace Pets.API.Services
             //TO DO: introduce mate preferences associated to specific pet
             var petProfiles = await _context.PetProfiles.Where(x => x.OwnerId == userId)
                                             .Where(x => x.SexId != entity.SexId)
+                                            .Where(x => x.AvailableForBreeding == true)
                                             .Where(x => x.Breed.TypeId == entity.Breed.TypeId)
                                             .Include(i => i.Breed)
                                             .Include(i => i.Sex)
