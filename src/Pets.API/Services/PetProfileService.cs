@@ -76,9 +76,9 @@ namespace Pets.API.Services
             return _mapper.Map<List<PetProfileDto>>(petProfiles);
         }
 
-        public async Task<List<PetProfileDto>> GetPetsView(Guid ownerId)
+        public async Task<List<PetProfileDto>> GetPetsView(Guid userId)
         {
-            var petProfiles = await _context.PetProfiles.Where(x => x.OwnerId == ownerId)
+            var petProfiles = await _context.PetProfiles.Where(x => x.OwnerId == userId)
                                             .Include(i => i.Breed)
                                             .Include(i => i.Sex)
                                             .OrderByDescending(x => x.CreationDate)

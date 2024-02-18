@@ -58,10 +58,10 @@ namespace Pets.API.Controllers
         }
 
         [Authorize]
-        [HttpGet("owner/{ownerId:Guid}")]
-        public async Task<ActionResult<List<PetProfileDto>>> GetByOwnerId(Guid ownerId)
+        [HttpGet("user/{userId:Guid}")]
+        public async Task<ActionResult<List<PetProfileDto>>> GetPetsView(Guid userId)
         {
-            var petProfiles = await _petProfileService.GetPetsView(ownerId);
+            var petProfiles = await _petProfileService.GetPetsView(userId);
 
             //what to return if owner does not exist??
 

@@ -21,7 +21,7 @@ namespace Pets.API.Services
     {
         Task<Litter> GetEntityById(Guid id);
         Task<LitterDto> GetById(Guid id);
-        Task<List<LitterDto>> GetByOwnerId(Guid id);
+        Task<List<LitterDto>> GetLittersView(Guid id);
         Task<Guid> CreateLitter(CreateLitterRequest model, Guid ownerId);
         Task UpdateLitter(UpdateLitterRequest model, Litter entity);
         Task DeleteLitter(Litter entity);
@@ -66,9 +66,9 @@ namespace Pets.API.Services
             return _mapper.Map<LitterDto>(litter);
         }
 
-        public async Task<List<LitterDto>> GetByOwnerId(Guid ownerId)
+        public async Task<List<LitterDto>> GetLittersView(Guid userId)
         {
-            var litters = await _context.Litters.Where(x => x.OwnerId == ownerId)
+            var litters = await _context.Litters.Where(x => x.OwnerId == userId)
                                             .Include(i => i.Breed)
                                             .ToListAsync();
 
