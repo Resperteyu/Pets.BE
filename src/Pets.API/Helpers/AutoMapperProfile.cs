@@ -44,6 +44,8 @@ namespace Pets.API.Helpers
             CreateMap<CreateLitterRequest, Litter>();
 
             CreateMap<ApplicationUser, UserProfileDto>()
+                .ForMember(dest => dest.AboutMe, opt => opt.MapFrom(src => src.UserProfileInfo.AboutMe))
+                .ForMember(dest => dest.ProfilePhotoUrl, opt => opt.MapFrom(src => src.UserProfileInfo.ProfilePhotoUrl))
                 .ReverseMap();
 
             CreateMap<AddressDto, Address>()

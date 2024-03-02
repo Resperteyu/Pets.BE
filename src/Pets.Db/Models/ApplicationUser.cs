@@ -19,6 +19,8 @@ namespace Pets.Db.Models
         public virtual ICollection<RefreshToken>? RefreshTokens { get; set; }
 
         public virtual Address? Address { get; set; }
+
+        public virtual UserProfileInfo UserProfileInfo { get; set; }
     }
 
 }

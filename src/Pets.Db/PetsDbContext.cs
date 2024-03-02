@@ -51,6 +51,11 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser, Identity
                   .HasForeignKey<Address>(a => a.ApplicationUserId)
                   .OnDelete(DeleteBehavior.Cascade);
 
+            entity.HasOne(u => u.UserProfileInfo)
+                  .WithOne(ui => ui.ApplicationUser)
+                  .HasForeignKey<UserProfileInfo>(ui => ui.ApplicationUserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
             entity.HasKey(e => e.Id);
         });
 
@@ -178,6 +183,13 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser, Identity
             entity.HasOne(e => e.Owner).WithMany(e => e.Litters).HasForeignKey(p => p.OwnerId).IsRequired();
 
             entity.ToTable("Litter");
+        });
+
+        modelBuilder.Entity<UserProfileInfo>(entity =>
+        {
+            entity.ToTable("UserProfileInfo");
+            entity.Property(e => e.AboutMe)
+                .HasMaxLength(300);
         });
 
         base.OnModelCreating(modelBuilder);

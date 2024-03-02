@@ -9,5 +9,7 @@
         public string LastName { get; set; }
         public string Telephone { get; set; }
         public AddressDto Address { get; set; }
+        public string AboutMe { get; set; }
+        public string ProfilePhotoUrl { get; set; }
     }
 }

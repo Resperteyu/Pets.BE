@@ -39,6 +39,7 @@ namespace Pets.API.Services
                 .ThenInclude(a => a.Country)
             .Include(u => u.Address)
                 .ThenInclude(a => a.Location)
+            .Include(u => u.UserProfileInfo)
             .FirstOrDefaultAsync(u => u.Id.ToString() == userId);
 
             return _mapper.Map<UserProfileDto>(user);
@@ -51,6 +52,7 @@ namespace Pets.API.Services
                 .ThenInclude(a => a.Country)
             .Include(u => u.Address)
                 .ThenInclude(a => a.Location)
+            .Include(u => u.UserProfileInfo)
             .FirstOrDefaultAsync(u => u.Id.ToString() == userId);
 
             if (user == null)
