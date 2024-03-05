@@ -141,6 +141,8 @@ namespace Pets.API
             services.AddScoped<IMateRequestService, MateRequestService>();
             services.AddScoped<IUserProfileService, UserProfileService>();
             services.AddScoped<ILitterService, LitterService>();
+            services.AddScoped<IServiceTypeService, ServiceTypeService>();
+            services.AddScoped<IServiceOfferService, ServiceOfferService>();
             services.AddSingleton<IImageStorageService, ImageStorageService>();
             services.AddSingleton<IMateRequestStateChangeValidator, MateRequestStateChangeValidator>();
             services.AddSingleton<IFirebaseClient, FirebaseClient>();

@@ -38,6 +38,10 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser, Identity
 
     public DbSet<Litter> Litters { get; set; }
 
+    public DbSet<ServiceOffer> ServiceOffers { get; set; }
+
+    public DbSet<ServiceType> ServiceTypes { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<ApplicationUser>(entity =>
@@ -190,6 +194,29 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser, Identity
             entity.ToTable("UserProfileInfo");
             entity.Property(e => e.AboutMe)
                 .HasMaxLength(300);
+        });
+
+        modelBuilder.Entity<ServiceType>(entity =>
+        {
+            entity.Property(e => e.Title).HasMaxLength(50);
+
+            entity.ToTable("ServiceType");
+        });
+
+        modelBuilder.Entity<ServiceOffer>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Description).HasMaxLength(3000).IsRequired();
+            entity.Property(e => e.CreationDate).HasColumnType("date").IsRequired();
+            entity.HasIndex(p => new { p.UserId, p.ServiceTypeId }).IsUnique();
+            entity.HasIndex(e => e.CreationDate);
+            entity.HasIndex(e => e.Active);
+            entity.HasIndex(e => e.ServiceTypeId);
+
+            entity.HasOne(e => e.ServiceType).WithMany(p => p.ServiceOffers).HasForeignKey(p => p.ServiceTypeId).IsRequired();
+            entity.HasOne(e => e.User).WithMany(e => e.ServiceOffers).HasForeignKey(p => p.UserId).IsRequired();
+
+            entity.ToTable("ServiceOffer");
         });
 
         base.OnModelCreating(modelBuilder);

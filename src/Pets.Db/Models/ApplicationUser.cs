@@ -15,6 +15,7 @@ namespace Pets.Db.Models
 
         public virtual ICollection<PetProfile> PetProfiles { get; set; } = new List<PetProfile>();
         public virtual ICollection<Litter> Litters { get; set; } = new List<Litter>();
+        public virtual ICollection<ServiceOffer> ServiceOffers { get; set; } = new List<ServiceOffer>();
 
         public virtual ICollection<RefreshToken>? RefreshTokens { get; set; }
 

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Pets.Db;
@@ -12,9 +13,11 @@ using Pets.Db;
 namespace Pets.Db.Migrations
 {
     [DbContext(typeof(PetsDbContext))]
-    partial class PetsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240305192159_AddServiceOfferTables")]
+    partial class AddServiceOfferTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -730,7 +733,7 @@ namespace Pets.Db.Migrations
                     b.Property<DateTime>("CreationDate")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("date")
-                        .HasDefaultValue(new DateTime(2024, 3, 5, 20, 2, 16, 96, DateTimeKind.Utc).AddTicks(6348));
+                        .HasDefaultValue(new DateTime(2024, 3, 5, 19, 21, 59, 338, DateTimeKind.Utc).AddTicks(3576));
 
                     b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("date");
@@ -799,8 +802,8 @@ namespace Pets.Db.Migrations
                     b.Property<bool>("Active")
                         .HasColumnType("bit");
 
-                    b.Property<int>("AdditionalPetRate")
-                        .HasColumnType("int");
+                    b.Property<decimal>("AdditionalPetRate")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("date");
@@ -816,14 +819,14 @@ namespace Pets.Db.Migrations
                     b.Property<bool>("ForDogs")
                         .HasColumnType("bit");
 
-                    b.Property<int>("HourlyRate")
-                        .HasColumnType("int");
+                    b.Property<decimal>("HourlyRate")
+                        .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("PeakRate")
-                        .HasColumnType("int");
+                    b.Property<decimal>("PeakRate")
+                        .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("Rate")
-                        .HasColumnType("int");
+                    b.Property<decimal>("Rate")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<byte>("ServiceTypeId")
                         .HasColumnType("tinyint");
@@ -839,8 +842,7 @@ namespace Pets.Db.Migrations
 
                     b.HasIndex("ServiceTypeId");
 
-                    b.HasIndex("UserId", "ServiceTypeId")
-                        .IsUnique();
+                    b.HasIndex("UserId");
 
                     b.ToTable("ServiceOffer", (string)null);
                 });

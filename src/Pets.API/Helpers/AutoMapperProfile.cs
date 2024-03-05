@@ -1,8 +1,8 @@
 using NetTopologySuite;
-using NetTopologySuite.Geometries;
 using Pets.API.Requests;
 using Pets.API.Requests.Litter;
 using Pets.API.Requests.MateRequest;
+using Pets.API.Requests.ServiceOffer;
 using Pets.API.Responses.Dtos;
 using Pets.Db.Models;
 using Location = Pets.Db.Models.Location;
@@ -42,6 +42,12 @@ namespace Pets.API.Helpers
             CreateMap<Litter, LitterDto>();
 
             CreateMap<CreateLitterRequest, Litter>();
+
+            CreateMap<ServiceType, ServiceTypeDto>();
+
+            CreateMap<ServiceOffer, ServiceOfferDto>();
+
+            CreateMap<CreateServiceOfferRequest, ServiceOffer>();
 
             CreateMap<ApplicationUser, UserProfileDto>()
                 .ForMember(dest => dest.AboutMe, opt => opt.MapFrom(src => src.UserProfileInfo.AboutMe))
