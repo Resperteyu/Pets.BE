@@ -68,7 +68,7 @@ namespace Pets.API.Services
 
         public async Task<List<LitterDto>> GetLittersView(Guid userId)
         {
-            var litters = await _context.Litters.Where(x => x.OwnerId == userId)
+            var litters = await _context.Litters.Where(x => x.OwnerId == userId)                                            
                                             .Include(i => i.Breed)
                                             .ToListAsync();
 

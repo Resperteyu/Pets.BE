@@ -55,30 +55,40 @@ namespace Pets.API.Controllers
             return Ok(servicesOffer);
         }
 
-        /*
         [Authorize]
         [HttpGet("user/{userId:Guid}")]
-        public async Task<ActionResult<List<PetProfileDto>>> GetPetsView(Guid userId)
+        public async Task<ActionResult<List<ServiceOfferDto>>> GetServicesView(Guid userId)
         {
-            var petProfiles = await _petProfileService.GetPetsView(userId);
+            var services = await _serviceOfferService.GetServicesView(userId);
 
             //what to return if owner does not exist??
 
-            return Ok(petProfiles);
+            return Ok(services);
+        }
+
+        [Authorize]
+        [HttpGet("{serviceOfferId:Guid}/view")]
+        public async Task<ActionResult<PetProfileDto>> GetServiceOfferView(Guid serviceOfferId)
+        {
+            var serviceOffer = await _serviceOfferService.GetServiceOfferView(serviceOfferId);
+
+            if (serviceOffer == null)
+                return NotFound("Service not found");
+
+            return Ok(serviceOffer);
         }
 
         [Authorize]
         [HttpGet("search")]
-        public async Task<ActionResult<List<PetProfileDto>>> Search([FromQuery] SearchParams searchParams)
+        public async Task<ActionResult<List<ServiceOfferDto>>> Search([FromQuery] SearchServiceOfferParams searchParams)
         {
             //TODO: Location perimeter search
             //TODO: return image url
             searchParams.UserId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
-            var petProfiles = await _petProfileService.Search(searchParams);
+            var results = await _serviceOfferService.Search(searchParams);
 
-            return Ok(petProfiles);
+            return Ok(results);
         }
-        */
 
         [Authorize]
         [HttpPost]

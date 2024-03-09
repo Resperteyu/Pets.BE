@@ -10,7 +10,7 @@ namespace Pets.API.Responses.Dtos
 
         public string Description { get; set; }
 
-        public PetOwnerInfosDto Owner { get; set; }
+        public PetOwnerInfosDto User { get; set; }
 
         public ServiceTypeDto ServiceType { get; set; }
 

@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NetTopologySuite.Geometries;
-using System.Threading;
 using Pets.API.Requests.Search;
 using Pets.API.Responses.Dtos.Search;
 using Pets.API.Helpers;
@@ -22,12 +21,12 @@ namespace Pets.API.Services
         Task<ServiceOffer> GetEntityById(Guid id);
         Task<ServiceOfferDto> Get(Guid id);
         Task<List<ServiceOfferDto>> GetByOwnerId(Guid userId);
-        //Task<List<PetProfileDto>> GetPetsView(Guid userId);
+        Task<List<ServiceOfferDto>> GetServicesView(Guid userId);
+        Task<ServiceOfferDto> GetServiceOfferView(Guid id);
         Task<Guid> Create(CreateServiceOfferRequest model, Guid userId);
         Task Update(UpdateServiceOfferRequest model, ServiceOffer entity);
         Task Delete(ServiceOffer entity);
-        //Task<List<PetProfileDto>> GetMates(PetProfile entity, Guid userId);
-        //Task<List<PetSearchResultDto>> Search(SearchParams searchParams);
+        Task<List<ServiceOfferSearchResultDto>> Search(SearchServiceOfferParams searchParams);
     }
 
     public class ServiceOfferService : IServiceOfferService
@@ -59,7 +58,7 @@ namespace Pets.API.Services
                 return null;
 
             return _mapper.Map<ServiceOfferDto>(serviceOffer);
-        }        
+        }
 
         public async Task<List<ServiceOfferDto>> GetByOwnerId(Guid userId)
         {
@@ -70,18 +69,29 @@ namespace Pets.API.Services
             return _mapper.Map<List<ServiceOfferDto>>(serviceOffers);
         }
 
-        /*
-        public async Task<List<PetProfileDto>> GetPetsView(Guid userId)
+        public async Task<List<ServiceOfferDto>> GetServicesView(Guid userId)
         {
-            var petProfiles = await _context.PetProfiles.Where(x => x.OwnerId == userId)
-                                            .Include(i => i.Breed)
-                                            .Include(i => i.Sex)
-                                            .OrderByDescending(x => x.CreationDate)
+            var serviceOffers = await _context.ServiceOffers.Where(x => x.UserId == userId)
+                                            .Where(x => x.Active == true)
+                                            .Include(i => i.ServiceType)
                                             .ToListAsync();
 
-            return _mapper.Map<List<PetProfileDto>>(petProfiles);
+            return _mapper.Map<List<ServiceOfferDto>>(serviceOffers);
         }
-        */
+
+        public async Task<ServiceOfferDto> GetServiceOfferView(Guid id)
+        {
+            var serviceOffer = await _context.ServiceOffers.Where(x => x.Id == id)
+                                            .Where(x => x.Active == true)
+                                            .Include(i => i.User)
+                                            .Include(i => i.ServiceType)
+                                            .SingleOrDefaultAsync();
+
+            if (serviceOffer == null)
+                return null;
+
+            return _mapper.Map<ServiceOfferDto>(serviceOffer);
+        }
 
         public async Task<Guid> Create(CreateServiceOfferRequest request, Guid userId)
         {
@@ -116,57 +126,19 @@ namespace Pets.API.Services
             await _context.SaveChangesAsync();
         }
 
-        /*
-        public async Task<List<PetSearchResultDto>> Search(SearchParams searchParams)
+        public async Task<List<ServiceOfferSearchResultDto>> Search(SearchServiceOfferParams searchParams)
         {
-            IQueryable<PetProfile> petProfiles = _context.PetProfiles
-                                            .Include(i => i.Breed)
-                                            .Include(i => i.Sex)
-                                            .Include(i => i.Owner)
-                                            .Include(i => i.Owner.Address)
+            IQueryable<ServiceOffer> services = _context.ServiceOffers
+                                            .Include(i => i.User)
+                                            .Include(i => i.ServiceType)
+                                            .Include(i => i.User.Address)
                                                 .ThenInclude(a => a.Location)
-                                            .Where(i => i.OwnerId != searchParams.UserId);
-
-            if(searchParams.AvailableForBreeding.HasValue)
-            {
-                petProfiles = petProfiles.Where(i => i.AvailableForBreeding == searchParams.AvailableForBreeding);
-            }
-
-            if (searchParams.ForSale.HasValue)
-            {
-                petProfiles = petProfiles.Where(i => i.ForSale == searchParams.ForSale);
-            }
-
-            if (searchParams.ForAdoption.HasValue)
-            {
-                petProfiles = petProfiles.Where(i => i.ForAdoption == searchParams.ForAdoption);
-            }
-
-            if (searchParams.Missing.HasValue)
-            {
-                petProfiles = petProfiles.Where(i => i.Missing == searchParams.Missing);
-            }
-
-            if (searchParams.SexId.HasValue)
-            {
-                petProfiles = petProfiles.Where(i => i.SexId == searchParams.SexId);
-            }
-
-            if (searchParams.Age.HasValue && searchParams.Age > 0)
-            {
-                DateTime targetDateOfBirth = DateTime.Today.AddYears(-searchParams.Age.Value);
-                petProfiles = petProfiles.Where(i => i.DateOfBirth <= targetDateOfBirth);
-            }
+                                            .Where(i => i.UserId != searchParams.UserId && i.Active == true);
 
             if (searchParams.TypeId.HasValue)
             {
-                petProfiles = petProfiles.Where(i => i.Breed.TypeId == searchParams.TypeId);
-            }
-
-            if (searchParams.BreedId.HasValue)
-            {
-                petProfiles = petProfiles.Where(i => i.BreedId == searchParams.BreedId);
-            }
+                services = services.Where(i => i.ServiceTypeId == searchParams.TypeId);
+            }            
 
             Point searchPoint = null;
             if (searchParams.SearchRadiusType != SearchRadiusType.Unknown &&
@@ -182,57 +154,37 @@ namespace Pets.API.Services
                 var geometryFactory = NetTopologySuite.NtsGeometryServices.Instance.CreateGeometryFactory(4326);
                 searchPoint = geometryFactory.CreatePoint(new Coordinate(searchParams.Longitude.Value, searchParams.Latitude.Value));
 
-                petProfiles = petProfiles.Where(i => i.Owner.Address.Location.GeoLocation.Distance(searchPoint) <= radiusInMeters);
+                services = services.Where(i => i.User.Address.Location.GeoLocation.Distance(searchPoint) <= radiusInMeters);
             }
 
-            petProfiles = petProfiles.Take(SEARCH_MAX_RESULTS).OrderByDescending(x => x.CreationDate);
+            services = services.OrderByDescending(x => x.CreationDate).Take(SEARCH_MAX_RESULTS);
 
-            return await petProfiles.Select(i => new PetSearchResultDto
+            return await services.Select(i => new ServiceOfferSearchResultDto
             {
                 Id = i.Id,
-                AvailableForBreeding = i.AvailableForBreeding,
-                ForSale = i.ForSale,
-                ForAdoption = i.ForAdoption,
-                Missing = i.Missing,
-                Breed = new PetBreedDto
-                {
-                    Id = i.Breed.Id,
-                    Title = i.Breed.Title,
-                    TypeId = i.Breed.TypeId
-                },
-                DateOfBirth = i.DateOfBirth,
+                ForCats = i.ForCats,
+                ForDogs = i.ForDogs,
+                Rate = i.Rate,
+                PeakRate = i.PeakRate,
+                HourlyRate = i.HourlyRate,
+                AdditionalPetRate = i.AdditionalPetRate,
                 Description = i.Description,
-                DistanceFromSearchLocation = (searchPoint != null) ? SearchHelper.CalculateDistanceFromSearchLocation(i.Owner.Address.Location.GeoLocation.Distance(searchPoint),
+                DistanceFromSearchLocation = (searchPoint != null) ? SearchHelper.CalculateDistanceFromSearchLocation(i.User.Address.Location.GeoLocation.Distance(searchPoint),
                     searchParams.SearchRadiusType.Value) : null,
-                Owner = new PetOwnerInfosDto
+                User = new PetOwnerInfosDto
                 {
-                    Id = i.Owner.Id,
-                    UserName = i.Owner.UserName
-                    
+                    Id = i.User.Id,
+                    UserName = i.User.UserName
+
                     // TODO: Add owner rough address
                 },
-                Name = i.Name,
-                Sex = new SexDto
+                ServiceType = new ServiceTypeDto
                 {
-                    Id = i.Sex.Id,
-                    Title = i.Sex.Title
+                    Id = i.ServiceType.Id,
+                    Title = i.ServiceType.Title
                 }
             }).ToListAsync();
-        }        
-
-        public async Task<List<PetProfileDto>> GetMates(PetProfile entity, Guid userId)
-        {
-            //TO DO: introduce mate preferences associated to specific pet
-            var petProfiles = await _context.PetProfiles.Where(x => x.OwnerId == userId)
-                                            .Where(x => x.SexId != entity.SexId)
-                                            .Where(x => x.AvailableForBreeding == true)
-                                            .Where(x => x.Breed.TypeId == entity.Breed.TypeId)
-                                            .Include(i => i.Breed)
-                                            .Include(i => i.Sex)
-                                            .ToListAsync();
-
-            return _mapper.Map<List<PetProfileDto>>(petProfiles);
         }
-        */
+
     }
 }
