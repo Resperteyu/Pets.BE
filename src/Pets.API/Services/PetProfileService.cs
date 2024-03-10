@@ -191,7 +191,7 @@ namespace Pets.API.Services
                 petProfiles = petProfiles.Where(i => i.Owner.Address.Location.GeoLocation.Distance(searchPoint) <= radiusInMeters);
             }
 
-            petProfiles = petProfiles.Take(SEARCH_MAX_RESULTS).OrderByDescending(x => x.CreationDate);
+            petProfiles = petProfiles.OrderByDescending(x => x.CreationDate).Take(SEARCH_MAX_RESULTS);
 
             return await petProfiles.Select(i => new PetSearchResultDto
             {
