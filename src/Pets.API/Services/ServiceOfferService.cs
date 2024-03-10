@@ -45,6 +45,7 @@ namespace Pets.API.Services
         public async Task<ServiceOffer> GetEntityById(Guid id)
         {
             return await _context.ServiceOffers.Where(x => x.Id == id)
+                                            .Include(i => i.ServiceType)
                                             .SingleOrDefaultAsync();
         }
         
@@ -98,6 +99,11 @@ namespace Pets.API.Services
             var serviceOfferEntity = _mapper.Map<ServiceOffer>(request);
             serviceOfferEntity.UserId = userId;
             serviceOfferEntity.CreationDate = DateTime.UtcNow;
+            if (request.ServiceTypeId == ServiceTypeConsts.DogWalking)
+            {                
+                serviceOfferEntity.ForCats = false;
+                serviceOfferEntity.ForDogs = true;
+            }
 
             var serviceOffer = await _context.ServiceOffers.AddAsync(serviceOfferEntity);
             await _context.SaveChangesAsync();
@@ -108,8 +114,16 @@ namespace Pets.API.Services
         public async Task Update(UpdateServiceOfferRequest request, ServiceOffer entity)
         {
             entity.Description = request.Description;
-            entity.ForCats = request.ForCats;
-            entity.ForDogs = request.ForDogs;
+            if (entity.ServiceType.Id == ServiceTypeConsts.DogWalking)
+            {
+                entity.ForCats = false;
+                entity.ForDogs = true;
+            }
+            else
+            {
+                entity.ForCats = request.ForCats;
+                entity.ForDogs = request.ForDogs;
+            }
             entity.Active = request.Active;
             entity.Rate = request.Rate;
             entity.PeakRate = request.PeakRate;
@@ -138,7 +152,28 @@ namespace Pets.API.Services
             if (searchParams.TypeId.HasValue)
             {
                 services = services.Where(i => i.ServiceTypeId == searchParams.TypeId);
-            }            
+            }
+
+            if (!searchParams.TypeId.HasValue || 
+                (searchParams.TypeId.HasValue && searchParams.TypeId != ServiceTypeConsts.DogWalking))
+            {
+                if (searchParams.ForCats && searchParams.ForDogs)
+                {
+                    services = services.Where(i => i.ForCats == true || i.ForDogs == true);
+                }
+                else
+                {
+                    if (searchParams.ForCats)
+                    {
+                        services = services.Where(i => i.ForCats == true);
+                    }
+
+                    if (searchParams.ForDogs)
+                    {
+                        services = services.Where(i => i.ForDogs == true);
+                    }
+                }
+            }
 
             Point searchPoint = null;
             if (searchParams.SearchRadiusType != SearchRadiusType.Unknown &&
