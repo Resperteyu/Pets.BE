@@ -25,5 +25,6 @@ namespace Pets.API.Requests
         public bool ForAdoption { get; set; }
 
         public bool Missing { get; set; }
+        public bool Private { get; set; }
     }
 }

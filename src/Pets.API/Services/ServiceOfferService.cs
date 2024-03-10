@@ -52,6 +52,7 @@ namespace Pets.API.Services
         public async Task<ServiceOfferDto> Get(Guid id)
         {
             var serviceOffer = await _context.ServiceOffers.Where(x => x.Id == id)
+                                            .Include(i => i.User)
                                             .Include(i => i.ServiceType)
                                             .SingleOrDefaultAsync();
 

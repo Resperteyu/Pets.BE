@@ -64,7 +64,7 @@ namespace Pets.API.Services
                 return null;
 
             return _mapper.Map<PetProfileDto>(petProfile);
-        }
+        }        
 
         public async Task<List<PetProfileDto>> GetByOwnerId(Guid ownerId)
         {
@@ -78,7 +78,7 @@ namespace Pets.API.Services
 
         public async Task<List<PetProfileDto>> GetPetsView(Guid userId)
         {
-            var petProfiles = await _context.PetProfiles.Where(x => x.OwnerId == userId)
+            var petProfiles = await _context.PetProfiles.Where(x => x.OwnerId == userId && x.Private == false)                                            
                                             .Include(i => i.Breed)
                                             .Include(i => i.Sex)
                                             .OrderByDescending(x => x.CreationDate)
@@ -111,6 +111,7 @@ namespace Pets.API.Services
             entity.Price = request.Price;
             entity.ForAdoption  = request.ForAdoption;
             entity.Missing = request.Missing;
+            entity.Private = request.Private;
 
             _context.PetProfiles.Update(entity);
             await _context.SaveChangesAsync();
@@ -131,7 +132,7 @@ namespace Pets.API.Services
                                             .Include(i => i.Owner)
                                             .Include(i => i.Owner.Address)
                                                 .ThenInclude(a => a.Location)
-                                            .Where(i => i.OwnerId != searchParams.UserId);
+                                            .Where(i => i.OwnerId != searchParams.UserId && i.Private == false);
 
             if(searchParams.AvailableForBreeding.HasValue)
             {

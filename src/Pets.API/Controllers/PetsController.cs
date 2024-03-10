@@ -45,6 +45,25 @@ namespace Pets.API.Controllers
             if (petProfile == null)
                 return NotFound("Pet not found");
 
+            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
+            if (petProfile.Owner.Id != userId)
+                return Unauthorized("You don't own this pet");
+
+            return Ok(petProfile);
+        }
+
+        [Authorize]
+        [HttpGet("{petId:Guid}/view")]
+        public async Task<ActionResult<PetProfileDto>> GetByPetIdView(Guid petId)
+        {
+            var petProfile = await _petProfileService.GetByPetId(petId);
+
+            if (petProfile == null)
+                return NotFound("Pet not found");
+
+            if (petProfile.Private)
+                return Unauthorized("Pet is private");
+
             return Ok(petProfile);
         }
 

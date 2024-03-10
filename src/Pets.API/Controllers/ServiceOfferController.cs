@@ -43,6 +43,10 @@ namespace Pets.API.Controllers
             if (serviceOffer == null)
                 return NotFound("Service not found");
 
+            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
+            if (serviceOffer.User.Id != userId)
+                return Unauthorized("You don't own this service");
+
             return Ok(serviceOffer);
         }
 

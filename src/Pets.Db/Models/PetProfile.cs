@@ -26,6 +26,7 @@
         public int Price { get; set; }
         public bool ForAdoption { get; set; }
         public bool Missing { get; set; }
+        public bool Private { get; set; }
 
         public DateTime CreationDate { get; set; }
     }

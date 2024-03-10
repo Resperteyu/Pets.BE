@@ -37,6 +37,22 @@ namespace Pets.API.Controllers
         [Authorize]
         [HttpGet("{id:Guid}")]
         public async Task<ActionResult<LitterDto>> GetById(Guid id)
+        {            
+            var litter = await _litterService.GetById(id);
+
+            if (litter == null)
+                return NotFound("Litter not found");
+
+            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
+            if (litter.Owner.Id != userId)
+                return Unauthorized("You don't own this litter");
+
+            return Ok(litter);
+        }
+
+        [Authorize]
+        [HttpGet("{id:Guid}/view")]
+        public async Task<ActionResult<LitterDto>> GetByIdView(Guid id)
         {
             var litter = await _litterService.GetById(id);
 
