@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Identity;
 using Pets.Db.Models;
 using Pets.API.Helpers;
 using Pets.API.Requests.MateRequest;
+using Microsoft.AspNetCore.Http;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Pets.API.Controllers
 {
@@ -39,7 +41,11 @@ namespace Pets.API.Controllers
 
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult<Guid>> Post(CreateMateRequestRequest request)
+        [SwaggerOperation(Summary = "Creates a new mate request.", Description = "Initiates a request for mating between two pets. Validates pet existence, breeding availability, and ownership.")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Guid))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult<Guid>> Post([FromBody][SwaggerParameter(Description = "Details for creating the mate request.", Required = true)] CreateMateRequestRequest request)
         {
             var pet = await _petProfileService.GetByPetId(request.PetProfileId);
             if (pet == null)
@@ -80,7 +86,10 @@ namespace Pets.API.Controllers
 
         [Authorize]
         [HttpGet("filter")]
-        public async Task<ActionResult<List<MateRequestDto>>> Filter([FromQuery] MateRequestSearchParams mateRequestSearchParams)
+        [SwaggerOperation(Summary = "Filters mate requests for the current user.", Description = "Retrieves a list of mate requests based on specified search parameters, scoped to the authenticated user.")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<MateRequestDto>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult<List<MateRequestDto>>> Filter([FromQuery][SwaggerParameter(Description = "Search parameters for filtering mate requests.")] MateRequestSearchParams mateRequestSearchParams)
         {
             var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
             var mateRequests = await _mateRequestService.Filter(userId, mateRequestSearchParams);
@@ -89,13 +98,17 @@ namespace Pets.API.Controllers
 
         [Authorize]
         [HttpGet("{id:Guid}")]
-        public async Task<ActionResult<MateRequestDto>> GetById(Guid id)
+        [SwaggerOperation(Summary = "Gets a specific mate request by its ID.", Description = "Retrieves the details of a mate request if the authenticated user is involved (either as pet owner or mate pet owner).")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(MateRequestDto))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))] // For "Mate request not found" before Unauthorized check
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(string))]
+        public async Task<ActionResult<MateRequestDto>> GetById([SwaggerParameter(Description = "ID of the mate request to retrieve.", Required = true)] Guid id)
         {
             var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
             var mateRequest = await _mateRequestService.GetById(id, userId);
             if (mateRequest == null)
             {
-                return BadRequest("Mate request not found");
+                return BadRequest("Mate request not found"); // Changed to BadRequest as per original code logic before Unauthorized
             }
 
             if(mateRequest.PetMateOwnerId != userId 
@@ -109,7 +122,12 @@ namespace Pets.API.Controllers
 
         [Authorize]
         [HttpPost("reply")]
-        public async Task<ActionResult> Reply(PetMateRequestReplyRequest request)
+        [SwaggerOperation(Summary = "Submits a reply to a mate request.", Description = "Allows the receiver of a mate request to reply (e.g., accept, decline) with a comment and change its state.")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
+        public async Task<ActionResult> Reply([FromBody][SwaggerParameter(Description = "Reply details for the mate request.", Required = true)] PetMateRequestReplyRequest request)
         {
             var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
             
@@ -145,7 +163,12 @@ namespace Pets.API.Controllers
 
         [Authorize]
         [HttpPost("transition")]
-        public async Task<ActionResult> Transition(PetMateRequestTransitionRequest request)
+        [SwaggerOperation(Summary = "Transitions a mate request to a new state.", Description = "Allows either party involved in a mate request to transition it to a new state (e.g., cancel, confirm breeding) with a comment.")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
+        public async Task<ActionResult> Transition([FromBody][SwaggerParameter(Description = "Transition details for the mate request.", Required = true)] PetMateRequestTransitionRequest request)
         {
             var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
             
@@ -183,7 +206,12 @@ namespace Pets.API.Controllers
 
         [Authorize]
         [HttpPatch]
-        public async Task<ActionResult> Patch(PetMateRequestUpdateRequest request)
+        [SwaggerOperation(Summary = "Updates details of a mate request.", Description = "Allows the requester to update the details of a mate request if it's in the 'changes requested' state.")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
+        public async Task<ActionResult> Patch([FromBody][SwaggerParameter(Description = "Details to update for the mate request.", Required = true)] PetMateRequestUpdateRequest request)
         {
             var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
 
