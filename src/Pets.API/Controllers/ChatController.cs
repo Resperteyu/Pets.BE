@@ -10,6 +10,8 @@ using Pets.Db.Models;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Pets.API.Controllers
 {
@@ -32,7 +34,13 @@ namespace Pets.API.Controllers
 
         [Authorize]
         [HttpGet("messages/{userIdChat:Guid}")]
-        public async Task<ActionResult<List<ChatMessageDto>>> GetMessges(Guid userIdChat, [FromQuery] ChatMessageQueryParams chatMessageQueryParams)
+        [SwaggerOperation(Summary = "Get chat messages", Description = "Retrieves messages between the current user and a specified user.")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<ChatMessageDto>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult<List<ChatMessageDto>>> GetMessges(
+            [SwaggerParameter(Description = "ID of the user to get chat messages with.", Required = true)] Guid userIdChat, 
+            [FromQuery][SwaggerParameter(Description = "Query parameters for pagination.")] ChatMessageQueryParams chatMessageQueryParams)
         {
             var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
 
@@ -49,7 +57,13 @@ namespace Pets.API.Controllers
 
         [Authorize]
         [HttpPost("messages/{userIdChat:Guid}")]
-        public async Task<ActionResult<string>> Post(Guid userIdChat, ChatMessageRequest request)
+        [SwaggerOperation(Summary = "Send chat message", Description = "Sends a message from the current user to a specified user.")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult<string>> Post(
+            [SwaggerParameter(Description = "ID of the user to send the message to.", Required = true)] Guid userIdChat, 
+            [FromBody][SwaggerParameter(Description = "Chat message content.", Required = true)] ChatMessageRequest request)
         {
             var user = await _userManager.GetUserAsync(HttpContext.User);
 
@@ -66,6 +80,9 @@ namespace Pets.API.Controllers
 
         [Authorize]
         [HttpGet("infos")]
+        [SwaggerOperation(Summary = "Get user chats", Description = "Retrieves a list of chats for the current user.")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<ChatMessageDto>))] // Based on current code return type
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<List<ChatMessageDto>>> GetChats()
         {
             var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
