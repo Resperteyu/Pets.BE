@@ -11,6 +11,7 @@ using Pets.Db.Models;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Pets.API.Controllers
 {
@@ -36,7 +37,11 @@ namespace Pets.API.Controllers
 
         [Authorize]
         [HttpGet("{id:Guid}")]
-        public async Task<ActionResult<LitterDto>> GetById(Guid id)
+        [SwaggerOperation(Summary = "Gets a specific litter by ID.", Description = "Retrieves a litter by its unique ID. Ensures the current user owns the litter.")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LitterDto))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
+        public async Task<ActionResult<LitterDto>> GetById([SwaggerParameter(Description = "ID of the litter to retrieve.", Required = true)] Guid id)
         {            
             var litter = await _litterService.GetById(id);
 
@@ -52,7 +57,10 @@ namespace Pets.API.Controllers
 
         [Authorize]
         [HttpGet("{id:Guid}/view")]
-        public async Task<ActionResult<LitterDto>> GetByIdView(Guid id)
+        [SwaggerOperation(Summary = "Gets a specific litter by ID (public view).", Description = "Retrieves a litter by its unique ID. Publicly accessible.")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LitterDto))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
+        public async Task<ActionResult<LitterDto>> GetByIdView([SwaggerParameter(Description = "ID of the litter to retrieve.", Required = true)] Guid id)
         {
             var litter = await _litterService.GetById(id);
 
@@ -64,6 +72,9 @@ namespace Pets.API.Controllers
 
         [Authorize]
         [HttpGet("infos")]
+        [SwaggerOperation(Summary = "Gets litters for the current user.", Description = "Retrieves a list of litters associated with the currently authenticated user.")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<PetProfileDto>))] // Should likely be LitterDto
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<List<PetProfileDto>>> GetLitterInfos()
         {
             var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
@@ -73,7 +84,9 @@ namespace Pets.API.Controllers
 
         [Authorize]
         [HttpGet("user/{userId:Guid}")]
-        public async Task<ActionResult<List<PetProfileDto>>> GetLittersView(Guid userId)
+        [SwaggerOperation(Summary = "Gets litters for a specific user (public view).", Description = "Retrieves a list of litters for the specified user ID.")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<PetProfileDto>))] // Should likely be LitterDto
+        public async Task<ActionResult<List<PetProfileDto>>> GetLittersView([SwaggerParameter(Description = "ID of the user whose litters to retrieve.", Required = true)] Guid userId)
         {
             var litters = await _litterService.GetLittersView(userId);
 
@@ -84,7 +97,11 @@ namespace Pets.API.Controllers
 
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult<Guid>> Post(CreateLitterRequest request)
+        [SwaggerOperation(Summary = "Creates a new litter.", Description = "Adds a new litter record. Validates ownership of parent pets.")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Guid))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(string))]
+        public async Task<ActionResult<Guid>> Post([FromBody][SwaggerParameter(Description = "Litter creation details, including MotherPetId and FatherPetId.", Required = true)] CreateLitterRequest request)
         {
             var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
 
@@ -116,7 +133,11 @@ namespace Pets.API.Controllers
 
         [Authorize]
         [HttpPut]
-        public async Task<ActionResult> Put(UpdateLitterRequest request)
+        [SwaggerOperation(Summary = "Updates an existing litter.", Description = "Modifies the details of an existing litter. Ensures the current user owns the litter.")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
+        public async Task<ActionResult> Put([FromBody][SwaggerParameter(Description = "Litter update details.", Required = true)] UpdateLitterRequest request)
         {
             var petEntity = await _litterService.GetEntityById(request.Id);
             var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
@@ -133,7 +154,11 @@ namespace Pets.API.Controllers
 
         [Authorize]
         [HttpDelete("{id:Guid}")]
-        public async Task<ActionResult> Delete(Guid id)
+        [SwaggerOperation(Summary = "Deletes a litter by ID.", Description = "Removes the specified litter record. Ensures the current user owns the litter.")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
+        public async Task<ActionResult> Delete([SwaggerParameter(Description = "ID of the litter to delete.", Required = true)] Guid id)
         {
             var litterEntity = await _litterService.GetEntityById(id);
             var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
@@ -150,7 +175,10 @@ namespace Pets.API.Controllers
 
         [Authorize]
         [HttpGet("search")]
-        public async Task<ActionResult<List<LitterDto>>> Search([FromQuery] SearchLitterParams searchParams)
+        [SwaggerOperation(Summary = "Searches for litters.", Description = "Finds litters based on search criteria. Includes user ID for context.")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<LitterDto>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult<List<LitterDto>>> Search([FromQuery][SwaggerParameter(Description = "Search criteria for litters.")] SearchLitterParams searchParams)
         {
             //TODO: Location perimeter search
             //TODO: return image url

@@ -18,6 +18,7 @@ using PetDb.Models;
 using Pets.Db;
 using Microsoft.EntityFrameworkCore;
 using Pets.API.Services;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Pets.API.Controllers
 {
@@ -53,7 +54,10 @@ namespace Pets.API.Controllers
 
         [HttpPost]
         [Route("login")]
-        public async Task<IActionResult> Login([FromBody] LoginModel request)
+        [SwaggerOperation(Summary = "User login", Description = "Authenticates a user and returns a JWT token.")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthenticateResponse))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(AuthenticateResponse))]
+        public async Task<IActionResult> Login([FromBody][SwaggerParameter(Description = "Login credentials", Required = true)] LoginModel request)
         {
             if (ModelState.IsValid)
             {
@@ -106,7 +110,11 @@ namespace Pets.API.Controllers
 
         [HttpPost]
         [Route("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterModel request)
+        [SwaggerOperation(Summary = "User registration", Description = "Registers a new user and returns a JWT token.")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthenticateResponse))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(AuthenticateResponse))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(AuthenticateResponse))]
+        public async Task<IActionResult> Register([FromBody][SwaggerParameter(Description = "User registration details", Required = true)] RegisterModel request)
         {
             if (!ModelState.IsValid)
                 return BadRequest(new AuthenticateResponse { Success = false, Errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)).ToList() });
@@ -141,7 +149,10 @@ namespace Pets.API.Controllers
 
         [HttpPost]
         [Route("forgot-password")]
-        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordModel request)
+        [SwaggerOperation(Summary = "Forgot password", Description = "Sends a password reset token to the user's email.")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> ForgotPassword([FromBody][SwaggerParameter(Description = "User's email address", Required = true)] ForgotPasswordModel request)
         {
             if (!ModelState.IsValid)
             {
@@ -162,7 +173,11 @@ namespace Pets.API.Controllers
 
         [HttpPost]
         [Route("reset-password")]
-        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        [SwaggerOperation(Summary = "Reset password", Description = "Resets the user's password using a token.")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ResetPassword([FromBody][SwaggerParameter(Description = "Password reset details", Required = true)] ResetPasswordRequest request)
         {
             if (!ModelState.IsValid)
             {
@@ -186,7 +201,10 @@ namespace Pets.API.Controllers
 
         [HttpPost]
         [Route("verify")]
-        public async Task<IActionResult> VerifyEmail([FromQuery] string email, [FromQuery] string token)
+        [SwaggerOperation(Summary = "Verify email", Description = "Verifies a user's email address using a token.")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(AuthenticateResponse))]
+        public async Task<IActionResult> VerifyEmail([FromQuery][SwaggerParameter(Description = "User's email", Required = true)] string email, [FromQuery][SwaggerParameter(Description = "Email verification token", Required = true)] string token)
         {
             if (!ModelState.IsValid) // TODO Create model? Don't use RegistrationResponse
             {
@@ -216,7 +234,10 @@ namespace Pets.API.Controllers
 
         [HttpPost]
         [Route("refresh-token")]
-        public async Task<IActionResult> RefreshToken(TokenModel request)
+        [SwaggerOperation(Summary = "Refresh token", Description = "Refreshes a user's JWT token using a refresh token.")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthenticateResponse))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(AuthenticateResponse))]
+        public async Task<IActionResult> RefreshToken([FromBody][SwaggerParameter(Description = "Token refresh request", Required = true)] TokenModel request)
         {
             if (ModelState.IsValid)
             {
@@ -248,7 +269,11 @@ namespace Pets.API.Controllers
         [Authorize]
         [HttpPost]
         [Route("revoke/{username}")]
-        public async Task<IActionResult> Revoke(string username)
+        [SwaggerOperation(Summary = "Revoke refresh token", Description = "Revokes a specific user's refresh token.")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> Revoke([SwaggerParameter(Description = "Username whose token to revoke", Required = true)] string username)
         {
             var user = await _userManager.FindByNameAsync(username);
             if (user == null) return BadRequest("Invalid user name");
@@ -262,6 +287,9 @@ namespace Pets.API.Controllers
         [Authorize]
         [HttpPost]
         [Route("revoke-all")]
+        [SwaggerOperation(Summary = "Revoke all refresh tokens", Description = "Revokes all users' refresh tokens.")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> RevokeAll()
         {
             var users = _userManager.Users.ToList();
