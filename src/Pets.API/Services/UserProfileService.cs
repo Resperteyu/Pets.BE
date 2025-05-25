@@ -1,11 +1,12 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
 using Pets.API.Responses;
 using Pets.API.Responses.Dtos;
+using Pets.Db; // Added Pets.Db for PetsDbContext
 using Pets.Db.Models;
 using System;
+using System.Linq; // Added for FirstOrDefaultAsync
 using System.Threading.Tasks;
 
 namespace Pets.API.Services
@@ -13,7 +14,7 @@ namespace Pets.API.Services
     public interface IUserProfileService
     {
         Task<UserProfileDto> GetUserProfile(string userId);
-        Task<UserProfileUpdateResult> UpdateUserProfile(string userId, JsonPatchDocument<UserProfileDto> patchDocument);
+        Task<UserProfileUpdateResult> UpdateUserProfile(string userId, UserProfileDto userProfileDto);
         Task<bool> DeleteUserProfile(string userId);
     }
 
@@ -22,13 +23,15 @@ namespace Pets.API.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IGeocodingService _geocodingService;
         private readonly IMapper _mapper;
+        private readonly PetsDbContext _context; // Added PetsDbContext
 
         public UserProfileService(UserManager<ApplicationUser> userManager, IMapper mapper,
-            IGeocodingService geocodingService)
+            IGeocodingService geocodingService, PetsDbContext context) // Added PetsDbContext to constructor
         {
             _userManager = userManager;
             _mapper = mapper;
             _geocodingService = geocodingService;
+            _context = context; // Assign PetsDbContext
         }
 
         public async Task<UserProfileDto> GetUserProfile(string userId)
@@ -45,41 +48,52 @@ namespace Pets.API.Services
             return _mapper.Map<UserProfileDto>(user);
         }
 
-        public async Task<UserProfileUpdateResult> UpdateUserProfile(string userId, JsonPatchDocument<UserProfileDto> patchDocument)
+        public async Task<UserProfileUpdateResult> UpdateUserProfile(string userId, UserProfileDto userProfileDto)
         {
-            var user = await _userManager.Users
-            .Include(u => u.Address)
-                .ThenInclude(a => a.Country)
-            .Include(u => u.Address)
-                .ThenInclude(a => a.Location)
-            .Include(u => u.UserProfileInfo)
-            .FirstOrDefaultAsync(u => u.Id.ToString() == userId);
-
-            if (user == null)
+            if (!Guid.TryParse(userId, out Guid userGuid))
             {
-                return new UserProfileUpdateResult { Success = false };
+                // Consider logging this error: Invalid userId format
+                return new UserProfileUpdateResult { Success = false, Errors = new[] { new IdentityError { Code = "InvalidUserIdFormat", Description = "User ID format is invalid." } } };
             }
 
-            var userProfile = _mapper.Map<UserProfileDto>(user);
-            patchDocument.ApplyTo(userProfile);
+            var userProfileInfo = await _context.UserProfileInfo.FirstOrDefaultAsync(x => x.ApplicationUserId == userGuid);
 
-            // Validate!
-
-            if (AddressIsUpdated(patchDocument))
+            if (userProfileInfo == null)
             {
-                var newLocation = await _geocodingService.CalculateLocationAsync(userProfile.Address);
-                userProfile.Address.Location = _mapper.Map<LocationDto>(newLocation);
+                // If userProfileInfo is null, return Success = false as per corrected instruction.
+                return new UserProfileUpdateResult { Success = false, Errors = new[] { new IdentityError { Code = "NotFound", Description = "User profile not found." } } };
             }
 
-            _mapper.Map(userProfile, user);
-            var result = await _userManager.UpdateAsync(user);
+            // Update properties from DTO
+            userProfileInfo.FirstName = userProfileDto.FirstName;
+            userProfileInfo.LastName = userProfileDto.LastName;
+            userProfileInfo.PhoneNumber = userProfileDto.PhoneNumber;
+            // Note: Other fields from UserProfileDto (UserName, Email, Address) are not part of UserProfileInfo
+            // and thus are not updated here as per the specific instructions to use _context.UserProfileInfo.
 
-            return new UserProfileUpdateResult
+            try
             {
-                Success = result.Succeeded,
-                UpdatedProfile = result.Succeeded ? userProfile : null,
-                Errors = result.Errors
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                // Log the exception (ex)
+                return new UserProfileUpdateResult { Success = false, Errors = new[] { new IdentityError { Code = "DbUpdateError", Description = "Error saving profile to database." } } };
+            }
+
+            // Create a new UserProfileDto from the updated userProfileInfo.
+            // This DTO will only contain fields present in UserProfileInfo.
+            var updatedDto = new UserProfileDto
+            {
+                // Assuming UserProfileDto.Id is string representation of Guid
+                Id = userProfileInfo.ApplicationUserId.ToString(), 
+                FirstName = userProfileInfo.FirstName,
+                LastName = userProfileInfo.LastName,
+                PhoneNumber = userProfileInfo.PhoneNumber,
+                // UserName, Email, Address will be null/default as they are not in userProfileInfo
             };
+
+            return new UserProfileUpdateResult { Success = true, UpdatedProfile = updatedDto };
         }
 
         // Cascade deletion?
@@ -94,18 +108,6 @@ namespace Pets.API.Services
 
             var result = await _userManager.DeleteAsync(user);
             return result.Succeeded;
-        }
-        private bool AddressIsUpdated(JsonPatchDocument<UserProfileDto> patchDocument)
-        {
-            foreach (var operation in patchDocument.Operations)
-            {
-                if (operation.path.StartsWith("/Address", StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
     }
 }
