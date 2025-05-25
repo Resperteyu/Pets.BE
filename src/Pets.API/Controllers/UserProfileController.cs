@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Pets.API.Responses.Dtos;
 using Pets.API.Services;
@@ -40,10 +39,10 @@ namespace Pets.API.Controllers
         }
 
         [HttpPatch]
-        public async Task<IActionResult> UpdateProfile([FromBody] JsonPatchDocument<UserProfileDto> patchDocument)
+        public async Task<IActionResult> UpdateProfile([FromBody] UserProfileDto userProfileDto)
         {
             var userId = _userManager.GetUserId(User);
-            var updateResult = await _userProfileService.UpdateUserProfile(userId, patchDocument);
+            var updateResult = await _userProfileService.UpdateUserProfile(userId, userProfileDto);
 
             if (!updateResult.Success)
             {
