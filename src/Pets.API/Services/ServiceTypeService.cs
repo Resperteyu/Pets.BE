@@ -12,21 +12,12 @@ namespace Pets.API.Services
         Task<List<ServiceTypeDto>> GetAll(); 
     }
 
-    public class ServiceTypeService : IServiceTypeService
+    public class ServiceTypeService(PetsDbContext context, IMapper mapper) : IServiceTypeService
     {
-        private readonly PetsDbContext _context;
-        private readonly IMapper _mapper;
-
-        public ServiceTypeService(PetsDbContext context, IMapper mapper) 
-        {
-            _context = context;
-            _mapper = mapper;
-        }
-
         public async Task<List<ServiceTypeDto>> GetAll()
         {
-            var serviceTypes = await _context.ServiceTypes.ToListAsync();
-            return _mapper.Map<List<ServiceTypeDto>>(serviceTypes);
+            var serviceTypes = await context.ServiceTypes.ToListAsync();
+            return mapper.Map<List<ServiceTypeDto>>(serviceTypes);
         }
     }
 }

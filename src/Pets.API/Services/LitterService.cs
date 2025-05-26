@@ -28,32 +28,24 @@ namespace Pets.API.Services
         Task<List<LitterSearchResultDto>> Search(SearchLitterParams searchParams);
     }
 
-    public class LitterService : ILitterService
+    public class LitterService(
+        PetsDbContext context,
+        IMapper mapper,
+        IImageStorageService imageStorageService)
+        : ILitterService
     {
         private const int SEARCH_MAX_RESULTS = 50;
 
-        private readonly PetsDbContext _context;
-        private readonly IMapper _mapper;
-        private readonly IImageStorageService _imageStorageService;
-
-        public LitterService(PetsDbContext context, IMapper mapper,
-            IImageStorageService imageStorageService)
-        {
-            _context = context;
-            _mapper = mapper;
-            _imageStorageService = imageStorageService;
-        }
-
         public async Task<Litter> GetEntityById(Guid id)
         {
-            return await _context.Litters.Where(x => x.Id == id)
+            return await context.Litters.Where(x => x.Id == id)
                                             .Include(i => i.Breed)
                                             .SingleOrDefaultAsync();
         }
 
         public async Task<LitterDto> GetById(Guid id)
         {
-            var litter = await _context.Litters.Where(x => x.Id == id)
+            var litter = await context.Litters.Where(x => x.Id == id)
                                             .Include(i => i.Owner)
                                             .Include(i => i.Breed)
                                             .Include(i => i.FatherPetProfile)
@@ -63,26 +55,26 @@ namespace Pets.API.Services
             if (litter == null)
                 return null;
 
-            return _mapper.Map<LitterDto>(litter);
+            return mapper.Map<LitterDto>(litter);
         }
 
         public async Task<List<LitterDto>> GetLittersView(Guid userId)
         {
-            var litters = await _context.Litters.Where(x => x.OwnerId == userId)                                            
+            var litters = await context.Litters.Where(x => x.OwnerId == userId)                                            
                                             .Include(i => i.Breed)
                                             .ToListAsync();
 
-            return _mapper.Map<List<LitterDto>>(litters);
+            return mapper.Map<List<LitterDto>>(litters);
         }
 
         public async Task<Guid> CreateLitter(CreateLitterRequest request, Guid ownerId)
         {
-            var litter = _mapper.Map<Litter>(request);
+            var litter = mapper.Map<Litter>(request);
             litter.OwnerId = ownerId;
             litter.CreationDate = DateTime.UtcNow;
 
-            var litterInfo = await _context.Litters.AddAsync(litter);
-            await _context.SaveChangesAsync();
+            var litterInfo = await context.Litters.AddAsync(litter);
+            await context.SaveChangesAsync();
 
             return litterInfo.Entity.Id;
         }
@@ -93,20 +85,20 @@ namespace Pets.API.Services
             entity.Title = request.Title;
             entity.Description = request.Description;
 
-            _context.Litters.Update(entity);
-            await _context.SaveChangesAsync();
+            context.Litters.Update(entity);
+            await context.SaveChangesAsync();
         }
 
         public async Task DeleteLitter(Litter entity)
         {
-            _context.Litters.Remove(entity);
-            await _context.SaveChangesAsync();
-            await _imageStorageService.DeleteAllPetImages(entity.Id, CancellationToken.None);
+            context.Litters.Remove(entity);
+            await context.SaveChangesAsync();
+            await imageStorageService.DeleteAllPetImages(entity.Id, CancellationToken.None);
         }
 
         public async Task<List<LitterSearchResultDto>> Search(SearchLitterParams searchParams)
         {
-            IQueryable<Litter> litters = _context.Litters
+            IQueryable<Litter> litters = context.Litters
                                             .Include(i => i.Owner)
                                             .Include(i => i.Breed)
                                             .Include(i => i.FatherPetProfile)

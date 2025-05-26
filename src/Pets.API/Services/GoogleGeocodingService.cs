@@ -15,18 +15,13 @@ namespace Pets.API.Services
         Task<Location> CalculateLocationAsync(AddressDto addressDto);
     }
 
-    public class GoogleGeocodingService : IGeocodingService
+    public class GoogleGeocodingService(
+        HttpClient httpClient,
+        IConfiguration configuration,
+        ILogger<GoogleGeocodingService> logger)
+        : IGeocodingService
     {
-        private readonly HttpClient _httpClient;
-        private readonly string _apiKey;
-        private readonly ILogger<GoogleGeocodingService> _logger;
-
-        public GoogleGeocodingService(HttpClient httpClient, IConfiguration configuration, ILogger<GoogleGeocodingService> logger)
-        {
-            _httpClient = httpClient;
-            _apiKey = configuration["GoogleGeocodingApiKey"];
-            _logger = logger;
-        }
+        private readonly string _apiKey = configuration["GoogleGeocodingApiKey"];
 
         public async Task<Location> CalculateLocationAsync(AddressDto addressDto)
         {
@@ -40,7 +35,7 @@ namespace Pets.API.Services
                                 $"&inputtype=textquery&fields=geometry" +
                                 $"&key={_apiKey}";
 
-                var response = await _httpClient.GetAsync(targetUrl);
+                var response = await httpClient.GetAsync(targetUrl);
 
                 response.EnsureSuccessStatusCode();
 
@@ -63,7 +58,7 @@ namespace Pets.API.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError("ERROR USING Geocoding Service", ex);
+                logger.LogError("ERROR USING Geocoding Service", ex);
                 throw;
             }
         }

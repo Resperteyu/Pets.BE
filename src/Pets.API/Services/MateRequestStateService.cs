@@ -12,21 +12,12 @@ namespace Pets.API.Services
         Task<List<MateRequestStateDto>> GetAll(); 
     }
 
-    public class MateRequestStateService : IMateRequestStateService
+    public class MateRequestStateService(PetsDbContext context, IMapper mapper) : IMateRequestStateService
     {
-        private readonly PetsDbContext _context;
-        private readonly IMapper _mapper;
-
-        public MateRequestStateService(PetsDbContext context, IMapper mapper) 
-        {
-            _context = context;
-            _mapper = mapper;
-        }
-
         public async Task<List<MateRequestStateDto>> GetAll()
         {
-            var mateRequestStates = await _context.MateRequestStates.ToListAsync();
-            return _mapper.Map<List<MateRequestStateDto>>(mateRequestStates);
+            var mateRequestStates = await context.MateRequestStates.ToListAsync();
+            return mapper.Map<List<MateRequestStateDto>>(mateRequestStates);
         }
     }
 }

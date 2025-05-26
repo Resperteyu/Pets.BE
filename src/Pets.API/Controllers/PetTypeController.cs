@@ -8,19 +8,13 @@ namespace Pets.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class PetTypeController : ControllerBase
+    public class PetTypeController(IPetTypeService petTypeService) : ControllerBase
     {
-        private readonly IPetTypeService _petTypeService;
-        public PetTypeController(IPetTypeService petTypeService)
-        {
-            _petTypeService = petTypeService;
-        }
-
         [HttpGet]
         public async Task<ActionResult<List<PetTypeDto>>> GetAll()
         {
 
-            var petTypes = await _petTypeService.GetAll();
+            var petTypes = await petTypeService.GetAll();
             return Ok(petTypes);
         }
     }

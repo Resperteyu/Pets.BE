@@ -12,21 +12,12 @@ namespace Pets.API.Services
         Task<List<CountryDto>> GetAll(); 
     }
 
-    public class CountryService : ICountryService
+    public class CountryService(PetsDbContext context, IMapper mapper) : ICountryService
     {
-        private readonly PetsDbContext _context;
-        private readonly IMapper _mapper;
-
-        public CountryService(PetsDbContext context, IMapper mapper) 
-        {
-            _context = context;
-            _mapper = mapper;
-        }
-
         public async Task<List<CountryDto>> GetAll()
         {
-            var countries = await _context.Countries.ToListAsync();
-            return _mapper.Map<List<CountryDto>>(countries);
+            var countries = await context.Countries.ToListAsync();
+            return mapper.Map<List<CountryDto>>(countries);
         }
     }
 }

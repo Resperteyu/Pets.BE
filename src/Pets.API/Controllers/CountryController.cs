@@ -8,18 +8,12 @@ namespace Pets.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class CountryController : ControllerBase
+    public class CountryController(ICountryService countryService) : ControllerBase
     {
-        private readonly ICountryService _countryService;
-        public CountryController(ICountryService countryService)
-        {
-            _countryService = countryService;
-        }
-
         [HttpGet]
         public async Task<ActionResult<List<CountryDto>>> GetAll()
         {
-            var countries = await _countryService.GetAll();
+            var countries = await countryService.GetAll();
             return Ok(countries);
         }
     }

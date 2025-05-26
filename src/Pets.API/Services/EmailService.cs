@@ -9,17 +9,10 @@ using Pets.API.Settings;
 
 namespace Pets.API.Services;
 
-public class EmailService
+public class EmailService(IEmailSender emailSender, IOptions<WebSiteSettings> webSiteSettings)
 {
-    private readonly IEmailSender _emailSender;
-    private readonly WebSiteSettings _webSiteSettings;
+    private readonly WebSiteSettings _webSiteSettings = webSiteSettings.Value;
     private readonly Dictionary<string, string> _emailTemplates = new();
-
-    public EmailService(IEmailSender emailSender, IOptions<WebSiteSettings> webSiteSettings)
-    {
-        _emailSender = emailSender;
-        _webSiteSettings = webSiteSettings.Value;
-    }
 
     public async Task SendConfirmationEmailAsync(string email, string token)
     {
@@ -31,7 +24,7 @@ public class EmailService
         textTemplate = textTemplate.Replace("[Link]", link);
         htmlTemplate = htmlTemplate.Replace("[Link]", link);
 
-        await _emailSender.SendEmailAsync(email, "Confirm Your Email Address", htmlTemplate, textTemplate);
+        await emailSender.SendEmailAsync(email, "Confirm Your Email Address", htmlTemplate, textTemplate);
     }
 
     public async Task SendForgotPasswordEmailAsync(string email, string token)
@@ -44,7 +37,7 @@ public class EmailService
         textTemplate = textTemplate.Replace("[Link]", link);
         htmlTemplate = htmlTemplate.Replace("[Link]", link);
 
-        await _emailSender.SendEmailAsync(email, "Password Reset Request", htmlTemplate, textTemplate);
+        await emailSender.SendEmailAsync(email, "Password Reset Request", htmlTemplate, textTemplate);
     }
 
     public async Task SendMateRequestEmailAsync(string email, Guid mateRequestId)
@@ -57,7 +50,7 @@ public class EmailService
         textTemplate = textTemplate.Replace("[Link]", link);
         htmlTemplate = htmlTemplate.Replace("[Link]", link);
 
-        await _emailSender.SendEmailAsync(email, "Mate request received", htmlTemplate, textTemplate);
+        await emailSender.SendEmailAsync(email, "Mate request received", htmlTemplate, textTemplate);
     }
 
     public async Task SendMateRequestStatusChangeEmailAsync(string email, Guid mateRequestId)
@@ -70,7 +63,7 @@ public class EmailService
         textTemplate = textTemplate.Replace("[Link]", link);
         htmlTemplate = htmlTemplate.Replace("[Link]", link);
 
-        await _emailSender.SendEmailAsync(email, "Mate request update", htmlTemplate, textTemplate);
+        await emailSender.SendEmailAsync(email, "Mate request update", htmlTemplate, textTemplate);
     }
 
     private async Task<string> GetEmailTemplateAsync(string templateName)

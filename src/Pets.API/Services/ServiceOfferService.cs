@@ -29,29 +29,20 @@ namespace Pets.API.Services
         Task<List<ServiceOfferSearchResultDto>> Search(SearchServiceOfferParams searchParams);
     }
 
-    public class ServiceOfferService : IServiceOfferService
+    public class ServiceOfferService(PetsDbContext context, IMapper mapper) : IServiceOfferService
     {
         private const int SEARCH_MAX_RESULTS = 50;
 
-        private readonly PetsDbContext _context;
-        private readonly IMapper _mapper;
-
-        public ServiceOfferService(PetsDbContext context, IMapper mapper)
-        {
-            _context = context;
-            _mapper = mapper;
-        }
-        
         public async Task<ServiceOffer> GetEntityById(Guid id)
         {
-            return await _context.ServiceOffers.Where(x => x.Id == id)
+            return await context.ServiceOffers.Where(x => x.Id == id)
                                             .Include(i => i.ServiceType)
                                             .SingleOrDefaultAsync();
         }
         
         public async Task<ServiceOfferDto> Get(Guid id)
         {
-            var serviceOffer = await _context.ServiceOffers.Where(x => x.Id == id)
+            var serviceOffer = await context.ServiceOffers.Where(x => x.Id == id)
                                             .Include(i => i.User)
                                             .Include(i => i.ServiceType)
                                             .SingleOrDefaultAsync();
@@ -59,31 +50,31 @@ namespace Pets.API.Services
             if (serviceOffer == null)
                 return null;
 
-            return _mapper.Map<ServiceOfferDto>(serviceOffer);
+            return mapper.Map<ServiceOfferDto>(serviceOffer);
         }
 
         public async Task<List<ServiceOfferDto>> GetByOwnerId(Guid userId)
         {
-            var serviceOffers = await _context.ServiceOffers.Where(x => x.UserId == userId)
+            var serviceOffers = await context.ServiceOffers.Where(x => x.UserId == userId)
                                             .Include(i => i.ServiceType)
                                             .ToListAsync();
 
-            return _mapper.Map<List<ServiceOfferDto>>(serviceOffers);
+            return mapper.Map<List<ServiceOfferDto>>(serviceOffers);
         }
 
         public async Task<List<ServiceOfferDto>> GetServicesView(Guid userId)
         {
-            var serviceOffers = await _context.ServiceOffers.Where(x => x.UserId == userId)
+            var serviceOffers = await context.ServiceOffers.Where(x => x.UserId == userId)
                                             .Where(x => x.Active == true)
                                             .Include(i => i.ServiceType)
                                             .ToListAsync();
 
-            return _mapper.Map<List<ServiceOfferDto>>(serviceOffers);
+            return mapper.Map<List<ServiceOfferDto>>(serviceOffers);
         }
 
         public async Task<ServiceOfferDto> GetServiceOfferView(Guid id)
         {
-            var serviceOffer = await _context.ServiceOffers.Where(x => x.Id == id)
+            var serviceOffer = await context.ServiceOffers.Where(x => x.Id == id)
                                             .Where(x => x.Active == true)
                                             .Include(i => i.User)
                                             .Include(i => i.ServiceType)
@@ -92,12 +83,12 @@ namespace Pets.API.Services
             if (serviceOffer == null)
                 return null;
 
-            return _mapper.Map<ServiceOfferDto>(serviceOffer);
+            return mapper.Map<ServiceOfferDto>(serviceOffer);
         }
 
         public async Task<Guid> Create(CreateServiceOfferRequest request, Guid userId)
         {
-            var serviceOfferEntity = _mapper.Map<ServiceOffer>(request);
+            var serviceOfferEntity = mapper.Map<ServiceOffer>(request);
             serviceOfferEntity.UserId = userId;
             serviceOfferEntity.CreationDate = DateTime.UtcNow;
             if (request.ServiceTypeId == ServiceTypeConsts.DogWalking)
@@ -106,8 +97,8 @@ namespace Pets.API.Services
                 serviceOfferEntity.ForDogs = true;
             }
 
-            var serviceOffer = await _context.ServiceOffers.AddAsync(serviceOfferEntity);
-            await _context.SaveChangesAsync();
+            var serviceOffer = await context.ServiceOffers.AddAsync(serviceOfferEntity);
+            await context.SaveChangesAsync();
 
             return serviceOffer.Entity.Id;
         }
@@ -131,19 +122,19 @@ namespace Pets.API.Services
             entity.AdditionalPetRate = request.AdditionalPetRate;
             entity.HourlyRate = request.HourlyRate;
 
-            _context.ServiceOffers.Update(entity);
-            await _context.SaveChangesAsync();
+            context.ServiceOffers.Update(entity);
+            await context.SaveChangesAsync();
         }
 
         public async Task Delete(ServiceOffer entity)
         {
-            _context.ServiceOffers.Remove(entity);
-            await _context.SaveChangesAsync();
+            context.ServiceOffers.Remove(entity);
+            await context.SaveChangesAsync();
         }
 
         public async Task<List<ServiceOfferSearchResultDto>> Search(SearchServiceOfferParams searchParams)
         {
-            IQueryable<ServiceOffer> services = _context.ServiceOffers
+            IQueryable<ServiceOffer> services = context.ServiceOffers
                                             .Include(i => i.User)
                                             .Include(i => i.ServiceType)
                                             .Include(i => i.User.Address)

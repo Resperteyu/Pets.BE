@@ -15,34 +15,25 @@ namespace Pets.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class ChatController : ControllerBase
+    public class ChatController(
+        IChatService chatService,
+        IUserProfileService userProfileService,
+        UserManager<ApplicationUser> userManager)
+        : ControllerBase
     {
-        private readonly IChatService _chatService;
-        private readonly IUserProfileService _userProfileService;
-        private readonly UserManager<ApplicationUser> _userManager;
-
-        public ChatController(IChatService chatService,
-            IUserProfileService userProfileService,
-            UserManager<ApplicationUser> userManager)
-        {
-            _chatService = chatService;
-            _userProfileService = userProfileService;
-            _userManager = userManager;
-        }
-
         [Authorize]
         [HttpGet("messages/{userIdChat:Guid}")]
         public async Task<ActionResult<List<ChatMessageDto>>> GetMessges(Guid userIdChat, [FromQuery] ChatMessageQueryParams chatMessageQueryParams)
         {
-            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
+            var userId = Guid.Parse(userManager.GetUserId(HttpContext.User));
 
-            var profile = await _userProfileService.GetUserProfile(userIdChat.ToString());
+            var profile = await userProfileService.GetUserProfile(userIdChat.ToString());
             if(profile == null)
             {
                 return BadRequest("User does not exist");
             }
 
-            var messages = await _chatService.GetMessages(userId, userIdChat, chatMessageQueryParams);
+            var messages = await chatService.GetMessages(userId, userIdChat, chatMessageQueryParams);
 
             return Ok(messages);
         }       
@@ -51,15 +42,15 @@ namespace Pets.API.Controllers
         [HttpPost("messages/{userIdChat:Guid}")]
         public async Task<ActionResult<string>> Post(Guid userIdChat, ChatMessageRequest request)
         {
-            var user = await _userManager.GetUserAsync(HttpContext.User);
+            var user = await userManager.GetUserAsync(HttpContext.User);
 
-            var profile = await _userProfileService.GetUserProfile(userIdChat.ToString());
+            var profile = await userProfileService.GetUserProfile(userIdChat.ToString());
             if (profile == null)
             {
                 return BadRequest("User does not exist");
             }
 
-            var timestampMessage = await _chatService.SendMessage(user.Id, user.UserName, userIdChat, profile.UserName, request);
+            var timestampMessage = await chatService.SendMessage(user.Id, user.UserName, userIdChat, profile.UserName, request);
 
             return Ok(timestampMessage);
         }
@@ -68,9 +59,9 @@ namespace Pets.API.Controllers
         [HttpGet("infos")]
         public async Task<ActionResult<List<ChatMessageDto>>> GetChats()
         {
-            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
+            var userId = Guid.Parse(userManager.GetUserId(HttpContext.User));
 
-            var chats = await _chatService.GetChats(userId);
+            var chats = await chatService.GetChats(userId);
 
             return Ok(chats);
         }

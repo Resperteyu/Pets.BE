@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Extensions.Logging;
 using SendGrid;
 using SendGrid.Helpers.Mail;
@@ -5,16 +6,10 @@ using System.Threading.Tasks;
 
 namespace Pets.API.Services;
 
-public class SendGridEmailSender : IEmailSender
+public class SendGridEmailSender(ISendGridClient sendGridClient, ILogger<SendGridEmailSender> logger)
+    : IEmailSender
 {
-    private readonly ISendGridClient _sendGridClient;
-    private readonly ILogger _logger;
-
-    public SendGridEmailSender(ISendGridClient sendGridClient, ILogger<SendGridEmailSender> logger)
-    {
-        _sendGridClient = sendGridClient;
-        _logger = logger;
-    }
+    private readonly ILogger _logger = logger;
 
     public async Task SendEmailAsync(string email, string subject, string htmlMessage, string textMessage)
     {
@@ -27,10 +22,19 @@ public class SendGridEmailSender : IEmailSender
         };
         msg.AddTo(new EmailAddress(email));
 
-        var response = await _sendGridClient.SendEmailAsync(msg);
+        var response = await sendGridClient.SendEmailAsync(msg);
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError("Failed to send email");
         }
+    }
+}
+
+public class ConsoleEmailSender : IEmailSender
+{
+    public Task SendEmailAsync(string email, string subject, string htmlMessage, string textMessage)
+    {
+        Console.WriteLine($"[Email to: {email}] Subject: {subject}\n{textMessage}\n{htmlMessage}");
+        return Task.CompletedTask;
     }
 }

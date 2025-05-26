@@ -23,85 +23,56 @@ namespace Pets.API.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    public class AccountController : ControllerBase
+    public class AccountController(
+        UserManager<ApplicationUser> userManager,
+        SignInManager<ApplicationUser> signInManager,
+        RoleManager<IdentityRole<Guid>> roleManager,
+        EmailService emailService,
+        TokenValidationParameters tokenValidationParameters,
+        PetsDbContext context,
+        IConfiguration configuration)
+        : ControllerBase
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly RoleManager<IdentityRole<Guid>> _roleManager;
-        private readonly EmailService _emailService;
-        private readonly IConfiguration _configuration;
-        private readonly PetsDbContext _context;
-        private readonly TokenValidationParameters _tokenValidationParameters;
-
-        public AccountController(
-            UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager,
-            RoleManager<IdentityRole<Guid>> roleManager,
-            EmailService emailService,
-            TokenValidationParameters tokenValidationParameters,
-            PetsDbContext context,
-            IConfiguration configuration)
-        {
-            _userManager = userManager;
-            _signInManager = signInManager;
-            _roleManager = roleManager;
-            _emailService = emailService;
-            _configuration = configuration;
-            _tokenValidationParameters = tokenValidationParameters;
-            _context = context;
-        }
-
         [HttpPost]
         [Route("login")]
         public async Task<IActionResult> Login([FromBody] LoginModel request)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
+                return BadRequest(new AuthenticateResponse()
+                {
+                    Success = false,
+                    Errors = ["Invalid payload"]
+                });
+            var existingUser = await userManager.FindByEmailAsync(request.Email);
+
+            if (existingUser == null || !await signInManager.CanSignInAsync(existingUser))
             {
-                var existingUser = await _userManager.FindByEmailAsync(request.Email);
-
-                if (existingUser == null || !await _signInManager.CanSignInAsync(existingUser))
+                return BadRequest(new AuthenticateResponse()
                 {
-                    return BadRequest(new AuthenticateResponse()
-                    {
-                        Success = false,
-                        Errors = new List<string>()
-                        {
-                            "Invalid authentication request"
-                        }
-                    });
-                }
-
-                // Now we need to check if the user has inputed the right password
-                var isCorrect = await _userManager.CheckPasswordAsync(existingUser, request.Password);
-
-                if (isCorrect)
-                {
-                    var authResponse = await GenerateAuthenticateResponse(existingUser);
-
-                    return Ok(authResponse);
-                }
-                else
-                {
-                    // We dont want to give to much information on why the request has failed for security reasons
-                    return BadRequest(new AuthenticateResponse()
-                    {
-                        Success = false,
-                        Errors = new List<string>()
-                        {
-                            "Invalid authentication request"
-                        }
-                    });
-                }
+                    Success = false,
+                    Errors = ["Invalid authentication request"]
+                });
             }
 
-            return BadRequest(new AuthenticateResponse()
+            // Now we need to check if the user has inputed the right password
+            var isCorrect = await userManager.CheckPasswordAsync(existingUser, request.Password);
+
+            if (isCorrect)
             {
-                Success = false,
-                Errors = new List<string>()
+                var authResponse = await GenerateAuthenticateResponse(existingUser);
+
+                return Ok(authResponse);
+            }
+            else
+            {
+                // We dont want to give to much information on why the request has failed for security reasons
+                return BadRequest(new AuthenticateResponse()
                 {
-                    "Invalid payload"
-                }
-            });
+                    Success = false,
+                    Errors = ["Invalid authentication request"]
+                });
+            }
+
         }
 
         [HttpPost]
@@ -111,30 +82,31 @@ namespace Pets.API.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(new AuthenticateResponse { Success = false, Errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)).ToList() });
 
-            var existingUser = await _userManager.FindByEmailAsync(request.Email);
+            var existingUser = await userManager.FindByEmailAsync(request.Email);
             if (existingUser != null) 
-                return BadRequest( new AuthenticateResponse{ Success = false, Errors = new List<string> { "Email already exists" } });
+                return BadRequest( new AuthenticateResponse{ Success = false, Errors = ["Email already exists"] });
+            
+            var role = string.IsNullOrWhiteSpace(request.Role) ? "PetOwner" : request.Role;
+            
+            var roleExists = await roleManager.RoleExistsAsync(role);
+            if (!roleExists)
+                return BadRequest(new AuthenticateResponse { Success = false, Errors = ["Role does not exist"] });
 
             var newUser = new ApplicationUser { Email = request.Email, UserName = request.Username };
-            var createUserResult = await _userManager.CreateAsync(newUser, request.Password);
+            var createUserResult = await userManager.CreateAsync(newUser, request.Password);
             if (!createUserResult.Succeeded)
                 return StatusCode(StatusCodes.Status500InternalServerError, 
                     new AuthenticateResponse { Success = false, Errors = createUserResult.Errors.Select(x => x.Description).ToList() });
 
-
-            var roleExists = await _roleManager.RoleExistsAsync(request.Role);
-            if (!roleExists)
-                return BadRequest(new AuthenticateResponse { Success = false, Errors = new List<string> { "Role does not exist" } });
-
-            var roleResult = await _userManager.AddToRoleAsync(newUser, request.Role);
+            var roleResult = await userManager.AddToRoleAsync(newUser, role);
             if (!roleResult.Succeeded)
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     new AuthenticateResponse { Success = false, Errors = roleResult.Errors.Select(x => x.Description).ToList() });
 
             var authResponse = await GenerateAuthenticateResponse(newUser);
 
-            var token = await _userManager.GenerateEmailConfirmationTokenAsync(newUser);
-            await _emailService.SendConfirmationEmailAsync(newUser.Email, token);
+            var token = await userManager.GenerateEmailConfirmationTokenAsync(newUser);
+            await emailService.SendConfirmationEmailAsync(newUser.Email, token);
 
             return Ok(authResponse);
         }
@@ -148,14 +120,14 @@ namespace Pets.API.Controllers
                 return BadRequest();
             }
 
-            var user = await _userManager.FindByEmailAsync(request.Email);
+            var user = await userManager.FindByEmailAsync(request.Email);
             if (user == null)
             {
                 return NoContent();
             }
 
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            await _emailService.SendForgotPasswordEmailAsync(user.Email, token);
+            var token = await userManager.GeneratePasswordResetTokenAsync(user);
+            await emailService.SendForgotPasswordEmailAsync(user.Email, token);
 
             return NoContent();
         }
@@ -169,13 +141,13 @@ namespace Pets.API.Controllers
                 return BadRequest();
             }
 
-            var user = await _userManager.FindByEmailAsync(request.Email);
+            var user = await userManager.FindByEmailAsync(request.Email);
             if (user == null)
             {
                 return NotFound();
             }
 
-            var resetPassResult = await _userManager.ResetPasswordAsync(user, request.Token, request.Password);
+            var resetPassResult = await userManager.ResetPasswordAsync(user, request.Token, request.Password);
             if (!resetPassResult.Succeeded)
             {
                 return BadRequest(new { Error = resetPassResult.ToString() });
@@ -193,14 +165,14 @@ namespace Pets.API.Controllers
                 return BadRequest(new AuthenticateResponse()
                 {
                     Success = false,
-                    Errors = new List<string>(){ "Invalid payload" }
+                    Errors = ["Invalid payload"]
                 });
             }
 
-            var user = await _userManager.FindByEmailAsync(email);
+            var user = await userManager.FindByEmailAsync(email);
             if (user is not null)
             {
-                var verifyResponse = await _userManager.ConfirmEmailAsync(user, token);
+                var verifyResponse = await userManager.ConfirmEmailAsync(user, token);
                 if (!verifyResponse.Succeeded)
                 {
                     return new JsonResult(new AuthenticateResponse()
@@ -226,9 +198,7 @@ namespace Pets.API.Controllers
                 {
                     return BadRequest(new AuthenticateResponse()
                     {
-                        Errors = new List<string>() {
-                    "Invalid tokens"
-                },
+                        Errors = ["Invalid tokens"],
                         Success = false
                     });
                 }
@@ -238,9 +208,7 @@ namespace Pets.API.Controllers
 
             return BadRequest(new AuthenticateResponse()
             {
-                Errors = new List<string>() {
-                "Invalid payload"
-            },
+                Errors = ["Invalid payload"],
                 Success = false
             });
         }
@@ -250,11 +218,11 @@ namespace Pets.API.Controllers
         [Route("revoke/{username}")]
         public async Task<IActionResult> Revoke(string username)
         {
-            var user = await _userManager.FindByNameAsync(username);
+            var user = await userManager.FindByNameAsync(username);
             if (user == null) return BadRequest("Invalid user name");
 
             user.RefreshToken = null;
-            await _userManager.UpdateAsync(user);
+            await userManager.UpdateAsync(user);
 
             return NoContent();
         }
@@ -264,11 +232,11 @@ namespace Pets.API.Controllers
         [Route("revoke-all")]
         public async Task<IActionResult> RevokeAll()
         {
-            var users = _userManager.Users.ToList();
+            var users = userManager.Users.ToList();
             foreach (var user in users)
             {
                 user.RefreshToken = null;
-                await _userManager.UpdateAsync(user);
+                await userManager.UpdateAsync(user);
             }
 
             return NoContent();
@@ -278,22 +246,22 @@ namespace Pets.API.Controllers
         {
             try
             {
-                _tokenValidationParameters.ValidateLifetime = false;
+                tokenValidationParameters.ValidateLifetime = false;
                 var tokenHandler = new JwtSecurityTokenHandler();
                 SecurityToken securityToken;
-                var principal = tokenHandler.ValidateToken(tokenRequest.Token, _tokenValidationParameters, out securityToken);
+                var principal = tokenHandler.ValidateToken(tokenRequest.Token, tokenValidationParameters, out securityToken);
 
                 var jwtSecurityToken = securityToken as JwtSecurityToken;
                 if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
                     throw new SecurityTokenException("Invalid token");
 
-                var storedRefreshToken = await _context.RefreshTokens.FirstOrDefaultAsync(x => x.Token == tokenRequest.RefreshToken);
+                var storedRefreshToken = await context.RefreshTokens.FirstOrDefaultAsync(x => x.Token == tokenRequest.RefreshToken);
 
                 if (storedRefreshToken == null)
                 {
                     return new AuthenticateResponse()
                     {
-                        Errors = new List<string>() { "refresh token doesnt exist" },
+                        Errors = ["refresh token doesnt exist"],
                         Success = false
                     };
                 }
@@ -302,7 +270,7 @@ namespace Pets.API.Controllers
                 {
                     return new AuthenticateResponse()
                     {
-                        Errors = new List<string>() { "Refresh Token has expired" },
+                        Errors = ["Refresh Token has expired"],
                         Success = false
                     };
                 }
@@ -311,7 +279,7 @@ namespace Pets.API.Controllers
                 {
                     return new AuthenticateResponse()
                     {
-                        Errors = new List<string>() { "Refresh Token has been used" },
+                        Errors = ["Refresh Token has been used"],
                         Success = false
                     };
                 }
@@ -320,7 +288,7 @@ namespace Pets.API.Controllers
                 {
                     return new AuthenticateResponse()
                     {
-                        Errors = new List<string>() { "Refresh Token has been revoked" },
+                        Errors = ["Refresh Token has been revoked"],
                         Success = false
                     };
                 }
@@ -331,16 +299,16 @@ namespace Pets.API.Controllers
                 {
                     return new AuthenticateResponse()
                     {
-                        Errors = new List<string>() { "The Refresh Token doesn't matech the saved token" },
+                        Errors = ["The Refresh Token doesn't matech the saved token"],
                         Success = false
                     };
                 }
 
                 storedRefreshToken.IsUsed = true;
-                _context.RefreshTokens.Update(storedRefreshToken);
-                await _context.SaveChangesAsync();
+                context.RefreshTokens.Update(storedRefreshToken);
+                await context.SaveChangesAsync();
 
-                var dbUser = await _userManager.FindByIdAsync(storedRefreshToken.UserId.ToString());
+                var dbUser = await userManager.FindByIdAsync(storedRefreshToken.UserId.ToString());
                 return await GenerateAuthenticateResponse(dbUser);
             }
             catch (Exception ex)
@@ -354,16 +322,16 @@ namespace Pets.API.Controllers
         {
             var jwtTokenHandler = new JwtSecurityTokenHandler();
 
-            var key = Encoding.ASCII.GetBytes(_configuration["JWT:Secret"]);
+            var key = Encoding.ASCII.GetBytes(configuration["JWT:Secret"]);
 
-            var roles = await _userManager.GetRolesAsync(user);
+            var roles = await userManager.GetRolesAsync(user);
 
             var claims = new List<Claim>
             {
                     new Claim("Id", user.Id.ToString()),
                     new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                    new Claim(JwtRegisteredClaimNames.Iss, _configuration["JWT:ValidIssuer"]),
-                    new Claim(JwtRegisteredClaimNames.Aud, _configuration["JWT:ValidAudience"]),
+                    new Claim(JwtRegisteredClaimNames.Iss, configuration["JWT:ValidIssuer"]),
+                    new Claim(JwtRegisteredClaimNames.Aud, configuration["JWT:ValidAudience"]),
                     new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     new Claim("emailVerified", user.EmailConfirmed.ToString()),
@@ -378,7 +346,7 @@ namespace Pets.API.Controllers
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["JWT:TokenValidityInMinutes"])),
+                Expires = DateTime.UtcNow.AddMinutes(int.Parse(configuration["JWT:TokenValidityInMinutes"])),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 
@@ -396,8 +364,8 @@ namespace Pets.API.Controllers
                 Token = RandomString(25) + Guid.NewGuid()
             };
 
-            await _context.RefreshTokens.AddAsync(refreshToken);
-            await _context.SaveChangesAsync();
+            await context.RefreshTokens.AddAsync(refreshToken);
+            await context.SaveChangesAsync();
 
             return new AuthenticateResponse()
             {

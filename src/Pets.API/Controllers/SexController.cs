@@ -8,19 +8,13 @@ namespace Pets.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class SexController : ControllerBase
+    public class SexController(ISexService sexService) : ControllerBase
     {
-        private readonly ISexService _sexService;
-        public SexController(ISexService sexService)
-        {
-            _sexService = sexService;
-        }
-
         [HttpGet]
         public async Task<ActionResult<List<SexDto>>> GetAll()
         {
 
-            var sexes = await _sexService.GetAll();
+            var sexes = await sexService.GetAll();
             return Ok(sexes);
         }
     }

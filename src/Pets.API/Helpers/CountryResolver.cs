@@ -6,21 +6,14 @@ using System.Linq;
 
 namespace Pets.API.Helpers
 {
-    public class CountryResolver : IValueResolver<AddressDto, Address, Country>
+    public class CountryResolver(PetsDbContext context) : IValueResolver<AddressDto, Address, Country>
     {
-        private readonly PetsDbContext _context;
-
-        public CountryResolver(PetsDbContext context)
-        {
-            _context = context;
-        }
-
-        public Country Resolve(AddressDto source, Address destination, Country destMember, ResolutionContext context)
+        public Country Resolve(AddressDto source, Address destination, Country destMember, ResolutionContext context1)
         {
             if (source.Country == null)
                 return null;
 
-            var existingCountry = _context.Countries.FirstOrDefault(c => c.Code == source.Country.Code);
+            var existingCountry = context.Countries.FirstOrDefault(c => c.Code == source.Country.Code);
 
             return existingCountry ?? null; // Throw exception?
         }

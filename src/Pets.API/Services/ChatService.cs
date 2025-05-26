@@ -15,30 +15,23 @@ namespace Pets.API.Services
         Task<List<ChatInfoDto>> GetChats(Guid userId);
     }
 
-    public class ChatService : IChatService
+    public class ChatService(IFirebaseClient firebaseClient) : IChatService
     {
-        private readonly IFirebaseClient _firebaseClient;
-
-        public ChatService(IFirebaseClient firebaseClient)
-        {
-            _firebaseClient = firebaseClient;
-        }
-
         public async Task<List<ChatMessageDto>> GetMessages(Guid userId, Guid userIdChat, ChatMessageQueryParams chatMessageQueryParams)
         {
             //OPTIMISATION: IF WE ARE DOING GET LATEST MESSAGES BETTER TO CHECK IF WE HAVE NEW MESSAGES FIRST??
-            var messages =  await _firebaseClient.GetMessages(GetChatId(userId, userIdChat), chatMessageQueryParams);
+            var messages =  await firebaseClient.GetMessages(GetChatId(userId, userIdChat), chatMessageQueryParams);
 
             if(messages.Count > 0 && (chatMessageQueryParams == null
                 || chatMessageQueryParams.Type == null
                 || chatMessageQueryParams.Type == ChatMessageQueryType.Latest)) 
             {
                 //we want to update our chatinfo
-                var chatInfo = await _firebaseClient.GetChatInfo(userId, userIdChat);
+                var chatInfo = await firebaseClient.GetChatInfo(userId, userIdChat);
                 if(chatInfo != null && chatInfo.HasNewMessages) 
                 {
                     chatInfo.HasNewMessages = false;
-                    await _firebaseClient.UpdateChatInfo(userId, chatInfo);
+                    await firebaseClient.UpdateChatInfo(userId, chatInfo);
                 }
             }
 
@@ -48,10 +41,10 @@ namespace Pets.API.Services
         public async Task<string> SendMessage(Guid userId, string userName, Guid userIdChat, string userChatAlias, ChatMessageRequest chatMessageRequest)
         {
             var timestampMessage = GetTimestamp();
-            await _firebaseClient.SendMessage(GetChatId(userId, userIdChat), userName, timestampMessage, chatMessageRequest);
+            await firebaseClient.SendMessage(GetChatId(userId, userIdChat), userName, timestampMessage, chatMessageRequest);
 
             //we want to update recipient chatinfo
-            var chatInfo = await _firebaseClient.GetChatInfo(userIdChat, userId);
+            var chatInfo = await firebaseClient.GetChatInfo(userIdChat, userId);
             if(chatInfo == null) 
             {
                 chatInfo = new ChatInfoDto
@@ -60,17 +53,17 @@ namespace Pets.API.Services
                     UserName = userName,
                     HasNewMessages = true,
                 };
-                await _firebaseClient.AddChatInfo(userIdChat, chatInfo);
+                await firebaseClient.AddChatInfo(userIdChat, chatInfo);
             }
             else
             if(!chatInfo.HasNewMessages){
                 //update chat info
                 chatInfo.HasNewMessages = true;
-                await _firebaseClient.UpdateChatInfo(userIdChat, chatInfo);
+                await firebaseClient.UpdateChatInfo(userIdChat, chatInfo);
             }
 
             //be sure is added in our chat list             
-            chatInfo = await _firebaseClient.GetChatInfo(userId, userIdChat);
+            chatInfo = await firebaseClient.GetChatInfo(userId, userIdChat);
             if (chatInfo == null)
             {
                 chatInfo = new ChatInfoDto
@@ -79,7 +72,7 @@ namespace Pets.API.Services
                     UserName = userChatAlias,
                     HasNewMessages = false,
                 };
-                await _firebaseClient.AddChatInfo(userId, chatInfo);
+                await firebaseClient.AddChatInfo(userId, chatInfo);
             }
             
             return timestampMessage;
@@ -87,7 +80,7 @@ namespace Pets.API.Services
 
         public async Task<List<ChatInfoDto>> GetChats(Guid userId)
         {
-            return await _firebaseClient.GetChats(userId);
+            return await firebaseClient.GetChats(userId);
         }
 
         private static string GetChatId(Guid UserA, Guid UserB)

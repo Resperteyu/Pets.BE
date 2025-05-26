@@ -22,34 +22,25 @@ namespace Pets.API.Services
         Task UpdateDetails(PetMateRequestUpdateRequest updateRequest);
     }
 
-    public class MateRequestService : IMateRequestService
+    public class MateRequestService(PetsDbContext context, IMapper mapper) : IMateRequestService
     {
-        private readonly PetsDbContext _context;
-        private readonly IMapper _mapper;
-
-        public MateRequestService(PetsDbContext context, IMapper mapper) 
-        {
-            _context = context;
-            _mapper = mapper;
-        }
-
         public async Task<Guid> CreateMateRequest(CreateMateRequestRequest model, Guid petOwnerId, Guid petMateOwnerId)
         {
-            var mateRequest = _mapper.Map<MateRequest>(model);
+            var mateRequest = mapper.Map<MateRequest>(model);
             mateRequest.CreationDate = DateTime.UtcNow;
             mateRequest.MateRequestStateId = MateRequestStateConsts.SENT;
             mateRequest.PetOwnerId = petOwnerId;
             mateRequest.PetMateOwnerId = petMateOwnerId;
 
-            var mateRequestRecord = await _context.MateRequests.AddAsync(mateRequest);
-            await _context.SaveChangesAsync();
+            var mateRequestRecord = await context.MateRequests.AddAsync(mateRequest);
+            await context.SaveChangesAsync();
 
             return mateRequestRecord.Entity.Id;
         }
 
         public async Task<List<MateRequestDto>> Filter(Guid userId, MateRequestSearchParams mateRequestSearchParams)
         {
-            IQueryable<MateRequest> mateRequests = _context.MateRequests;
+            IQueryable<MateRequest> mateRequests = context.MateRequests;
                                             
             if(mateRequestSearchParams.Type.HasValue)
             {
@@ -76,12 +67,12 @@ namespace Pets.API.Services
                                         .Include(i => i.PetMateProfile)
                                         .OrderByDescending(x => x.CreationDate);
 
-            return _mapper.Map<List<MateRequestDto>>(await mateRequests.ToListAsync());
+            return mapper.Map<List<MateRequestDto>>(await mateRequests.ToListAsync());
         }
 
         public async Task<MateRequestDto> GetById(Guid id, Guid ownerId)
         {
-            var mateRequest = await _context.MateRequests.Where(i => i.Id == id)
+            var mateRequest = await context.MateRequests.Where(i => i.Id == id)
                                             .Include(i => i.MateRequestState)
                                             .Include(i => i.PetProfile.Owner)
                                             .Include(i => i.PetMateProfile.Owner)
@@ -91,7 +82,7 @@ namespace Pets.API.Services
             if (mateRequest == null)
                 return null;
 
-            var mateRequestDto = _mapper.Map<MateRequestDto>(mateRequest);
+            var mateRequestDto = mapper.Map<MateRequestDto>(mateRequest);
             
             mateRequestDto.IsRequester = mateRequestDto.PetMateOwnerId == ownerId;
             mateRequestDto.IsReceiver = mateRequestDto.PetOwnerId == ownerId;
@@ -101,7 +92,7 @@ namespace Pets.API.Services
 
         public async Task UpdateReply(PetMateRequestReplyRequest responseRequest)
         {
-            var entity = await _context.MateRequests.Where(i => i.Id == responseRequest.MateRequestId)
+            var entity = await context.MateRequests.Where(i => i.Id == responseRequest.MateRequestId)
                                       .Include(i => i.PetProfile)
                                       .Include(i => i.PetMateProfile)
                                       .SingleAsync();
@@ -109,25 +100,25 @@ namespace Pets.API.Services
             entity.MateRequestStateId = responseRequest.MateRequestStateId;
             entity.Response = responseRequest.Response;
 
-            _context.MateRequests.Update(entity);
-            await _context.SaveChangesAsync();
+            context.MateRequests.Update(entity);
+            await context.SaveChangesAsync();
         }
 
         public async Task UpdateTransition(PetMateRequestTransitionRequest transitionRequest)
         {
-            var entity = await _context.MateRequests.Where(i => i.Id == transitionRequest.MateRequestId)
+            var entity = await context.MateRequests.Where(i => i.Id == transitionRequest.MateRequestId)
                                       .SingleAsync();
 
             entity.MateRequestStateId = transitionRequest.MateRequestStateId;
             entity.Comment = transitionRequest.Comment;
 
-            _context.MateRequests.Update(entity);
-            await _context.SaveChangesAsync();
+            context.MateRequests.Update(entity);
+            await context.SaveChangesAsync();
         }
 
         public async Task UpdateDetails(PetMateRequestUpdateRequest updateRequest)
         {
-            var entity = await _context.MateRequests.Where(i => i.Id == updateRequest.MateRequestId)
+            var entity = await context.MateRequests.Where(i => i.Id == updateRequest.MateRequestId)
                                       .SingleAsync();
 
             entity.MateRequestStateId = MateRequestStateConsts.SENT;
@@ -136,8 +127,8 @@ namespace Pets.API.Services
             entity.BreedingPlaceAgreement = updateRequest.BreedingPlaceAgreement;
             entity.AmountAgreement = updateRequest.AmountAgreement;
 
-            _context.MateRequests.Update(entity);
-            await _context.SaveChangesAsync();
+            context.MateRequests.Update(entity);
+            await context.SaveChangesAsync();
         }
     }
 }

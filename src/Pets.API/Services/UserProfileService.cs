@@ -17,24 +17,16 @@ namespace Pets.API.Services
         Task<bool> DeleteUserProfile(string userId);
     }
 
-    public class UserProfileService : IUserProfileService
+    public class UserProfileService(
+        UserManager<ApplicationUser> userManager,
+        IMapper mapper,
+        IGeocodingService geocodingService)
+        : IUserProfileService
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IGeocodingService _geocodingService;
-        private readonly IMapper _mapper;
-
-        public UserProfileService(UserManager<ApplicationUser> userManager, IMapper mapper,
-            IGeocodingService geocodingService)
-        {
-            _userManager = userManager;
-            _mapper = mapper;
-            _geocodingService = geocodingService;
-        }
-
         public async Task<UserProfileDto> GetUserProfile(string userId)
         {
             // Move to a common place
-            var user = await _userManager.Users
+            var user = await userManager.Users
             .Include(u => u.Address)
                 .ThenInclude(a => a.Country)
             .Include(u => u.Address)
@@ -42,12 +34,12 @@ namespace Pets.API.Services
             .Include(u => u.UserProfileInfo)
             .FirstOrDefaultAsync(u => u.Id.ToString() == userId);
 
-            return _mapper.Map<UserProfileDto>(user);
+            return mapper.Map<UserProfileDto>(user);
         }
 
         public async Task<UserProfileUpdateResult> UpdateUserProfile(string userId, JsonPatchDocument<UserProfileDto> patchDocument)
         {
-            var user = await _userManager.Users
+            var user = await userManager.Users
             .Include(u => u.Address)
                 .ThenInclude(a => a.Country)
             .Include(u => u.Address)
@@ -60,19 +52,19 @@ namespace Pets.API.Services
                 return new UserProfileUpdateResult { Success = false };
             }
 
-            var userProfile = _mapper.Map<UserProfileDto>(user);
+            var userProfile = mapper.Map<UserProfileDto>(user);
             patchDocument.ApplyTo(userProfile);
 
             // Validate!
 
             if (AddressIsUpdated(patchDocument))
             {
-                var newLocation = await _geocodingService.CalculateLocationAsync(userProfile.Address);
-                userProfile.Address.Location = _mapper.Map<LocationDto>(newLocation);
+                var newLocation = await geocodingService.CalculateLocationAsync(userProfile.Address);
+                userProfile.Address.Location = mapper.Map<LocationDto>(newLocation);
             }
 
-            _mapper.Map(userProfile, user);
-            var result = await _userManager.UpdateAsync(user);
+            mapper.Map(userProfile, user);
+            var result = await userManager.UpdateAsync(user);
 
             return new UserProfileUpdateResult
             {
@@ -85,14 +77,14 @@ namespace Pets.API.Services
         // Cascade deletion?
         public async Task<bool> DeleteUserProfile(string userId)
         {
-            var user = await _userManager.FindByIdAsync(userId);
+            var user = await userManager.FindByIdAsync(userId);
 
             if (user == null)
             {
                 return false;
             }
 
-            var result = await _userManager.DeleteAsync(user);
+            var result = await userManager.DeleteAsync(user);
             return result.Succeeded;
         }
         private bool AddressIsUpdated(JsonPatchDocument<UserProfileDto> patchDocument)

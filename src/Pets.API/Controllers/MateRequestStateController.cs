@@ -8,19 +8,13 @@ namespace Pets.API.Controllers
 {
     [ApiController]
     [Route("mate-request-state")]
-    public class MateRequestStateController : ControllerBase
+    public class MateRequestStateController(IMateRequestStateService mateRequestStateService) : ControllerBase
     {
-        private readonly IMateRequestStateService _mateRequestStateService;
-        public MateRequestStateController(IMateRequestStateService mateRequestStateService)
-        {
-            _mateRequestStateService = mateRequestStateService;
-        }
-
         [HttpGet]
         public async Task<ActionResult<List<MateRequestStateDto>>> GetAll()
         {
 
-            var mateRequestStates = await _mateRequestStateService.GetAll();
+            var mateRequestStates = await mateRequestStateService.GetAll();
             return Ok(mateRequestStates);
         }
     }

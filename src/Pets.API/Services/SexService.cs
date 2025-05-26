@@ -12,21 +12,12 @@ namespace Pets.API.Services
         Task<List<SexDto>> GetAll(); 
     }
 
-    public class SexService : ISexService
+    public class SexService(PetsDbContext context, IMapper mapper) : ISexService
     {
-        private readonly PetsDbContext _context;
-        private readonly IMapper _mapper;
-
-        public SexService(PetsDbContext context, IMapper mapper) 
-        {
-            _context = context;
-            _mapper = mapper;
-        }
-
         public async Task<List<SexDto>> GetAll()
         {
-            var sexes = await _context.Sexes.ToListAsync();
-            return _mapper.Map<List<SexDto>>(sexes);
+            var sexes = await context.Sexes.ToListAsync();
+            return mapper.Map<List<SexDto>>(sexes);
         }
     }
 }

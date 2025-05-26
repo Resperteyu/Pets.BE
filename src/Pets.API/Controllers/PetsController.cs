@@ -18,34 +18,23 @@ namespace Pets.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class PetsController : ControllerBase
+    public class PetsController(
+        IPetProfileService petProfileService,
+        UserManager<ApplicationUser> userManager,
+        IImageStorageService imageStorageService,
+        ILogger<PetsController> logger)
+        : ControllerBase
     {
-        private readonly IPetProfileService _petProfileService;
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IImageStorageService _imageStorageService;
-        private readonly ILogger<PetsController> _logger;
-
-        public PetsController(IPetProfileService petProfileService,
-            UserManager<ApplicationUser> userManager,
-            IImageStorageService imageStorageService,
-            ILogger<PetsController> logger)
-        {
-            _petProfileService = petProfileService;
-            _userManager = userManager;
-            _imageStorageService = imageStorageService;
-            _logger = logger;
-        }
-
         [Authorize]
         [HttpGet("{petId:Guid}")]
         public async Task<ActionResult<PetProfileDto>> GetByPetId(Guid petId)
         {
-            var petProfile = await _petProfileService.GetByPetId(petId);
+            var petProfile = await petProfileService.GetByPetId(petId);
 
             if (petProfile == null)
                 return NotFound("Pet not found");
 
-            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
+            var userId = Guid.Parse(userManager.GetUserId(HttpContext.User));
             if (petProfile.Owner.Id != userId)
                 return Unauthorized("You don't own this pet");
 
@@ -56,7 +45,7 @@ namespace Pets.API.Controllers
         [HttpGet("{petId:Guid}/view")]
         public async Task<ActionResult<PetProfileDto>> GetByPetIdView(Guid petId)
         {
-            var petProfile = await _petProfileService.GetByPetId(petId);
+            var petProfile = await petProfileService.GetByPetId(petId);
 
             if (petProfile == null)
                 return NotFound("Pet not found");
@@ -71,8 +60,8 @@ namespace Pets.API.Controllers
         [HttpGet("infos")]
         public async Task<ActionResult<List<PetProfileDto>>> GetPetInfos()
         {
-            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
-            var petProfiles = await _petProfileService.GetByOwnerId(userId);
+            var userId = Guid.Parse(userManager.GetUserId(HttpContext.User));
+            var petProfiles = await petProfileService.GetByOwnerId(userId);
             return Ok(petProfiles);
         }
 
@@ -80,7 +69,7 @@ namespace Pets.API.Controllers
         [HttpGet("user/{userId:Guid}")]
         public async Task<ActionResult<List<PetProfileDto>>> GetPetsView(Guid userId)
         {
-            var petProfiles = await _petProfileService.GetPetsView(userId);
+            var petProfiles = await petProfileService.GetPetsView(userId);
 
             //what to return if owner does not exist??
 
@@ -93,8 +82,8 @@ namespace Pets.API.Controllers
         {
             //TODO: Location perimeter search
             //TODO: return image url
-            searchParams.UserId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
-            var petProfiles = await _petProfileService.Search(searchParams);
+            searchParams.UserId = Guid.Parse(userManager.GetUserId(HttpContext.User));
+            var petProfiles = await petProfileService.Search(searchParams);
 
             return Ok(petProfiles);
         }
@@ -103,8 +92,8 @@ namespace Pets.API.Controllers
         [HttpPost]
         public async Task<ActionResult<Guid>> Post(CreatePetRequest request)
         {
-            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User)); // TODO Insert in context?
-            var petId = await _petProfileService.CreatePet(request, userId);
+            var userId = Guid.Parse(userManager.GetUserId(HttpContext.User)); // TODO Insert in context?
+            var petId = await petProfileService.CreatePet(request, userId);
             return Ok(petId);
         }
 
@@ -112,8 +101,8 @@ namespace Pets.API.Controllers
         [HttpPut]
         public async Task<ActionResult> Put(UpdatePetRequest request)
         {
-            var petEntity = await _petProfileService.GetEntityByPetId(request.Id);
-            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
+            var petEntity = await petProfileService.GetEntityByPetId(request.Id);
+            var userId = Guid.Parse(userManager.GetUserId(HttpContext.User));
 
             if (petEntity == null)
                 return NotFound("Pet not found");
@@ -121,7 +110,7 @@ namespace Pets.API.Controllers
             if (petEntity.OwnerId != userId)
                 return Unauthorized("You don't own this pet");
 
-            await _petProfileService.UpdatePet(request, petEntity);
+            await petProfileService.UpdatePet(request, petEntity);
             return Ok();
         }
 
@@ -129,8 +118,8 @@ namespace Pets.API.Controllers
         [HttpDelete("{petId:Guid}")]
         public async Task<ActionResult> Delete(Guid petId)
         {
-            var petEntity = await _petProfileService.GetEntityByPetId(petId);
-            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
+            var petEntity = await petProfileService.GetEntityByPetId(petId);
+            var userId = Guid.Parse(userManager.GetUserId(HttpContext.User));
 
             if (petEntity == null)
                 return NotFound("Pet not found");
@@ -138,7 +127,7 @@ namespace Pets.API.Controllers
             if (petEntity.OwnerId != userId)
                 return Unauthorized("You don't own this pet");
 
-            await _petProfileService.DeletePet(petEntity);
+            await petProfileService.DeletePet(petEntity);
             return Ok();
         }
 
@@ -146,7 +135,7 @@ namespace Pets.API.Controllers
         [HttpGet("{petId:Guid}/mates")]
         public async Task<ActionResult<List<PetProfileDto>>> GetMates(Guid petId)
         {
-            var petEntity = await _petProfileService.GetEntityByPetId(petId);
+            var petEntity = await petProfileService.GetEntityByPetId(petId);
 
             if (petEntity == null)
                 return NotFound("Pet not found");
@@ -154,9 +143,9 @@ namespace Pets.API.Controllers
             if (!petEntity.AvailableForBreeding)
                 return BadRequest("Pet is not available for breeding");
 
-            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
+            var userId = Guid.Parse(userManager.GetUserId(HttpContext.User));
 
-            var petProfiles = await _petProfileService.GetMates(petEntity, userId);
+            var petProfiles = await petProfileService.GetMates(petEntity, userId);
 
             return Ok(petProfiles);
         }
@@ -187,23 +176,23 @@ namespace Pets.API.Controllers
                     return BadRequest("Invalid content type.");
                 }
 
-                var petEntity = await _petProfileService.GetEntityByPetId(petId);
+                var petEntity = await petProfileService.GetEntityByPetId(petId);
 
                 if (petEntity == null)
                     return NotFound("Pet not found");
 
-                var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
+                var userId = Guid.Parse(userManager.GetUserId(HttpContext.User));
                 if (petEntity.OwnerId != userId)
                     return Unauthorized("You don't own this pet");
 
                 bool isProfileImage = img.Headers.ContainsKey("IsProfileImage");
-                await _imageStorageService.UploadPetImage(petId, isProfileImage, img, cancellationToken);
+                await imageStorageService.UploadPetImage(petId, isProfileImage, img, cancellationToken);
 
                 return Ok();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error adding image for {PetId}", petId);
+                logger.LogError(ex, "Error adding image for {PetId}", petId);
             }
             return StatusCode(500);
         }
@@ -215,11 +204,11 @@ namespace Pets.API.Controllers
             {
                 HttpContext.Response.Clear();
                 HttpContext.Response.Headers.Clear();
-                return _imageStorageService.GetImage(petId, true, HttpContext, cancellationToken);
+                return imageStorageService.GetImage(petId, true, HttpContext, cancellationToken);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting image for {PetId}", petId);
+                logger.LogError(ex, "Error getting image for {PetId}", petId);
             }
             return Task.CompletedTask;
         }
@@ -231,11 +220,11 @@ namespace Pets.API.Controllers
             {
                 HttpContext.Response.Clear();
                 HttpContext.Response.Headers.Clear();
-                return _imageStorageService.GetImage(imageId, HttpContext, cancellationToken);
+                return imageStorageService.GetImage(imageId, HttpContext, cancellationToken);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting image {ImageId} for {PetId}", imageId, petId);
+                logger.LogError(ex, "Error getting image {ImageId} for {PetId}", imageId, petId);
             }
             return Task.CompletedTask;
         }
@@ -247,20 +236,20 @@ namespace Pets.API.Controllers
         {
             try
             {
-                var petEntity = await _petProfileService.GetEntityByPetId(petId);
+                var petEntity = await petProfileService.GetEntityByPetId(petId);
 
                 if (petEntity == null)
                     return NotFound("Pet not found");
 
-                var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
+                var userId = Guid.Parse(userManager.GetUserId(HttpContext.User));
                 if (petEntity.OwnerId != userId)
                     return Unauthorized("You don't own this pet");
 
-                await _imageStorageService.DeleteImage(imageId, cancellationToken);
+                await imageStorageService.DeleteImage(imageId, cancellationToken);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting image {ImageId} for {PetId}", imageId, petId);
+                logger.LogError(ex, "Error deleting image {ImageId} for {PetId}", imageId, petId);
             }
             return StatusCode(500);
         }

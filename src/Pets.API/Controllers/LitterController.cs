@@ -16,34 +16,25 @@ namespace Pets.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class LitterController : ControllerBase
+    public class LitterController(
+        ILitterService litterService,
+        IPetProfileService petProfileService,
+        UserManager<ApplicationUser> userManager,
+        ILogger<LitterController> logger)
+        : ControllerBase
     {
-        private readonly ILitterService _litterService;
-        private readonly IPetProfileService _petprofileService;
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly ILogger<LitterController> _logger;
-
-        public LitterController(ILitterService litterService,
-            IPetProfileService petProfileService,
-            UserManager<ApplicationUser> userManager,
-            ILogger<LitterController> logger)
-        {
-            _litterService = litterService;
-            _petprofileService = petProfileService;
-            _userManager = userManager;
-            _logger = logger;
-        }
+        private readonly ILogger<LitterController> _logger = logger;
 
         [Authorize]
         [HttpGet("{id:Guid}")]
         public async Task<ActionResult<LitterDto>> GetById(Guid id)
         {            
-            var litter = await _litterService.GetById(id);
+            var litter = await litterService.GetById(id);
 
             if (litter == null)
                 return NotFound("Litter not found");
 
-            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
+            var userId = Guid.Parse(userManager.GetUserId(HttpContext.User));
             if (litter.Owner.Id != userId)
                 return Unauthorized("You don't own this litter");
 
@@ -54,7 +45,7 @@ namespace Pets.API.Controllers
         [HttpGet("{id:Guid}/view")]
         public async Task<ActionResult<LitterDto>> GetByIdView(Guid id)
         {
-            var litter = await _litterService.GetById(id);
+            var litter = await litterService.GetById(id);
 
             if (litter == null)
                 return NotFound("Litter not found");
@@ -66,8 +57,8 @@ namespace Pets.API.Controllers
         [HttpGet("infos")]
         public async Task<ActionResult<List<PetProfileDto>>> GetLitterInfos()
         {
-            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
-            var litters = await _litterService.GetLittersView(userId);
+            var userId = Guid.Parse(userManager.GetUserId(HttpContext.User));
+            var litters = await litterService.GetLittersView(userId);
             return Ok(litters);
         }
 
@@ -75,7 +66,7 @@ namespace Pets.API.Controllers
         [HttpGet("user/{userId:Guid}")]
         public async Task<ActionResult<List<PetProfileDto>>> GetLittersView(Guid userId)
         {
-            var litters = await _litterService.GetLittersView(userId);
+            var litters = await litterService.GetLittersView(userId);
 
             //what to return if owner does not exist??
 
@@ -86,9 +77,9 @@ namespace Pets.API.Controllers
         [HttpPost]
         public async Task<ActionResult<Guid>> Post(CreateLitterRequest request)
         {
-            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
+            var userId = Guid.Parse(userManager.GetUserId(HttpContext.User));
 
-            var pet = await _petprofileService.GetByPetId(request.MotherPetId);
+            var pet = await petProfileService.GetByPetId(request.MotherPetId);
             if (pet == null)
             {
                 return BadRequest("Mother pet does not exisit");
@@ -99,7 +90,7 @@ namespace Pets.API.Controllers
                 return Unauthorized("You do not own Mother pet");
             }
 
-            pet = await _petprofileService.GetByPetId(request.FatherPetId);
+            pet = await petProfileService.GetByPetId(request.FatherPetId);
             if (pet == null)
             {
                 return BadRequest("Father pet does not exisit");
@@ -110,7 +101,7 @@ namespace Pets.API.Controllers
                 return Unauthorized("You do not own Father pet");
             }
 
-            var litterId = await _litterService.CreateLitter(request, userId);
+            var litterId = await litterService.CreateLitter(request, userId);
             return Ok(litterId);
         }
 
@@ -118,8 +109,8 @@ namespace Pets.API.Controllers
         [HttpPut]
         public async Task<ActionResult> Put(UpdateLitterRequest request)
         {
-            var petEntity = await _litterService.GetEntityById(request.Id);
-            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
+            var petEntity = await litterService.GetEntityById(request.Id);
+            var userId = Guid.Parse(userManager.GetUserId(HttpContext.User));
 
             if (petEntity == null)
                 return NotFound("Litter not found");
@@ -127,7 +118,7 @@ namespace Pets.API.Controllers
             if (petEntity.OwnerId != userId)
                 return Unauthorized("You don't own this litter");
 
-            await _litterService.UpdateLitter(request, petEntity);
+            await litterService.UpdateLitter(request, petEntity);
             return Ok();
         }
 
@@ -135,8 +126,8 @@ namespace Pets.API.Controllers
         [HttpDelete("{id:Guid}")]
         public async Task<ActionResult> Delete(Guid id)
         {
-            var litterEntity = await _litterService.GetEntityById(id);
-            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
+            var litterEntity = await litterService.GetEntityById(id);
+            var userId = Guid.Parse(userManager.GetUserId(HttpContext.User));
 
             if (litterEntity == null)
                 return NotFound("Litter not found");
@@ -144,7 +135,7 @@ namespace Pets.API.Controllers
             if (litterEntity.OwnerId != userId)
                 return Unauthorized("You don't own this litter");
 
-            await _litterService.DeleteLitter(litterEntity);
+            await litterService.DeleteLitter(litterEntity);
             return Ok();
         }
 
@@ -154,8 +145,8 @@ namespace Pets.API.Controllers
         {
             //TODO: Location perimeter search
             //TODO: return image url
-            searchParams.UserId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
-            var petProfiles = await _litterService.Search(searchParams);
+            searchParams.UserId = Guid.Parse(userManager.GetUserId(HttpContext.User));
+            var petProfiles = await litterService.Search(searchParams);
 
             return Ok(petProfiles);
         }

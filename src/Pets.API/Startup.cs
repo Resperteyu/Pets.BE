@@ -105,31 +105,12 @@ namespace Pets.API
                                     Id = "Bearer"
                                 }
                             },
-                            new string[] {}
+                        []
                     }
                  });
             });
 
-            services.AddSendGrid(options =>
-                options.ApiKey = Configuration.GetValue<string>("SendGridApiKey") ?? throw new Exception("The 'SendGridApiKey' is not configured")
-            );
-
-            services.AddTransient<StubbedHttpClientHandler>();
-            services.AddHttpClient<IGeocodingService, GoogleGeocodingService>()
-                .ConfigurePrimaryHttpMessageHandler(serviceProvider =>
-                    {
-                        var featureManager = serviceProvider.GetRequiredService<IFeatureManager>();
-                        bool isStubbed = !featureManager.IsEnabledAsync("UseGeocodingApi").GetAwaiter().GetResult(); // Dynamically to use async? Just a ff on the service?
-
-                        if (isStubbed)
-                        {
-                            return serviceProvider.GetRequiredService<StubbedHttpClientHandler>();
-                        }
-
-                        return new HttpClientHandler();
-                    });
-
-            services.AddSingleton<IEmailSender, SendGridEmailSender>();
+            services.AddSingleton<IEmailSender, ConsoleEmailSender>();
             services.AddSingleton<EmailService>();
 
             services.AddScoped<ISexService, SexService>();
@@ -147,6 +128,7 @@ namespace Pets.API
             services.AddSingleton<IMateRequestStateChangeValidator, MateRequestStateChangeValidator>();
             services.AddSingleton<IFirebaseClient, FirebaseClient>();
             services.AddSingleton<IChatService, ChatService>();
+            services.AddHttpClient<IGeocodingService, GoogleGeocodingService>();
 
             services.AddOptions<BlobStorageSettings>().Configure(options =>
             {
@@ -162,6 +144,19 @@ namespace Pets.API
             });
 
             services.AddApplicationInsightsTelemetry();
+
+            // CORS policy for frontend
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend",
+                    builder =>
+                    {
+                        builder.WithOrigins("http://localhost:3000", "http://127.0.0.1:3000")
+                               .AllowAnyHeader()
+                               .AllowAnyMethod()
+                               .AllowCredentials();
+                    });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -187,6 +182,8 @@ namespace Pets.API
             app.UseSwaggerUI();
 
             app.UseRouting();
+
+            app.UseCors("AllowFrontend");
 
             app.UseAuthentication();
             app.UseAuthorization();

@@ -15,26 +15,17 @@ namespace Pets.API.Controllers
     [Authorize]
     [Route("[controller]")]
     [ApiController]
-    public class UserProfileController : ControllerBase
-    {        
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IUserProfileService _userProfileService;
-        private readonly IPetProfileService _petProfileService;
-
-        public UserProfileController(UserManager<ApplicationUser> userManager, 
-            IUserProfileService userProfileService,
-            IPetProfileService petProfileService)
-        {
-            _userManager = userManager;
-            _userProfileService = userProfileService;
-            _petProfileService = petProfileService;
-        }
-
+    public class UserProfileController(
+        UserManager<ApplicationUser> userManager,
+        IUserProfileService userProfileService,
+        IPetProfileService petProfileService)
+        : ControllerBase
+    {
         [HttpGet]
         public async Task<ActionResult<UserProfileDto>> GetProfile()
         {
-            var userId = _userManager.GetUserId(User);
-            var userProfile = await _userProfileService.GetUserProfile(userId);
+            var userId = userManager.GetUserId(User);
+            var userProfile = await userProfileService.GetUserProfile(userId);
 
             return userProfile == null ? NotFound() : Ok(userProfile);
         }
@@ -42,8 +33,8 @@ namespace Pets.API.Controllers
         [HttpPatch]
         public async Task<IActionResult> UpdateProfile([FromBody] JsonPatchDocument<UserProfileDto> patchDocument)
         {
-            var userId = _userManager.GetUserId(User);
-            var updateResult = await _userProfileService.UpdateUserProfile(userId, patchDocument);
+            var userId = userManager.GetUserId(User);
+            var updateResult = await userProfileService.UpdateUserProfile(userId, patchDocument);
 
             if (!updateResult.Success)
             {
@@ -56,8 +47,8 @@ namespace Pets.API.Controllers
         [HttpDelete]
         public async Task<IActionResult> DeleteProfile()
         {
-            var userId = _userManager.GetUserId(User);
-            var success = await _userProfileService.DeleteUserProfile(userId);
+            var userId = userManager.GetUserId(User);
+            var success = await userProfileService.DeleteUserProfile(userId);
 
             return success ? NoContent() : NotFound();
         }
@@ -65,7 +56,7 @@ namespace Pets.API.Controllers
         [HttpGet("{id:Guid}/view")]
         public async Task<ActionResult<ViewUserProfileDto>> GetProfile(Guid id)
         {
-            var userProfile = await _userProfileService.GetUserProfile(id.ToString());
+            var userProfile = await userProfileService.GetUserProfile(id.ToString());
 
             if (userProfile == null)
                 return NotFound();
@@ -74,7 +65,7 @@ namespace Pets.API.Controllers
             {
                 Id = id,
                 UserName = userProfile.UserName,
-                Pets = await _petProfileService.GetPetsView(id)
+                Pets = await petProfileService.GetPetsView(id)
             };
 
             return Ok(viewUserProfileDto);

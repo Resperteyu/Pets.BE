@@ -19,31 +19,24 @@ namespace Pets.API.Controllers
 {
     [ApiController]
     [Route("service-offer")]
-    public class ServiceOfferController : ControllerBase
+    public class ServiceOfferController(
+        IServiceOfferService serviceOfferService,
+        UserManager<ApplicationUser> userManager,
+        ILogger<ServiceOfferController> logger)
+        : ControllerBase
     {
-        private readonly IServiceOfferService _serviceOfferService;
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly ILogger<ServiceOfferController> _logger;
-
-        public ServiceOfferController(IServiceOfferService serviceOfferService,
-            UserManager<ApplicationUser> userManager,
-            ILogger<ServiceOfferController> logger)
-        {
-            _serviceOfferService = serviceOfferService;
-            _userManager = userManager;
-            _logger = logger;
-        }
+        private readonly ILogger<ServiceOfferController> _logger = logger;
 
         [Authorize]
         [HttpGet("{serviceOfferId:Guid}")]
         public async Task<ActionResult<PetProfileDto>> Get(Guid serviceOfferId)
         {
-            var serviceOffer = await _serviceOfferService.Get(serviceOfferId);
+            var serviceOffer = await serviceOfferService.Get(serviceOfferId);
 
             if (serviceOffer == null)
                 return NotFound("Service not found");
 
-            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
+            var userId = Guid.Parse(userManager.GetUserId(HttpContext.User));
             if (serviceOffer.User.Id != userId)
                 return Unauthorized("You don't own this service");
 
@@ -54,8 +47,8 @@ namespace Pets.API.Controllers
         [HttpGet("infos")]
         public async Task<ActionResult<List<ServiceOfferDto>>> GetServiceOfferInfos()
         {
-            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
-            var servicesOffer = await _serviceOfferService.GetByOwnerId(userId);
+            var userId = Guid.Parse(userManager.GetUserId(HttpContext.User));
+            var servicesOffer = await serviceOfferService.GetByOwnerId(userId);
             return Ok(servicesOffer);
         }
 
@@ -63,7 +56,7 @@ namespace Pets.API.Controllers
         [HttpGet("user/{userId:Guid}")]
         public async Task<ActionResult<List<ServiceOfferDto>>> GetServicesView(Guid userId)
         {
-            var services = await _serviceOfferService.GetServicesView(userId);
+            var services = await serviceOfferService.GetServicesView(userId);
 
             //what to return if owner does not exist??
 
@@ -74,7 +67,7 @@ namespace Pets.API.Controllers
         [HttpGet("{serviceOfferId:Guid}/view")]
         public async Task<ActionResult<PetProfileDto>> GetServiceOfferView(Guid serviceOfferId)
         {
-            var serviceOffer = await _serviceOfferService.GetServiceOfferView(serviceOfferId);
+            var serviceOffer = await serviceOfferService.GetServiceOfferView(serviceOfferId);
 
             if (serviceOffer == null)
                 return NotFound("Service not found");
@@ -88,8 +81,8 @@ namespace Pets.API.Controllers
         {
             //TODO: Location perimeter search
             //TODO: return image url
-            searchParams.UserId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
-            var results = await _serviceOfferService.Search(searchParams);
+            searchParams.UserId = Guid.Parse(userManager.GetUserId(HttpContext.User));
+            var results = await serviceOfferService.Search(searchParams);
 
             return Ok(results);
         }
@@ -98,8 +91,8 @@ namespace Pets.API.Controllers
         [HttpPost]
         public async Task<ActionResult<Guid>> Post(CreateServiceOfferRequest request)
         {
-            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User)); // TODO Insert in context?
-            var serviceOfferId = await _serviceOfferService.Create(request, userId);
+            var userId = Guid.Parse(userManager.GetUserId(HttpContext.User)); // TODO Insert in context?
+            var serviceOfferId = await serviceOfferService.Create(request, userId);
             return Ok(serviceOfferId);
         }
         
@@ -107,8 +100,8 @@ namespace Pets.API.Controllers
         [HttpPut]
         public async Task<ActionResult> Put(UpdateServiceOfferRequest request)
         {
-            var serviceOfferEntity = await _serviceOfferService.GetEntityById(request.Id);
-            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
+            var serviceOfferEntity = await serviceOfferService.GetEntityById(request.Id);
+            var userId = Guid.Parse(userManager.GetUserId(HttpContext.User));
 
             if (serviceOfferEntity == null)
                 return NotFound("Service-offer not found");
@@ -116,7 +109,7 @@ namespace Pets.API.Controllers
             if (serviceOfferEntity.UserId != userId)
                 return Unauthorized("You don't own this service-offer");
 
-            await _serviceOfferService.Update(request, serviceOfferEntity);
+            await serviceOfferService.Update(request, serviceOfferEntity);
             return Ok();
         }
 
@@ -124,8 +117,8 @@ namespace Pets.API.Controllers
         [HttpDelete("{serviceOfferId:Guid}")]
         public async Task<ActionResult> Delete(Guid serviceOfferId)
         {
-            var serviceOfferEntity = await _serviceOfferService.GetEntityById(serviceOfferId);
-            var userId = Guid.Parse(_userManager.GetUserId(HttpContext.User));
+            var serviceOfferEntity = await serviceOfferService.GetEntityById(serviceOfferId);
+            var userId = Guid.Parse(userManager.GetUserId(HttpContext.User));
 
             if (serviceOfferEntity == null)
                 return NotFound("Service-offer not found");
@@ -133,7 +126,7 @@ namespace Pets.API.Controllers
             if (serviceOfferEntity.UserId != userId)
                 return Unauthorized("You don't own this service-offer");
 
-            await _serviceOfferService.Delete(serviceOfferEntity);
+            await serviceOfferService.Delete(serviceOfferEntity);
             return Ok();
         }
     }

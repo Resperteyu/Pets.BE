@@ -29,32 +29,24 @@ namespace Pets.API.Services
         Task<List<PetSearchResultDto>> Search(SearchParams searchParams);
     }
 
-    public class PetProfileService : IPetProfileService
+    public class PetProfileService(
+        PetsDbContext context,
+        IMapper mapper,
+        IImageStorageService imageStorageService)
+        : IPetProfileService
     {
         private const int SEARCH_MAX_RESULTS = 50;
 
-        private readonly PetsDbContext _context;
-        private readonly IMapper _mapper;
-        private readonly IImageStorageService _imageStorageService;
-
-        public PetProfileService(PetsDbContext context, IMapper mapper,
-            IImageStorageService imageStorageService)
-        {
-            _context = context;
-            _mapper = mapper;
-            _imageStorageService = imageStorageService;
-        }
-
         public async Task<PetProfile> GetEntityByPetId(Guid petId)
         {
-            return await _context.PetProfiles.Where(x => x.Id == petId)
+            return await context.PetProfiles.Where(x => x.Id == petId)
                                             .Include(i => i.Breed)
                                             .SingleOrDefaultAsync();
         }
 
         public async Task<PetProfileDto> GetByPetId(Guid petId)
         {
-            var petProfile = await _context.PetProfiles.Where(x => x.Id == petId)
+            var petProfile = await context.PetProfiles.Where(x => x.Id == petId)
                                             .Include(i => i.Owner)
                                             .Include(i => i.Breed)
                                             .Include(i => i.Sex)
@@ -63,38 +55,38 @@ namespace Pets.API.Services
             if (petProfile == null)
                 return null;
 
-            return _mapper.Map<PetProfileDto>(petProfile);
+            return mapper.Map<PetProfileDto>(petProfile);
         }        
 
         public async Task<List<PetProfileDto>> GetByOwnerId(Guid ownerId)
         {
-            var petProfiles = await _context.PetProfiles.Where(x => x.OwnerId == ownerId)
+            var petProfiles = await context.PetProfiles.Where(x => x.OwnerId == ownerId)
                                             .Include(i => i.Breed)
                                             .Include(i => i.Sex)
                                             .ToListAsync();
 
-            return _mapper.Map<List<PetProfileDto>>(petProfiles);
+            return mapper.Map<List<PetProfileDto>>(petProfiles);
         }
 
         public async Task<List<PetProfileDto>> GetPetsView(Guid userId)
         {
-            var petProfiles = await _context.PetProfiles.Where(x => x.OwnerId == userId && x.Private == false)                                            
+            var petProfiles = await context.PetProfiles.Where(x => x.OwnerId == userId && x.Private == false)                                            
                                             .Include(i => i.Breed)
                                             .Include(i => i.Sex)
                                             .OrderByDescending(x => x.CreationDate)
                                             .ToListAsync();
 
-            return _mapper.Map<List<PetProfileDto>>(petProfiles);
+            return mapper.Map<List<PetProfileDto>>(petProfiles);
         }
 
         public async Task<Guid> CreatePet(CreatePetRequest request, Guid ownerId)
         {
-            var pet = _mapper.Map<PetProfile>(request);
+            var pet = mapper.Map<PetProfile>(request);
             pet.OwnerId = ownerId;
             pet.CreationDate = DateTime.UtcNow;
 
-            var petProfile = await _context.PetProfiles.AddAsync(pet);
-            await _context.SaveChangesAsync();
+            var petProfile = await context.PetProfiles.AddAsync(pet);
+            await context.SaveChangesAsync();
 
             return petProfile.Entity.Id;
         }
@@ -113,20 +105,20 @@ namespace Pets.API.Services
             entity.Missing = request.Missing;
             entity.Private = request.Private;
 
-            _context.PetProfiles.Update(entity);
-            await _context.SaveChangesAsync();
+            context.PetProfiles.Update(entity);
+            await context.SaveChangesAsync();
         }
 
         public async Task DeletePet(PetProfile entity)
         {
-            _context.PetProfiles.Remove(entity);
-            await _context.SaveChangesAsync();
-            await _imageStorageService.DeleteAllPetImages(entity.Id, CancellationToken.None);
+            context.PetProfiles.Remove(entity);
+            await context.SaveChangesAsync();
+            await imageStorageService.DeleteAllPetImages(entity.Id, CancellationToken.None);
         }
 
         public async Task<List<PetSearchResultDto>> Search(SearchParams searchParams)
         {
-            IQueryable<PetProfile> petProfiles = _context.PetProfiles
+            IQueryable<PetProfile> petProfiles = context.PetProfiles
                                             .Include(i => i.Breed)
                                             .Include(i => i.Sex)
                                             .Include(i => i.Owner)
@@ -230,7 +222,7 @@ namespace Pets.API.Services
         public async Task<List<PetProfileDto>> GetMates(PetProfile entity, Guid userId)
         {
             //TO DO: introduce mate preferences associated to specific pet
-            var petProfiles = await _context.PetProfiles.Where(x => x.OwnerId == userId)
+            var petProfiles = await context.PetProfiles.Where(x => x.OwnerId == userId)
                                             .Where(x => x.SexId != entity.SexId)
                                             .Where(x => x.AvailableForBreeding == true)
                                             .Where(x => x.Breed.TypeId == entity.Breed.TypeId)
@@ -238,7 +230,7 @@ namespace Pets.API.Services
                                             .Include(i => i.Sex)
                                             .ToListAsync();
 
-            return _mapper.Map<List<PetProfileDto>>(petProfiles);
+            return mapper.Map<List<PetProfileDto>>(petProfiles);
         }
     }
 }
