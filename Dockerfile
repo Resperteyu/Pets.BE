@@ -3,7 +3,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # Copy csproj files and restore dependencies
-COPY src/Pets.Db/Pets.DB.csproj src/Pets.Db/
+COPY src/Pets.Db/Pets.Db.csproj src/Pets.Db/
 COPY src/Pets.API/Pets.API.csproj src/Pets.API/
 RUN dotnet restore src/Pets.API/Pets.API.csproj
 
