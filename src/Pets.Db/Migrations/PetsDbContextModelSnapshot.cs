@@ -2,9 +2,9 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Pets.Db;
 
 #nullable disable
@@ -18,35 +18,35 @@ namespace Pets.Db.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.5")
-                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+                .HasAnnotation("ProductVersion", "7.0.11")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "postgis");
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("NormalizedName")
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedName")
                         .IsUnique()
-                        .HasDatabaseName("RoleNameIndex")
-                        .HasFilter("[NormalizedName] IS NOT NULL");
+                        .HasDatabaseName("RoleNameIndex");
 
                     b.ToTable("AspNetRoles", (string)null);
 
@@ -61,7 +61,7 @@ namespace Pets.Db.Migrations
                         new
                         {
                             Id = new Guid("b82f0af8-26e8-4c3d-80d9-f9d85db6af10"),
-                            ConcurrencyStamp = "b0411996-0450-4fb5-aa0f-ea0f1841c6aaba94c8a5-0198-4edf-9b2e-e2128a46457a",
+                            ConcurrencyStamp = "b0411996-0450-4fb5-aa0f-ea0f1841c6aa",
                             Name = "PetOwner",
                             NormalizedName = "PETOWNER"
                         },
@@ -85,18 +85,18 @@ namespace Pets.Db.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("ClaimValue")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<Guid>("RoleId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -109,18 +109,18 @@ namespace Pets.Db.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("ClaimValue")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -132,16 +132,16 @@ namespace Pets.Db.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<string>("ProviderKey")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<string>("ProviderDisplayName")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.HasKey("LoginProvider", "ProviderKey");
 
@@ -153,10 +153,10 @@ namespace Pets.Db.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
                 {
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("RoleId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.HasKey("UserId", "RoleId");
 
@@ -168,16 +168,16 @@ namespace Pets.Db.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
                 {
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Value")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
@@ -188,32 +188,32 @@ namespace Pets.Db.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("AddedDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("ExpiryDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("IsRevoked")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsUsed")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("JwtId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Token")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -226,36 +226,36 @@ namespace Pets.Db.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<Guid?>("ApplicationUserId")
                         .IsRequired()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("City")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("CountryCode")
                         .IsRequired()
-                        .HasColumnType("char(2)");
+                        .HasColumnType("character(2)");
 
                     b.Property<string>("Line1")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Line2")
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Postcode")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("character varying(20)");
 
                     b.HasKey("Id");
 
@@ -271,68 +271,68 @@ namespace Pets.Db.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("AccessFailedCount")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("FirstName")
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("character varying(20)");
 
                     b.Property<string>("LastName")
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("character varying(20)");
 
                     b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("PasswordHash")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("RefreshToken")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("RefreshTokenExpiryTime")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("SecurityStamp")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("character varying(256)");
 
                     b.HasKey("Id");
 
@@ -341,8 +341,7 @@ namespace Pets.Db.Migrations
 
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
-                        .HasDatabaseName("UserNameIndex")
-                        .HasFilter("[NormalizedUserName] IS NOT NULL");
+                        .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -350,17 +349,17 @@ namespace Pets.Db.Migrations
             modelBuilder.Entity("Pets.Db.Models.Country", b =>
                 {
                     b.Property<string>("Code")
-                        .HasColumnType("char(2)");
+                        .HasColumnType("character(2)");
 
                     b.Property<string>("DialCode")
                         .IsRequired()
                         .HasMaxLength(4)
-                        .HasColumnType("nvarchar(4)");
+                        .HasColumnType("character varying(4)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("character varying(20)");
 
                     b.HasKey("Code");
 
@@ -387,12 +386,6 @@ namespace Pets.Db.Migrations
                         },
                         new
                         {
-                            Code = "HR",
-                            DialCode = "+385",
-                            Name = "Croatia"
-                        },
-                        new
-                        {
                             Code = "CY",
                             DialCode = "+357",
                             Name = "Cyprus"
@@ -402,6 +395,12 @@ namespace Pets.Db.Migrations
                             Code = "CZ",
                             DialCode = "+420",
                             Name = "Czech Republic"
+                        },
+                        new
+                        {
+                            Code = "DE",
+                            DialCode = "+49",
+                            Name = "Germany"
                         },
                         new
                         {
@@ -417,6 +416,12 @@ namespace Pets.Db.Migrations
                         },
                         new
                         {
+                            Code = "ES",
+                            DialCode = "+34",
+                            Name = "Spain"
+                        },
+                        new
+                        {
                             Code = "FI",
                             DialCode = "+358",
                             Name = "Finland"
@@ -429,15 +434,15 @@ namespace Pets.Db.Migrations
                         },
                         new
                         {
-                            Code = "DE",
-                            DialCode = "+49",
-                            Name = "Germany"
-                        },
-                        new
-                        {
                             Code = "GR",
                             DialCode = "+30",
                             Name = "Greece"
+                        },
+                        new
+                        {
+                            Code = "HR",
+                            DialCode = "+385",
+                            Name = "Croatia"
                         },
                         new
                         {
@@ -459,12 +464,6 @@ namespace Pets.Db.Migrations
                         },
                         new
                         {
-                            Code = "LV",
-                            DialCode = "+371",
-                            Name = "Latvia"
-                        },
-                        new
-                        {
                             Code = "LT",
                             DialCode = "+370",
                             Name = "Lithuania"
@@ -474,6 +473,12 @@ namespace Pets.Db.Migrations
                             Code = "LU",
                             DialCode = "+352",
                             Name = "Luxembourg"
+                        },
+                        new
+                        {
+                            Code = "LV",
+                            DialCode = "+371",
+                            Name = "Latvia"
                         },
                         new
                         {
@@ -507,9 +512,9 @@ namespace Pets.Db.Migrations
                         },
                         new
                         {
-                            Code = "SK",
-                            DialCode = "+421",
-                            Name = "Slovakia"
+                            Code = "SE",
+                            DialCode = "+46",
+                            Name = "Sweden"
                         },
                         new
                         {
@@ -519,15 +524,15 @@ namespace Pets.Db.Migrations
                         },
                         new
                         {
-                            Code = "ES",
-                            DialCode = "+34",
-                            Name = "Spain"
+                            Code = "SK",
+                            DialCode = "+421",
+                            Name = "Slovakia"
                         },
                         new
                         {
-                            Code = "SE",
-                            DialCode = "+46",
-                            Name = "Sweden"
+                            Code = "GB",
+                            DialCode = "+44",
+                            Name = "United Kingdom"
                         });
                 });
 
@@ -535,13 +540,13 @@ namespace Pets.Db.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("Available")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<int>("BreedId")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("date");
@@ -549,24 +554,24 @@ namespace Pets.Db.Migrations
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(3000)
-                        .HasColumnType("nvarchar(3000)");
+                        .HasColumnType("character varying(3000)");
 
                     b.Property<Guid>("FatherPetId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("MotherPetId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("OwnerId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Size")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("character varying(50)");
 
                     b.HasKey("Id");
 
@@ -589,22 +594,22 @@ namespace Pets.Db.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int>("AddressId")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<Point>("GeoLocation")
                         .IsRequired()
-                        .HasColumnType("geography");
+                        .HasColumnType("geometry");
 
                     b.Property<decimal>("Latitude")
-                        .HasColumnType("decimal(9,6)");
+                        .HasColumnType("numeric(9,6)");
 
                     b.Property<decimal>("Longitude")
-                        .HasColumnType("decimal(9,6)");
+                        .HasColumnType("numeric(9,6)");
 
                     b.HasKey("Id");
 
@@ -618,49 +623,49 @@ namespace Pets.Db.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("AmountAgreement")
                         .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
+                        .HasColumnType("character varying(250)");
 
                     b.Property<string>("BreedingPlaceAgreement")
                         .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
+                        .HasColumnType("character varying(250)");
 
                     b.Property<string>("Comment")
                         .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("character varying(1000)");
 
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("date");
 
                     b.Property<string>("Description")
                         .HasMaxLength(3000)
-                        .HasColumnType("nvarchar(3000)");
+                        .HasColumnType("character varying(3000)");
 
                     b.Property<string>("LitterSplitAgreement")
                         .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
+                        .HasColumnType("character varying(250)");
 
                     b.Property<byte>("MateRequestStateId")
-                        .HasColumnType("tinyint");
+                        .HasColumnType("smallint");
 
                     b.Property<Guid>("PetMateOwnerId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("PetMateProfileId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("PetOwnerId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("PetProfileId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Response")
                         .HasMaxLength(3000)
-                        .HasColumnType("nvarchar(3000)");
+                        .HasColumnType("character varying(3000)");
 
                     b.HasKey("Id");
 
@@ -680,52 +685,1329 @@ namespace Pets.Db.Migrations
             modelBuilder.Entity("Pets.Db.Models.MateRequestState", b =>
                 {
                     b.Property<byte>("Id")
-                        .HasColumnType("tinyint");
+                        .HasColumnType("smallint");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("character varying(20)");
 
                     b.HasKey("Id");
 
                     b.ToTable("MateRequestState", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = (byte)1,
+                            Title = "Pending"
+                        },
+                        new
+                        {
+                            Id = (byte)2,
+                            Title = "Accepted"
+                        },
+                        new
+                        {
+                            Id = (byte)3,
+                            Title = "Declined"
+                        },
+                        new
+                        {
+                            Id = (byte)4,
+                            Title = "Cancelled"
+                        },
+                        new
+                        {
+                            Id = (byte)5,
+                            Title = "Completed"
+                        });
                 });
 
             modelBuilder.Entity("Pets.Db.Models.PetBreed", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(40)
-                        .HasColumnType("nvarchar(40)");
+                        .HasColumnType("character varying(40)");
 
                     b.Property<byte>("TypeId")
-                        .HasColumnType("tinyint");
+                        .HasColumnType("smallint");
 
                     b.HasKey("Id");
 
                     b.HasIndex("TypeId");
 
                     b.ToTable("PetBreed", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Title = "Abyssinian",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Title = "Aegean",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Title = "American Bobtail",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Title = "American Curl",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Title = "American Shorthair",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Title = "American Wirehair",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Title = "Arabian Mau",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Title = "Asian",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Title = "Australian Mist",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 10,
+                            Title = "Balinese",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 11,
+                            Title = "Bambino",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 12,
+                            Title = "Bengal",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 13,
+                            Title = "Birman",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 14,
+                            Title = "Bombay",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 15,
+                            Title = "Brazilian Shorthair",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 16,
+                            Title = "British Longhair",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 17,
+                            Title = "British Shorthair",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 18,
+                            Title = "Burmese",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 19,
+                            Title = "Burmilla",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 20,
+                            Title = "California Spangled",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 21,
+                            Title = "Ceylon",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 22,
+                            Title = "Chantilly-Tiffany",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 23,
+                            Title = "Chartreux",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 24,
+                            Title = "Chausie",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 25,
+                            Title = "Colorpoint Shorthair",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 26,
+                            Title = "Cornish Rex",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 27,
+                            Title = "Cymric",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 28,
+                            Title = "Devon Rex",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 29,
+                            Title = "Donskoy",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 30,
+                            Title = "Dragon Li",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 31,
+                            Title = "Dwelf",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 32,
+                            Title = "Egyptian Mau",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 33,
+                            Title = "European Shorthair",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 34,
+                            Title = "Exotic Shorthair",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 35,
+                            Title = "Foldex",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 36,
+                            Title = "German Rex",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 37,
+                            Title = "Havana Brown",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 38,
+                            Title = "Highlander",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 39,
+                            Title = "Himalayan",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 40,
+                            Title = "Japanese Bobtail",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 41,
+                            Title = "Javanese",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 42,
+                            Title = "Khao Manee",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 43,
+                            Title = "Korat",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 44,
+                            Title = "Kurilian Bobtail",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 45,
+                            Title = "LaPerm",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 46,
+                            Title = "Maine Coon",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 47,
+                            Title = "Manx",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 48,
+                            Title = "Mekong Bobtail",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 49,
+                            Title = "Minskin",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 50,
+                            Title = "Munchkin",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 51,
+                            Title = "Nebelung",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 52,
+                            Title = "Norwegian Forest Cat",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 53,
+                            Title = "Ocicat",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 54,
+                            Title = "Ojos Azules",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 55,
+                            Title = "Oriental Bicolor",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 56,
+                            Title = "Oriental Longhair",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 57,
+                            Title = "Oriental Shorthair",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 58,
+                            Title = "Persian",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 59,
+                            Title = "Peterbald",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 60,
+                            Title = "Pixie-Bob",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 61,
+                            Title = "Raas",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 62,
+                            Title = "Ragamuffin",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 63,
+                            Title = "Ragdoll",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 64,
+                            Title = "Russian Blue",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 65,
+                            Title = "Russian White",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 66,
+                            Title = "Russian Black",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 67,
+                            Title = "Savannah",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 68,
+                            Title = "Scottish Fold",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 69,
+                            Title = "Selkirk Rex",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 70,
+                            Title = "Serengeti",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 71,
+                            Title = "Serrade Petit",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 72,
+                            Title = "Siamese",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 73,
+                            Title = "Siberian",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 74,
+                            Title = "Singapura",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 75,
+                            Title = "Snowshoe",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 76,
+                            Title = "Sokoke",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 77,
+                            Title = "Somali",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 78,
+                            Title = "Sphynx",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 79,
+                            Title = "Suphalak",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 80,
+                            Title = "Thai",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 81,
+                            Title = "Thai Lilac",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 82,
+                            Title = "Tonkinese",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 83,
+                            Title = "Toyger",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 84,
+                            Title = "Turkish Angora",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 85,
+                            Title = "Turkish Van",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 86,
+                            Title = "Ukrainian Levkoy",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 87,
+                            Title = "York Chocolate",
+                            TypeId = (byte)1
+                        },
+                        new
+                        {
+                            Id = 88,
+                            Title = "Affenpinscher",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 89,
+                            Title = "Afghan Hound",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 90,
+                            Title = "Airedale Terrier",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 91,
+                            Title = "Akita",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 92,
+                            Title = "Alaskan Malamute",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 93,
+                            Title = "American English Coonhound",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 94,
+                            Title = "American Eskimo Dog",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 95,
+                            Title = "American Foxhound",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 96,
+                            Title = "American Hairless Terrier",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 97,
+                            Title = "American Leopard Hound",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 98,
+                            Title = "American Staffordshire Terrier",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 99,
+                            Title = "American Water Spaniel",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 100,
+                            Title = "Anatolian Shepherd Dog",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 101,
+                            Title = "Australian Cattle Dog",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 102,
+                            Title = "Australian Shepherd",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 103,
+                            Title = "Australian Terrier",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 104,
+                            Title = "Basenji",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 105,
+                            Title = "Basset Hound",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 106,
+                            Title = "Beagle",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 107,
+                            Title = "Bearded Collie",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 108,
+                            Title = "Beauceron",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 109,
+                            Title = "Belgian Malinois",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 110,
+                            Title = "Belgian Sheepdog",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 111,
+                            Title = "Belgian Tervuren",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 112,
+                            Title = "Bernese Mountain Dog",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 113,
+                            Title = "Bichon Frise",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 114,
+                            Title = "Bloodhound",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 115,
+                            Title = "Border Collie",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 116,
+                            Title = "Border Terrier",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 117,
+                            Title = "Borzoi",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 118,
+                            Title = "Boston Terrier",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 119,
+                            Title = "Boxer",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 120,
+                            Title = "Brittany",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 121,
+                            Title = "Brussels Griffon",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 122,
+                            Title = "Bull Terrier",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 123,
+                            Title = "Bulldog",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 124,
+                            Title = "Bullmastiff",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 125,
+                            Title = "Cairn Terrier",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 126,
+                            Title = "Cane Corso",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 127,
+                            Title = "Cardigan Welsh Corgi",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 128,
+                            Title = "Cavalier King Charles Spaniel",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 129,
+                            Title = "Chesapeake Bay Retriever",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 130,
+                            Title = "Chihuahua",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 131,
+                            Title = "Chinese Crested",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 132,
+                            Title = "Chinese Shar-Pei",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 133,
+                            Title = "Chow Chow",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 134,
+                            Title = "Cocker Spaniel",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 135,
+                            Title = "Collie",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 136,
+                            Title = "Coton de Tulear",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 137,
+                            Title = "Dachshund",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 138,
+                            Title = "Dalmatian",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 139,
+                            Title = "Doberman Pinscher",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 140,
+                            Title = "English Cocker Spaniel",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 141,
+                            Title = "English Setter",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 142,
+                            Title = "English Springer Spaniel",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 143,
+                            Title = "French Bulldog",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 144,
+                            Title = "German Pinscher",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 145,
+                            Title = "German Shepherd Dog",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 146,
+                            Title = "German Shorthaired Pointer",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 147,
+                            Title = "Giant Schnauzer",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 148,
+                            Title = "Golden Retriever",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 149,
+                            Title = "Gordon Setter",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 150,
+                            Title = "Great Dane",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 151,
+                            Title = "Great Pyrenees",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 152,
+                            Title = "Greyhound",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 153,
+                            Title = "Havanese",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 154,
+                            Title = "Irish Setter",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 155,
+                            Title = "Irish Wolfhound",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 156,
+                            Title = "Italian Greyhound",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 157,
+                            Title = "Jack Russell Terrier",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 158,
+                            Title = "Japanese Chin",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 159,
+                            Title = "Keeshond",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 160,
+                            Title = "Kerry Blue Terrier",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 161,
+                            Title = "Komondor",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 162,
+                            Title = "Labrador Retriever",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 163,
+                            Title = "Lhasa Apso",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 164,
+                            Title = "Maltese",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 165,
+                            Title = "Mastiff",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 166,
+                            Title = "Miniature Pinscher",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 167,
+                            Title = "Miniature Schnauzer",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 168,
+                            Title = "Newfoundland",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 169,
+                            Title = "Norfolk Terrier",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 170,
+                            Title = "Norwegian Elkhound",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 171,
+                            Title = "Norwich Terrier",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 172,
+                            Title = "Old English Sheepdog",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 173,
+                            Title = "Papillon",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 174,
+                            Title = "Pekingese",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 175,
+                            Title = "Pembroke Welsh Corgi",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 176,
+                            Title = "Pointer",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 177,
+                            Title = "Pomeranian",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 178,
+                            Title = "Poodle",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 179,
+                            Title = "Portuguese Water Dog",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 180,
+                            Title = "Pug",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 181,
+                            Title = "Puli",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 182,
+                            Title = "Rhodesian Ridgeback",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 183,
+                            Title = "Rottweiler",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 184,
+                            Title = "Saint Bernard",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 185,
+                            Title = "Saluki",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 186,
+                            Title = "Samoyed",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 187,
+                            Title = "Schipperke",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 188,
+                            Title = "Scottish Deerhound",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 189,
+                            Title = "Scottish Terrier",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 190,
+                            Title = "Shetland Sheepdog",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 191,
+                            Title = "Shiba Inu",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 192,
+                            Title = "Shih Tzu",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 193,
+                            Title = "Siberian Husky",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 194,
+                            Title = "Silky Terrier",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 195,
+                            Title = "Soft Coated Wheaten Terrier",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 196,
+                            Title = "Staffordshire Bull Terrier",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 197,
+                            Title = "Standard Schnauzer",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 198,
+                            Title = "Tibetan Mastiff",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 199,
+                            Title = "Tibetan Spaniel",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 200,
+                            Title = "Tibetan Terrier",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 201,
+                            Title = "Vizsla",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 202,
+                            Title = "Weimaraner",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 203,
+                            Title = "Welsh Terrier",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 204,
+                            Title = "West Highland White Terrier",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 205,
+                            Title = "Whippet",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 206,
+                            Title = "Wire Fox Terrier",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 207,
+                            Title = "Yorkshire Terrier",
+                            TypeId = (byte)2
+                        },
+                        new
+                        {
+                            Id = 208,
+                            Title = "Mixed Breed",
+                            TypeId = (byte)2
+                        });
                 });
 
             modelBuilder.Entity("Pets.Db.Models.PetProfile", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("AvailableForBreeding")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<int>("BreedId")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("date");
@@ -735,33 +2017,33 @@ namespace Pets.Db.Migrations
 
                     b.Property<string>("Description")
                         .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
+                        .HasColumnType("character varying(250)");
 
                     b.Property<bool>("ForAdoption")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("ForSale")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("Missing")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("character varying(20)");
 
                     b.Property<Guid?>("OwnerId")
                         .IsRequired()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Price")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<bool>("Private")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<byte>("SexId")
-                        .HasColumnType("tinyint");
+                        .HasColumnType("smallint");
 
                     b.HasKey("Id");
 
@@ -781,29 +2063,41 @@ namespace Pets.Db.Migrations
             modelBuilder.Entity("Pets.Db.Models.PetType", b =>
                 {
                     b.Property<byte>("Id")
-                        .HasColumnType("tinyint");
+                        .HasColumnType("smallint");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                        .HasColumnType("character varying(10)");
 
                     b.HasKey("Id");
 
                     b.ToTable("PetType", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = (byte)1,
+                            Name = "Cats"
+                        },
+                        new
+                        {
+                            Id = (byte)2,
+                            Name = "Dogs"
+                        });
                 });
 
             modelBuilder.Entity("Pets.Db.Models.ServiceOffer", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("Active")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<int>("AdditionalPetRate")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("date");
@@ -811,28 +2105,28 @@ namespace Pets.Db.Migrations
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(3000)
-                        .HasColumnType("nvarchar(3000)");
+                        .HasColumnType("character varying(3000)");
 
                     b.Property<bool>("ForCats")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("ForDogs")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<int>("HourlyRate")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<int>("PeakRate")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<int>("Rate")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<byte>("ServiceTypeId")
-                        .HasColumnType("tinyint");
+                        .HasColumnType("smallint");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -851,55 +2145,93 @@ namespace Pets.Db.Migrations
             modelBuilder.Entity("Pets.Db.Models.ServiceType", b =>
                 {
                     b.Property<byte>("Id")
-                        .HasColumnType("tinyint");
+                        .HasColumnType("smallint");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("Url")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
                     b.ToTable("ServiceType", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = (byte)1,
+                            Title = "Pet Sitting",
+                            Url = "pet-sitting"
+                        },
+                        new
+                        {
+                            Id = (byte)2,
+                            Title = "Pet Hosting",
+                            Url = "pet-hosting"
+                        },
+                        new
+                        {
+                            Id = (byte)3,
+                            Title = "Pet Visit",
+                            Url = "pet-visit"
+                        },
+                        new
+                        {
+                            Id = (byte)4,
+                            Title = "Dog Walking",
+                            Url = "dog-walking"
+                        });
                 });
 
             modelBuilder.Entity("Pets.Db.Models.Sex", b =>
                 {
                     b.Property<byte>("Id")
-                        .HasColumnType("tinyint");
+                        .HasColumnType("smallint");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                        .HasColumnType("character varying(10)");
 
                     b.HasKey("Id");
 
                     b.ToTable("Sex", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = (byte)1,
+                            Title = "Male"
+                        },
+                        new
+                        {
+                            Id = (byte)2,
+                            Title = "Female"
+                        });
                 });
 
             modelBuilder.Entity("Pets.Db.Models.UserProfileInfo", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("AboutMe")
                         .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
+                        .HasColumnType("character varying(300)");
 
                     b.Property<Guid?>("ApplicationUserId")
                         .IsRequired()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("ProfilePhotoUrl")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 

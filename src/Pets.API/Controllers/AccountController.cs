@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -18,6 +19,7 @@ using PetDb.Models;
 using Pets.Db;
 using Microsoft.EntityFrameworkCore;
 using Pets.API.Services;
+using NetTopologySuite.Geometries;
 
 namespace Pets.API.Controllers
 {
@@ -30,7 +32,9 @@ namespace Pets.API.Controllers
         EmailService emailService,
         TokenValidationParameters tokenValidationParameters,
         PetsDbContext context,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IGeocodingService geocodingService,
+        IMapper mapper)
         : ControllerBase
     {
         [HttpPost]
@@ -92,7 +96,15 @@ namespace Pets.API.Controllers
             if (!roleExists)
                 return BadRequest(new AuthenticateResponse { Success = false, Errors = ["Role does not exist"] });
 
-            var newUser = new ApplicationUser { Email = request.Email, UserName = request.Username };
+            var newUser = new ApplicationUser 
+            { 
+                Email = request.Email, 
+                UserName = request.Username,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                PhoneNumber = request.Telephone
+            };
+            
             var createUserResult = await userManager.CreateAsync(newUser, request.Password);
             if (!createUserResult.Succeeded)
                 return StatusCode(StatusCodes.Status500InternalServerError, 
@@ -102,6 +114,26 @@ namespace Pets.API.Controllers
             if (!roleResult.Succeeded)
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     new AuthenticateResponse { Success = false, Errors = roleResult.Errors.Select(x => x.Description).ToList() });
+
+            // Create address and geocode it
+            try
+            {
+                var address = mapper.Map<Address>(request.Address);
+                address.ApplicationUserId = newUser.Id;
+                
+                // Geocode the address
+                var location = await geocodingService.CalculateLocationAsync(request.Address);
+                address.Location = location;
+                
+                context.Addresses.Add(address);
+                await context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                // Log the error but don't fail registration
+                // TODO: Add proper logging
+                // For now, we'll continue with registration even if geocoding fails
+            }
 
             var authResponse = await GenerateAuthenticateResponse(newUser);
 

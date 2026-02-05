@@ -18,6 +18,8 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser, Identity
     {
     }
 
+    public DbSet<Address> Addresses { get; set; }
+
     public DbSet<Country> Countries { get; set; }
 
     public DbSet<Location> Locations { get; set; }
@@ -44,6 +46,9 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser, Identity
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // Enable PostGIS extension for geography types
+        modelBuilder.HasPostgresExtension("postgis");
+
         modelBuilder.Entity<ApplicationUser>(entity =>
         {
             entity.ToTable(name: "Users");
@@ -67,7 +72,7 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser, Identity
         {
             entity.HasKey(e => e.Code);
 
-            entity.Property(e => e.Code).HasColumnType("char(2)");
+            entity.Property(e => e.Code).HasColumnType("character(2)");
             entity.Property(e => e.Name).HasMaxLength(20);
             entity.Property(e => e.DialCode).HasMaxLength(4);
 
@@ -137,8 +142,8 @@ public partial class PetsDbContext : IdentityDbContext<ApplicationUser, Identity
 
         modelBuilder.Entity<Location>(entity =>
         {
-            entity.Property(e => e.Latitude).HasColumnType("decimal(9,6)");
-            entity.Property(e => e.Longitude).HasColumnType("decimal(9,6)");
+            entity.Property(e => e.Latitude).HasColumnType("numeric(9,6)");
+            entity.Property(e => e.Longitude).HasColumnType("numeric(9,6)");
 
             entity.ToTable("Location");
         });

@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -70,6 +69,15 @@ namespace Pets.API.Controllers
 
             //what to return if owner does not exist??
 
+            return Ok(litters);
+        }
+
+        [Authorize]
+        [HttpGet("user/me")]
+        public async Task<ActionResult<List<PetProfileDto>>> GetLittersViewMe()
+        {
+            var userId = Guid.Parse(userManager.GetUserId(HttpContext.User));
+            var litters = await litterService.GetLittersView(userId);
             return Ok(litters);
         }
 

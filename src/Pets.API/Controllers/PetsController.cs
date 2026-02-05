@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Pets.API.Requests;
 using Pets.API.Requests.Search;
@@ -22,7 +23,8 @@ namespace Pets.API.Controllers
         IPetProfileService petProfileService,
         UserManager<ApplicationUser> userManager,
         IImageStorageService imageStorageService,
-        ILogger<PetsController> logger)
+        ILogger<PetsController> logger,
+        IConfiguration configuration)
         : ControllerBase
     {
         [Authorize]
@@ -77,6 +79,7 @@ namespace Pets.API.Controllers
         }
 
         [Authorize]
+        [Authorize]
         [HttpGet("search")]
         public async Task<ActionResult<List<PetProfileDto>>> Search([FromQuery] SearchParams searchParams)
         {
@@ -86,6 +89,30 @@ namespace Pets.API.Controllers
             var petProfiles = await petProfileService.Search(searchParams);
 
             return Ok(petProfiles);
+        }
+
+        // Helper method to geocode using Google Maps API
+        private async Task<(double lat, double lng)> GeocodeLocation(string location)
+        {
+            var apiKey = configuration["GoogleGeocodingApiKey"];
+            if (string.IsNullOrEmpty(apiKey))
+            {
+                // Default to London if no API key is configured
+                return (51.5074, -0.1278);
+            }
+            
+            var url = $"https://maps.googleapis.com/maps/api/geocode/json?address={Uri.EscapeDataString(location)}&key={apiKey}";
+            using var httpClient = new System.Net.Http.HttpClient();
+            var response = await httpClient.GetStringAsync(url);
+            dynamic json = Newtonsoft.Json.JsonConvert.DeserializeObject(response);
+            if (json.status == "OK")
+            {
+                double lat = json.results[0].geometry.location.lat;
+                double lng = json.results[0].geometry.location.lng;
+                return (lat, lng);
+            }
+            // Default to London if geocoding fails
+            return (51.5074, -0.1278);
         }
 
         [Authorize]
@@ -252,6 +279,33 @@ namespace Pets.API.Controllers
                 logger.LogError(ex, "Error deleting image {ImageId} for {PetId}", imageId, petId);
             }
             return StatusCode(500);
+        }
+
+        [HttpGet("all-simple")]
+        public async Task<ActionResult<List<SimplePetDto>>> GetAllSimple()
+        {
+            var pets = await petProfileService.GetAllSimplePets();
+            return Ok(pets);
+        }
+
+        [Authorize]
+        [HttpGet("user/me")]
+        public async Task<ActionResult<List<PetProfileDto>>> GetPetsViewMe()
+        {
+            var userIdClaim = userManager.GetUserId(HttpContext.User);
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                return Unauthorized("Invalid or missing user identity.");
+            var petProfiles = await petProfileService.GetPetsView(userId);
+            return Ok(petProfiles);
+        }
+
+        [HttpGet("geocode")]
+        public async Task<IActionResult> Geocode([FromQuery] string address)
+        {
+            if (string.IsNullOrWhiteSpace(address))
+                return BadRequest("Address is required");
+            var (lat, lng) = await GeocodeLocation(address);
+            return Ok(new { latitude = lat, longitude = lng });
         }
     }
 }

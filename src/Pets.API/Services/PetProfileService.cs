@@ -27,6 +27,7 @@ namespace Pets.API.Services
         Task DeletePet(PetProfile entity);
         Task<List<PetProfileDto>> GetMates(PetProfile entity, Guid userId);
         Task<List<PetSearchResultDto>> Search(SearchParams searchParams);
+        Task<List<SimplePetDto>> GetAllSimplePets();
     }
 
     public class PetProfileService(
@@ -70,7 +71,7 @@ namespace Pets.API.Services
 
         public async Task<List<PetProfileDto>> GetPetsView(Guid userId)
         {
-            var petProfiles = await context.PetProfiles.Where(x => x.OwnerId == userId && x.Private == false)                                            
+            var petProfiles = await context.PetProfiles.Where(x => x.OwnerId == userId && x.Private == false)
                                             .Include(i => i.Breed)
                                             .Include(i => i.Sex)
                                             .OrderByDescending(x => x.CreationDate)
@@ -231,6 +232,13 @@ namespace Pets.API.Services
                                             .ToListAsync();
 
             return mapper.Map<List<PetProfileDto>>(petProfiles);
+        }
+
+        public async Task<List<SimplePetDto>> GetAllSimplePets()
+        {
+            return await context.PetProfiles
+                .Select(x => new SimplePetDto { Id = x.Id, Name = x.Name })
+                .ToListAsync();
         }
     }
 }

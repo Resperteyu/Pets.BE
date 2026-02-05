@@ -1,9 +1,6 @@
-﻿using CsvHelper;
-using CsvHelper.Configuration;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Pets.Db.Models;
-using System.Globalization;
 
 namespace Pets.Db
 {
@@ -11,27 +8,287 @@ namespace Pets.Db
     {
         public static void Seed(this ModelBuilder modelBuilder)
         {
-            var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            var seedDataDirectory = Path.Combine(baseDirectory, "SeedData");
+            // Seed Roles
+            modelBuilder.Entity<IdentityRole<Guid>>().HasData(
+                new IdentityRole<Guid> { Id = Guid.Parse("af3dd336-0bbb-4c52-b8cc-b45f90517155"), Name = "Administrator", NormalizedName = "ADMINISTRATOR", ConcurrencyStamp = "ada39352-2b42-4a6c-a073-fe0a60f30107" },
+                new IdentityRole<Guid> { Id = Guid.Parse("b82f0af8-26e8-4c3d-80d9-f9d85db6af10"), Name = "PetOwner", NormalizedName = "PETOWNER", ConcurrencyStamp = "b0411996-0450-4fb5-aa0f-ea0f1841c6aa" },
+                new IdentityRole<Guid> { Id = Guid.Parse("ba94c8a5-0198-4edf-9b2e-e2128a46457a"), Name = "Shelter", NormalizedName = "SHELTER", ConcurrencyStamp = "fe74e7b7-3ae7-4e32-9402-39545953b20a" },
+                new IdentityRole<Guid> { Id = Guid.Parse("d2631f51-a5a5-4413-afeb-8104e779b886"), Name = "Professional", NormalizedName = "PROFESSIONAL", ConcurrencyStamp = "163b55d7-5be1-447b-b00a-4314f3e17b2c" }
+            );
 
-            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
-            {
-                IgnoreBlankLines = false,
-                HeaderValidated = null,
-                MissingFieldFound = null,
-            };
+            // Seed Countries
+            modelBuilder.Entity<Country>().HasData(
+                new Country { Code = "AT", Name = "Austria", DialCode = "+43" },
+                new Country { Code = "BE", Name = "Belgium", DialCode = "+32" },
+                new Country { Code = "BG", Name = "Bulgaria", DialCode = "+359" },
+                new Country { Code = "CY", Name = "Cyprus", DialCode = "+357" },
+                new Country { Code = "CZ", Name = "Czech Republic", DialCode = "+420" },
+                new Country { Code = "DE", Name = "Germany", DialCode = "+49" },
+                new Country { Code = "DK", Name = "Denmark", DialCode = "+45" },
+                new Country { Code = "EE", Name = "Estonia", DialCode = "+372" },
+                new Country { Code = "ES", Name = "Spain", DialCode = "+34" },
+                new Country { Code = "FI", Name = "Finland", DialCode = "+358" },
+                new Country { Code = "FR", Name = "France", DialCode = "+33" },
+                new Country { Code = "GR", Name = "Greece", DialCode = "+30" },
+                new Country { Code = "HR", Name = "Croatia", DialCode = "+385" },
+                new Country { Code = "HU", Name = "Hungary", DialCode = "+36" },
+                new Country { Code = "IE", Name = "Ireland", DialCode = "+353" },
+                new Country { Code = "IT", Name = "Italy", DialCode = "+39" },
+                new Country { Code = "LT", Name = "Lithuania", DialCode = "+370" },
+                new Country { Code = "LU", Name = "Luxembourg", DialCode = "+352" },
+                new Country { Code = "LV", Name = "Latvia", DialCode = "+371" },
+                new Country { Code = "MT", Name = "Malta", DialCode = "+356" },
+                new Country { Code = "NL", Name = "Netherlands", DialCode = "+31" },
+                new Country { Code = "PL", Name = "Poland", DialCode = "+48" },
+                new Country { Code = "PT", Name = "Portugal", DialCode = "+351" },
+                new Country { Code = "RO", Name = "Romania", DialCode = "+40" },
+                new Country { Code = "SE", Name = "Sweden", DialCode = "+46" },
+                new Country { Code = "SI", Name = "Slovenia", DialCode = "+386" },
+                new Country { Code = "SK", Name = "Slovakia", DialCode = "+421" },
+                new Country { Code = "GB", Name = "United Kingdom", DialCode = "+44" }
+            );
 
-            modelBuilder.Entity<Country>().HasData(LoadCsvData<Country>(Path.Combine(seedDataDirectory, "EuropeanCountries.csv"), config));
-            modelBuilder.Entity<IdentityRole<Guid>>().HasData(LoadCsvData<IdentityRole<Guid>>(Path.Combine(seedDataDirectory, "Roles.csv"), config));
-        }
+            // Seed PetType
+            modelBuilder.Entity<PetType>().HasData(
+                new PetType { Id = 1, Name = "Cats" },
+                new PetType { Id = 2, Name = "Dogs" }
+            );
 
-        private static T[] LoadCsvData<T>(string filePath, CsvConfiguration config)
-        {
-            using (var reader = new StreamReader(filePath))
-            using (var csv = new CsvReader(reader, config))
-            {
-                return csv.GetRecords<T>().ToArray();
-            }
+            // Seed Sex
+            modelBuilder.Entity<Sex>().HasData(
+                new Sex { Id = 1, Title = "Male" },
+                new Sex { Id = 2, Title = "Female" }
+            );
+
+            // Seed MateRequestState
+            modelBuilder.Entity<MateRequestState>().HasData(
+                new MateRequestState { Id = 1, Title = "Pending" },
+                new MateRequestState { Id = 2, Title = "Accepted" },
+                new MateRequestState { Id = 3, Title = "Declined" },
+                new MateRequestState { Id = 4, Title = "Cancelled" },
+                new MateRequestState { Id = 5, Title = "Completed" }
+            );
+
+            // Seed ServiceType
+            modelBuilder.Entity<ServiceType>().HasData(
+                new ServiceType { Id = 1, Title = "Pet Sitting", Url = "pet-sitting" },
+                new ServiceType { Id = 2, Title = "Pet Hosting", Url = "pet-hosting" },
+                new ServiceType { Id = 3, Title = "Pet Visit", Url = "pet-visit" },
+                new ServiceType { Id = 4, Title = "Dog Walking", Url = "dog-walking" }
+            );
+
+            // Seed PetBreed - Cat breeds (TypeId = 1)
+            modelBuilder.Entity<PetBreed>().HasData(
+                new PetBreed { Id = 1, TypeId = 1, Title = "Abyssinian" },
+                new PetBreed { Id = 2, TypeId = 1, Title = "Aegean" },
+                new PetBreed { Id = 3, TypeId = 1, Title = "American Bobtail" },
+                new PetBreed { Id = 4, TypeId = 1, Title = "American Curl" },
+                new PetBreed { Id = 5, TypeId = 1, Title = "American Shorthair" },
+                new PetBreed { Id = 6, TypeId = 1, Title = "American Wirehair" },
+                new PetBreed { Id = 7, TypeId = 1, Title = "Arabian Mau" },
+                new PetBreed { Id = 8, TypeId = 1, Title = "Asian" },
+                new PetBreed { Id = 9, TypeId = 1, Title = "Australian Mist" },
+                new PetBreed { Id = 10, TypeId = 1, Title = "Balinese" },
+                new PetBreed { Id = 11, TypeId = 1, Title = "Bambino" },
+                new PetBreed { Id = 12, TypeId = 1, Title = "Bengal" },
+                new PetBreed { Id = 13, TypeId = 1, Title = "Birman" },
+                new PetBreed { Id = 14, TypeId = 1, Title = "Bombay" },
+                new PetBreed { Id = 15, TypeId = 1, Title = "Brazilian Shorthair" },
+                new PetBreed { Id = 16, TypeId = 1, Title = "British Longhair" },
+                new PetBreed { Id = 17, TypeId = 1, Title = "British Shorthair" },
+                new PetBreed { Id = 18, TypeId = 1, Title = "Burmese" },
+                new PetBreed { Id = 19, TypeId = 1, Title = "Burmilla" },
+                new PetBreed { Id = 20, TypeId = 1, Title = "California Spangled" },
+                new PetBreed { Id = 21, TypeId = 1, Title = "Ceylon" },
+                new PetBreed { Id = 22, TypeId = 1, Title = "Chantilly-Tiffany" },
+                new PetBreed { Id = 23, TypeId = 1, Title = "Chartreux" },
+                new PetBreed { Id = 24, TypeId = 1, Title = "Chausie" },
+                new PetBreed { Id = 25, TypeId = 1, Title = "Colorpoint Shorthair" },
+                new PetBreed { Id = 26, TypeId = 1, Title = "Cornish Rex" },
+                new PetBreed { Id = 27, TypeId = 1, Title = "Cymric" },
+                new PetBreed { Id = 28, TypeId = 1, Title = "Devon Rex" },
+                new PetBreed { Id = 29, TypeId = 1, Title = "Donskoy" },
+                new PetBreed { Id = 30, TypeId = 1, Title = "Dragon Li" },
+                new PetBreed { Id = 31, TypeId = 1, Title = "Dwelf" },
+                new PetBreed { Id = 32, TypeId = 1, Title = "Egyptian Mau" },
+                new PetBreed { Id = 33, TypeId = 1, Title = "European Shorthair" },
+                new PetBreed { Id = 34, TypeId = 1, Title = "Exotic Shorthair" },
+                new PetBreed { Id = 35, TypeId = 1, Title = "Foldex" },
+                new PetBreed { Id = 36, TypeId = 1, Title = "German Rex" },
+                new PetBreed { Id = 37, TypeId = 1, Title = "Havana Brown" },
+                new PetBreed { Id = 38, TypeId = 1, Title = "Highlander" },
+                new PetBreed { Id = 39, TypeId = 1, Title = "Himalayan" },
+                new PetBreed { Id = 40, TypeId = 1, Title = "Japanese Bobtail" },
+                new PetBreed { Id = 41, TypeId = 1, Title = "Javanese" },
+                new PetBreed { Id = 42, TypeId = 1, Title = "Khao Manee" },
+                new PetBreed { Id = 43, TypeId = 1, Title = "Korat" },
+                new PetBreed { Id = 44, TypeId = 1, Title = "Kurilian Bobtail" },
+                new PetBreed { Id = 45, TypeId = 1, Title = "LaPerm" },
+                new PetBreed { Id = 46, TypeId = 1, Title = "Maine Coon" },
+                new PetBreed { Id = 47, TypeId = 1, Title = "Manx" },
+                new PetBreed { Id = 48, TypeId = 1, Title = "Mekong Bobtail" },
+                new PetBreed { Id = 49, TypeId = 1, Title = "Minskin" },
+                new PetBreed { Id = 50, TypeId = 1, Title = "Munchkin" },
+                new PetBreed { Id = 51, TypeId = 1, Title = "Nebelung" },
+                new PetBreed { Id = 52, TypeId = 1, Title = "Norwegian Forest Cat" },
+                new PetBreed { Id = 53, TypeId = 1, Title = "Ocicat" },
+                new PetBreed { Id = 54, TypeId = 1, Title = "Ojos Azules" },
+                new PetBreed { Id = 55, TypeId = 1, Title = "Oriental Bicolor" },
+                new PetBreed { Id = 56, TypeId = 1, Title = "Oriental Longhair" },
+                new PetBreed { Id = 57, TypeId = 1, Title = "Oriental Shorthair" },
+                new PetBreed { Id = 58, TypeId = 1, Title = "Persian" },
+                new PetBreed { Id = 59, TypeId = 1, Title = "Peterbald" },
+                new PetBreed { Id = 60, TypeId = 1, Title = "Pixie-Bob" },
+                new PetBreed { Id = 61, TypeId = 1, Title = "Raas" },
+                new PetBreed { Id = 62, TypeId = 1, Title = "Ragamuffin" },
+                new PetBreed { Id = 63, TypeId = 1, Title = "Ragdoll" },
+                new PetBreed { Id = 64, TypeId = 1, Title = "Russian Blue" },
+                new PetBreed { Id = 65, TypeId = 1, Title = "Russian White" },
+                new PetBreed { Id = 66, TypeId = 1, Title = "Russian Black" },
+                new PetBreed { Id = 67, TypeId = 1, Title = "Savannah" },
+                new PetBreed { Id = 68, TypeId = 1, Title = "Scottish Fold" },
+                new PetBreed { Id = 69, TypeId = 1, Title = "Selkirk Rex" },
+                new PetBreed { Id = 70, TypeId = 1, Title = "Serengeti" },
+                new PetBreed { Id = 71, TypeId = 1, Title = "Serrade Petit" },
+                new PetBreed { Id = 72, TypeId = 1, Title = "Siamese" },
+                new PetBreed { Id = 73, TypeId = 1, Title = "Siberian" },
+                new PetBreed { Id = 74, TypeId = 1, Title = "Singapura" },
+                new PetBreed { Id = 75, TypeId = 1, Title = "Snowshoe" },
+                new PetBreed { Id = 76, TypeId = 1, Title = "Sokoke" },
+                new PetBreed { Id = 77, TypeId = 1, Title = "Somali" },
+                new PetBreed { Id = 78, TypeId = 1, Title = "Sphynx" },
+                new PetBreed { Id = 79, TypeId = 1, Title = "Suphalak" },
+                new PetBreed { Id = 80, TypeId = 1, Title = "Thai" },
+                new PetBreed { Id = 81, TypeId = 1, Title = "Thai Lilac" },
+                new PetBreed { Id = 82, TypeId = 1, Title = "Tonkinese" },
+                new PetBreed { Id = 83, TypeId = 1, Title = "Toyger" },
+                new PetBreed { Id = 84, TypeId = 1, Title = "Turkish Angora" },
+                new PetBreed { Id = 85, TypeId = 1, Title = "Turkish Van" },
+                new PetBreed { Id = 86, TypeId = 1, Title = "Ukrainian Levkoy" },
+                new PetBreed { Id = 87, TypeId = 1, Title = "York Chocolate" },
+                // Dog breeds (TypeId = 2)
+                new PetBreed { Id = 88, TypeId = 2, Title = "Affenpinscher" },
+                new PetBreed { Id = 89, TypeId = 2, Title = "Afghan Hound" },
+                new PetBreed { Id = 90, TypeId = 2, Title = "Airedale Terrier" },
+                new PetBreed { Id = 91, TypeId = 2, Title = "Akita" },
+                new PetBreed { Id = 92, TypeId = 2, Title = "Alaskan Malamute" },
+                new PetBreed { Id = 93, TypeId = 2, Title = "American English Coonhound" },
+                new PetBreed { Id = 94, TypeId = 2, Title = "American Eskimo Dog" },
+                new PetBreed { Id = 95, TypeId = 2, Title = "American Foxhound" },
+                new PetBreed { Id = 96, TypeId = 2, Title = "American Hairless Terrier" },
+                new PetBreed { Id = 97, TypeId = 2, Title = "American Leopard Hound" },
+                new PetBreed { Id = 98, TypeId = 2, Title = "American Staffordshire Terrier" },
+                new PetBreed { Id = 99, TypeId = 2, Title = "American Water Spaniel" },
+                new PetBreed { Id = 100, TypeId = 2, Title = "Anatolian Shepherd Dog" },
+                new PetBreed { Id = 101, TypeId = 2, Title = "Australian Cattle Dog" },
+                new PetBreed { Id = 102, TypeId = 2, Title = "Australian Shepherd" },
+                new PetBreed { Id = 103, TypeId = 2, Title = "Australian Terrier" },
+                new PetBreed { Id = 104, TypeId = 2, Title = "Basenji" },
+                new PetBreed { Id = 105, TypeId = 2, Title = "Basset Hound" },
+                new PetBreed { Id = 106, TypeId = 2, Title = "Beagle" },
+                new PetBreed { Id = 107, TypeId = 2, Title = "Bearded Collie" },
+                new PetBreed { Id = 108, TypeId = 2, Title = "Beauceron" },
+                new PetBreed { Id = 109, TypeId = 2, Title = "Belgian Malinois" },
+                new PetBreed { Id = 110, TypeId = 2, Title = "Belgian Sheepdog" },
+                new PetBreed { Id = 111, TypeId = 2, Title = "Belgian Tervuren" },
+                new PetBreed { Id = 112, TypeId = 2, Title = "Bernese Mountain Dog" },
+                new PetBreed { Id = 113, TypeId = 2, Title = "Bichon Frise" },
+                new PetBreed { Id = 114, TypeId = 2, Title = "Bloodhound" },
+                new PetBreed { Id = 115, TypeId = 2, Title = "Border Collie" },
+                new PetBreed { Id = 116, TypeId = 2, Title = "Border Terrier" },
+                new PetBreed { Id = 117, TypeId = 2, Title = "Borzoi" },
+                new PetBreed { Id = 118, TypeId = 2, Title = "Boston Terrier" },
+                new PetBreed { Id = 119, TypeId = 2, Title = "Boxer" },
+                new PetBreed { Id = 120, TypeId = 2, Title = "Brittany" },
+                new PetBreed { Id = 121, TypeId = 2, Title = "Brussels Griffon" },
+                new PetBreed { Id = 122, TypeId = 2, Title = "Bull Terrier" },
+                new PetBreed { Id = 123, TypeId = 2, Title = "Bulldog" },
+                new PetBreed { Id = 124, TypeId = 2, Title = "Bullmastiff" },
+                new PetBreed { Id = 125, TypeId = 2, Title = "Cairn Terrier" },
+                new PetBreed { Id = 126, TypeId = 2, Title = "Cane Corso" },
+                new PetBreed { Id = 127, TypeId = 2, Title = "Cardigan Welsh Corgi" },
+                new PetBreed { Id = 128, TypeId = 2, Title = "Cavalier King Charles Spaniel" },
+                new PetBreed { Id = 129, TypeId = 2, Title = "Chesapeake Bay Retriever" },
+                new PetBreed { Id = 130, TypeId = 2, Title = "Chihuahua" },
+                new PetBreed { Id = 131, TypeId = 2, Title = "Chinese Crested" },
+                new PetBreed { Id = 132, TypeId = 2, Title = "Chinese Shar-Pei" },
+                new PetBreed { Id = 133, TypeId = 2, Title = "Chow Chow" },
+                new PetBreed { Id = 134, TypeId = 2, Title = "Cocker Spaniel" },
+                new PetBreed { Id = 135, TypeId = 2, Title = "Collie" },
+                new PetBreed { Id = 136, TypeId = 2, Title = "Coton de Tulear" },
+                new PetBreed { Id = 137, TypeId = 2, Title = "Dachshund" },
+                new PetBreed { Id = 138, TypeId = 2, Title = "Dalmatian" },
+                new PetBreed { Id = 139, TypeId = 2, Title = "Doberman Pinscher" },
+                new PetBreed { Id = 140, TypeId = 2, Title = "English Cocker Spaniel" },
+                new PetBreed { Id = 141, TypeId = 2, Title = "English Setter" },
+                new PetBreed { Id = 142, TypeId = 2, Title = "English Springer Spaniel" },
+                new PetBreed { Id = 143, TypeId = 2, Title = "French Bulldog" },
+                new PetBreed { Id = 144, TypeId = 2, Title = "German Pinscher" },
+                new PetBreed { Id = 145, TypeId = 2, Title = "German Shepherd Dog" },
+                new PetBreed { Id = 146, TypeId = 2, Title = "German Shorthaired Pointer" },
+                new PetBreed { Id = 147, TypeId = 2, Title = "Giant Schnauzer" },
+                new PetBreed { Id = 148, TypeId = 2, Title = "Golden Retriever" },
+                new PetBreed { Id = 149, TypeId = 2, Title = "Gordon Setter" },
+                new PetBreed { Id = 150, TypeId = 2, Title = "Great Dane" },
+                new PetBreed { Id = 151, TypeId = 2, Title = "Great Pyrenees" },
+                new PetBreed { Id = 152, TypeId = 2, Title = "Greyhound" },
+                new PetBreed { Id = 153, TypeId = 2, Title = "Havanese" },
+                new PetBreed { Id = 154, TypeId = 2, Title = "Irish Setter" },
+                new PetBreed { Id = 155, TypeId = 2, Title = "Irish Wolfhound" },
+                new PetBreed { Id = 156, TypeId = 2, Title = "Italian Greyhound" },
+                new PetBreed { Id = 157, TypeId = 2, Title = "Jack Russell Terrier" },
+                new PetBreed { Id = 158, TypeId = 2, Title = "Japanese Chin" },
+                new PetBreed { Id = 159, TypeId = 2, Title = "Keeshond" },
+                new PetBreed { Id = 160, TypeId = 2, Title = "Kerry Blue Terrier" },
+                new PetBreed { Id = 161, TypeId = 2, Title = "Komondor" },
+                new PetBreed { Id = 162, TypeId = 2, Title = "Labrador Retriever" },
+                new PetBreed { Id = 163, TypeId = 2, Title = "Lhasa Apso" },
+                new PetBreed { Id = 164, TypeId = 2, Title = "Maltese" },
+                new PetBreed { Id = 165, TypeId = 2, Title = "Mastiff" },
+                new PetBreed { Id = 166, TypeId = 2, Title = "Miniature Pinscher" },
+                new PetBreed { Id = 167, TypeId = 2, Title = "Miniature Schnauzer" },
+                new PetBreed { Id = 168, TypeId = 2, Title = "Newfoundland" },
+                new PetBreed { Id = 169, TypeId = 2, Title = "Norfolk Terrier" },
+                new PetBreed { Id = 170, TypeId = 2, Title = "Norwegian Elkhound" },
+                new PetBreed { Id = 171, TypeId = 2, Title = "Norwich Terrier" },
+                new PetBreed { Id = 172, TypeId = 2, Title = "Old English Sheepdog" },
+                new PetBreed { Id = 173, TypeId = 2, Title = "Papillon" },
+                new PetBreed { Id = 174, TypeId = 2, Title = "Pekingese" },
+                new PetBreed { Id = 175, TypeId = 2, Title = "Pembroke Welsh Corgi" },
+                new PetBreed { Id = 176, TypeId = 2, Title = "Pointer" },
+                new PetBreed { Id = 177, TypeId = 2, Title = "Pomeranian" },
+                new PetBreed { Id = 178, TypeId = 2, Title = "Poodle" },
+                new PetBreed { Id = 179, TypeId = 2, Title = "Portuguese Water Dog" },
+                new PetBreed { Id = 180, TypeId = 2, Title = "Pug" },
+                new PetBreed { Id = 181, TypeId = 2, Title = "Puli" },
+                new PetBreed { Id = 182, TypeId = 2, Title = "Rhodesian Ridgeback" },
+                new PetBreed { Id = 183, TypeId = 2, Title = "Rottweiler" },
+                new PetBreed { Id = 184, TypeId = 2, Title = "Saint Bernard" },
+                new PetBreed { Id = 185, TypeId = 2, Title = "Saluki" },
+                new PetBreed { Id = 186, TypeId = 2, Title = "Samoyed" },
+                new PetBreed { Id = 187, TypeId = 2, Title = "Schipperke" },
+                new PetBreed { Id = 188, TypeId = 2, Title = "Scottish Deerhound" },
+                new PetBreed { Id = 189, TypeId = 2, Title = "Scottish Terrier" },
+                new PetBreed { Id = 190, TypeId = 2, Title = "Shetland Sheepdog" },
+                new PetBreed { Id = 191, TypeId = 2, Title = "Shiba Inu" },
+                new PetBreed { Id = 192, TypeId = 2, Title = "Shih Tzu" },
+                new PetBreed { Id = 193, TypeId = 2, Title = "Siberian Husky" },
+                new PetBreed { Id = 194, TypeId = 2, Title = "Silky Terrier" },
+                new PetBreed { Id = 195, TypeId = 2, Title = "Soft Coated Wheaten Terrier" },
+                new PetBreed { Id = 196, TypeId = 2, Title = "Staffordshire Bull Terrier" },
+                new PetBreed { Id = 197, TypeId = 2, Title = "Standard Schnauzer" },
+                new PetBreed { Id = 198, TypeId = 2, Title = "Tibetan Mastiff" },
+                new PetBreed { Id = 199, TypeId = 2, Title = "Tibetan Spaniel" },
+                new PetBreed { Id = 200, TypeId = 2, Title = "Tibetan Terrier" },
+                new PetBreed { Id = 201, TypeId = 2, Title = "Vizsla" },
+                new PetBreed { Id = 202, TypeId = 2, Title = "Weimaraner" },
+                new PetBreed { Id = 203, TypeId = 2, Title = "Welsh Terrier" },
+                new PetBreed { Id = 204, TypeId = 2, Title = "West Highland White Terrier" },
+                new PetBreed { Id = 205, TypeId = 2, Title = "Whippet" },
+                new PetBreed { Id = 206, TypeId = 2, Title = "Wire Fox Terrier" },
+                new PetBreed { Id = 207, TypeId = 2, Title = "Yorkshire Terrier" },
+                new PetBreed { Id = 208, TypeId = 2, Title = "Mixed Breed" }
+            );
         }
     }
 }

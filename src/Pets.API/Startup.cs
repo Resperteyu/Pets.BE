@@ -8,9 +8,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
 using Microsoft.OpenApi.Models;
@@ -44,7 +46,7 @@ namespace Pets.API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<PetsDbContext>(options =>
-             options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"), x => x.UseNetTopologySuite()));
+             options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection"), x => x.UseNetTopologySuite()));
             services.AddHealthChecks();
 
             services.AddControllers(options =>
@@ -146,12 +148,14 @@ namespace Pets.API
             services.AddApplicationInsightsTelemetry();
 
             // CORS policy for frontend
+            var allowedOrigins = Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+                ?? new[] { "http://localhost:3000", "http://127.0.0.1:3000" };
             services.AddCors(options =>
             {
                 options.AddPolicy("AllowFrontend",
                     builder =>
                     {
-                        builder.WithOrigins("http://localhost:3000", "http://127.0.0.1:3000")
+                        builder.WithOrigins(allowedOrigins)
                                .AllowAnyHeader()
                                .AllowAnyMethod()
                                .AllowCredentials();
@@ -162,7 +166,56 @@ namespace Pets.API
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, PetsDbContext context)
         {
-            context.Database.Migrate();
+            // Only run migrations for non-test environments and when using a relational database
+            if (!env.IsEnvironment("Test") && context.Database.IsRelational())
+            {
+                try
+                {
+                    // Check if there are pending migrations before running
+                    var pendingMigrations = context.Database.GetPendingMigrations().ToList();
+                    if (pendingMigrations.Any())
+                    {
+                        var logger = app.ApplicationServices.GetRequiredService<ILogger<Startup>>();
+                        logger.LogInformation("Applying {Count} pending migration(s): {Migrations}", 
+                            pendingMigrations.Count, string.Join(", ", pendingMigrations));
+                        context.Database.Migrate();
+                    }
+                    else
+                    {
+                        var logger = app.ApplicationServices.GetRequiredService<ILogger<Startup>>();
+                        logger.LogInformation("Database is up to date - no pending migrations.");
+                    }
+                }
+                catch (Exception ex) when (ex.Message.Contains("already exists") || ex.Message.Contains("42P07"))
+                {
+                    // Tables exist but migration history might be out of sync
+                    // This is common in local dev when DB was created manually or partially migrated
+                    var logger = app.ApplicationServices.GetRequiredService<ILogger<Startup>>();
+                    logger.LogWarning(ex, 
+                        "Migration failed because tables already exist. " +
+                        "If this is expected, ensure migration history is synced. " +
+                        "To fix: Run 'dotnet ef database update --project ../Pets.Db/Pets.Db.csproj' manually.");
+                    
+                    // In development, continue; in production, this should be fixed
+                    if (!env.IsDevelopment())
+                    {
+                        throw new InvalidOperationException(
+                            "Database migration failed. Tables exist but migration history is out of sync. " +
+                            "Please sync migrations manually.", ex);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var logger = app.ApplicationServices.GetRequiredService<ILogger<Startup>>();
+                    logger.LogError(ex, "Migration failed with unexpected error.");
+                    
+                    // In production, fail fast; in development, log and continue
+                    if (!env.IsDevelopment())
+                    {
+                        throw;
+                    }
+                }
+            }
 
             if (env.IsDevelopment())
             {

@@ -1,5 +1,3 @@
-﻿using Microsoft.Identity.Client;
-
 namespace Pets.API.Config
 {
     public static class FeatureFlags

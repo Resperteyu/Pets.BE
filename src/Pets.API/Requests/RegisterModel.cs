@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Pets.API.Responses.Dtos;
 
 namespace Pets.API.Requests   
 {
@@ -16,5 +17,16 @@ namespace Pets.API.Requests
 
         [Required]
         public string Role { get; set; } = null!;
+
+        [Required]
+        public string FirstName { get; set; } = null!;
+
+        [Required]
+        public string LastName { get; set; } = null!;
+
+        public string? Telephone { get; set; }
+
+        [Required]
+        public AddressDto Address { get; set; } = null!;
     }
 }

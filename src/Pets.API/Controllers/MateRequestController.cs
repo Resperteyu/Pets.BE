@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Pets.API.Responses.Dtos;
@@ -68,8 +68,10 @@ namespace Pets.API.Controllers
         [HttpGet("filter")]
         public async Task<ActionResult<List<MateRequestDto>>> Filter([FromQuery] MateRequestSearchParams mateRequestSearchParams)
         {
-            var userId = Guid.Parse(userManager.GetUserId(HttpContext.User));
-            var mateRequests = await mateRequestService.Filter(userId, mateRequestSearchParams);
+            var userIdClaim = userManager.GetUserId(HttpContext.User);
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                return Unauthorized("Invalid or missing user identity.");
+            var mateRequests = await mateRequestService.Filter(userId, mateRequestSearchParams ?? new MateRequestSearchParams());
             return Ok(mateRequests);
         }
 

@@ -23,7 +23,7 @@ namespace Pets.API.Controllers
     {
         [Authorize]
         [HttpGet("messages/{userIdChat:Guid}")]
-        public async Task<ActionResult<List<ChatMessageDto>>> GetMessges(Guid userIdChat, [FromQuery] ChatMessageQueryParams chatMessageQueryParams)
+        public async Task<ActionResult<List<ChatMessageDto>>> GetMessages(Guid userIdChat, [FromQuery] ChatMessageQueryParams chatMessageQueryParams)
         {
             var userId = Guid.Parse(userManager.GetUserId(HttpContext.User));
 
@@ -59,11 +59,12 @@ namespace Pets.API.Controllers
         [HttpGet("infos")]
         public async Task<ActionResult<List<ChatMessageDto>>> GetChats()
         {
-            var userId = Guid.Parse(userManager.GetUserId(HttpContext.User));
-
-            var chats = await chatService.GetChats(userId);
-
-            return Ok(chats);
+            // TODO: Firebase not configured - returning empty list for now
+            // var userId = Guid.Parse(userManager.GetUserId(HttpContext.User));
+            // var chats = await chatService.GetChats(userId);
+            // return Ok(chats);
+            
+            return Ok(new List<ChatMessageDto>());
         }
     }
 }

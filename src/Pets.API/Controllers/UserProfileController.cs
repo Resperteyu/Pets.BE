@@ -70,5 +70,14 @@ namespace Pets.API.Controllers
 
             return Ok(viewUserProfileDto);
         }
+
+        [Authorize]
+        [HttpGet("me")]
+        public async Task<ActionResult<UserProfileDto>> GetMyProfile()
+        {
+            var userId = userManager.GetUserId(User);
+            var userProfile = await userProfileService.GetUserProfile(userId);
+            return userProfile == null ? NotFound() : Ok(userProfile);
+        }
     }
 }
